@@ -1,0 +1,95 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-cyber-950 text-slate-100 font-sans;
+  }
+}
+
+/* Glassmorphism Styles */
+.glass-panel {
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-panel-glow-purple {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(168, 85, 247, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(168, 85, 247, 0.05);
+}
+
+.glass-panel-glow-cyan {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.05);
+}
+
+/* Neon Text effects */
+.text-neon-purple {
+  text-shadow: 0 0 10px rgba(168, 85, 247, 0.5), 0 0 20px rgba(168, 85, 247, 0.2);
+}
+
+.text-neon-cyan {
+  text-shadow: 0 0 10px rgba(6, 182, 212, 0.5), 0 0 20px rgba(6, 182, 212, 0.2);
+}
+
+/* Micro-animations */
+@keyframes pulse-cyan {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(6, 182, 212, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(6, 182, 212, 0.6);
+  }
+}
+
+.pulse-border-cyan {
+  animation: pulse-cyan 3s infinite;
+}
+
+@keyframes pulse-purple {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(168, 85, 247, 0.2);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(168, 85, 247, 0.6);
+  }
+}
+
+.pulse-border-purple {
+  animation: pulse-purple 3s infinite;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #030712;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1f2937;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #374151;
+}
+
+/* Web camera HUD scanning grids */
+.scanlines {
+  background: linear-gradient(
+    rgba(18, 16, 16, 0) 50%, 
+    rgba(0, 0, 0, 0.25) 50%
+  );
+  background-size: 100% 4px;
+}
