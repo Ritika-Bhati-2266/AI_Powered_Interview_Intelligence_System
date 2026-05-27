@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # AI Interview Intelligence System (Local Multimodal DS Pro)
 
 Aegis AI is an advanced, multimodal, and locally run AI Mock Interview Platform built on standard consumer hardware. It evaluates user speech and articulation using open-source, offline AI engines without any paid API dependencies.
@@ -58,3 +59,6 @@ The interface will automatically open on **`http://localhost:8501`**.
 2. **AI scoring & feedback**: Click **Stop**. The local AI pipeline runs speech transcription, librosa frequency processing, spaCy lemmatization, and sentence similarity models entirely offline.
 3. **Category Radar Spider Maps**: Tab 2 displays a complete progress timeline, detailing strengths, weaknesses, and a glowing Plotly radar map mapping your tech vs speech dimensions.
 4. **Database Admin Panel**: Tab 3 lets you search questions, delete entries, or seed new custom questions.
+=======
+# AI-Interview-Intelligence-System
+>>>>>>> f1419ee713e9470c42046c8b2991be3651ee679e
