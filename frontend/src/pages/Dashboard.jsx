@@ -1,289 +1,302 @@
-import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import api from '../services/api';
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
-import { Video, Award, Brain, MessageSquare, Compass, Eye, Calendar, ArrowUpRight } from 'lucide-react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { 
+  Terminal, 
+  Cpu, 
+  Activity, 
+  Layers, 
+  Sparkles, 
+  Clock, 
+  FileCheck, 
+  Play, 
+  TrendingUp, 
+  RefreshCw 
+} from 'lucide-react';
 
-const Dashboard = () => {
-  const navigate = useNavigate();
-  const [stats, setStats] = useState(null);
-  const [history, setHistory] = useState([]);
+export default function Dashboard() {
+  const [stats, setStats] = useState({ total_interviews: 0, completed: 0, pending: 0, average_score: 0.0 });
+  const [interviews, setInterviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [seeding, setSeeding] = useState(false);
+  const [error, setError] = useState(null);
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/dashboard');
+      setStats(response.data.stats);
+      setInterviews(response.data.interviews);
+      setError(null);
+    } catch (err) {
+      console.error("Failed to load dashboard statistics:", err);
+      setError("Failed to fetch dashboard feed. Ensure backend server is running on localhost:8000.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      try {
-        const statsRes = await api.get('/dashboard/stats');
-        const historyRes = await api.get('/dashboard/history');
-        setStats(statsRes.data);
-        setHistory(historyRes.data);
-      } catch (err) {
-        console.error("Error fetching dashboard statistics:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchDashboardData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="min-h-[70vh] flex items-center justify-center">
-        <div className="w-8 h-8 rounded-full border-2 border-indigo-500/20 border-t-indigo-500 animate-spin" />
-      </div>
-    );
-  }
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 10 },
-    visible: { opacity: 1, y: 0 }
+  const triggerSeed = async () => {
+    try {
+      setSeeding(true);
+      await axios.post('/api/seed');
+      // Reload dashboard after successful seed
+      await fetchDashboardData();
+    } catch (err) {
+      console.error("Seeding operation failed:", err);
+      setError("Database seeding failed. Please check backend terminal output.");
+    } finally {
+      setSeeding(false);
+    }
   };
 
   return (
-    <div className="flex flex-col gap-6 text-left">
-      {/* Upper header action banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-3xl font-bold font-outfit text-white tracking-tight">Dashboard Overview</h1>
-          <p className="text-slate-400 text-sm mt-1">Track your speaking speed, facial attention, and technical coding scores.</p>
+    <div className="space-y-8">
+      {/* Upper Terminal Banner */}
+      <div className="cyber-panel p-6 bg-cyber-dark/80 relative overflow-hidden flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="space-y-2 max-w-2xl">
+          <div className="flex items-center gap-2 text-cyber-cyan font-cyber font-bold tracking-wider text-sm">
+            <Activity className="w-4 h-4 animate-pulse" />
+            <span>NEURAL INTERVIEW OS // ONLINE</span>
+          </div>
+          <h1 className="text-3xl font-black text-white font-cyber tracking-tight uppercase">
+            System Dashboard
+          </h1>
+          <p className="text-cyber-text text-sm font-sans">
+            Offline AI Intelligence Suite for speech analysis, speech-to-text semantic matching, 
+            acoustic sentiment scoring, and offline LLM performance indexing.
+          </p>
         </div>
-        <button
-          onClick={() => navigate('/setup')}
-          className="flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold font-outfit shadow-neon-purple hover:shadow-lg transition-all duration-300"
-        >
-          <Video className="w-4 h-4" />
-          <span>New Mock Session</span>
-        </button>
+        
+        <div className="flex flex-wrap gap-3">
+          <button 
+            onClick={fetchDashboardData}
+            disabled={loading}
+            className="flex items-center gap-2 px-4 py-2 border border-cyber-cyan/30 bg-cyber-cyan/10 hover:bg-cyber-cyan/20 active:scale-95 text-cyber-cyan text-sm uppercase tracking-wider font-cyber font-semibold clip-slanted-sm transition duration-150 cursor-pointer"
+          >
+            <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            <span>Refresh Feed</span>
+          </button>
+          
+          <button 
+            onClick={triggerSeed}
+            disabled={seeding}
+            className="flex items-center gap-2 px-4 py-2 border border-cyber-pink/30 bg-cyber-pink/10 hover:bg-cyber-pink/20 active:scale-95 text-cyber-pink text-sm uppercase tracking-wider font-cyber font-semibold clip-slanted-sm transition duration-150 cursor-pointer"
+          >
+            <Sparkles className="w-4 h-4" />
+            <span>{seeding ? 'Syncing...' : 'Neural Seed'}</span>
+          </button>
+        </div>
       </div>
 
-      {stats && stats.total_interviews > 0 ? (
-        <>
-          {/* KPI Analytics Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            {/* Total sessions */}
-            <motion.div
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ duration: 0.3 }}
-              className="p-5 rounded-2xl bg-slate-900/40 border border-white/5 shadow-neon-card flex items-center justify-between"
-            >
-              <div className="flex flex-col">
-                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Completed Sessions</span>
-                <span className="text-2xl font-bold font-outfit text-white mt-1">{stats.total_interviews}</span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                <Video className="w-5 h-5" />
-              </div>
-            </motion.div>
-
-            {/* Average rating */}
-            <motion.div
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ duration: 0.3, delay: 0.05 }}
-              className="p-5 rounded-2xl bg-slate-900/40 border border-white/5 shadow-neon-card flex items-center justify-between"
-            >
-              <div className="flex flex-col">
-                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Average Rating</span>
-                <span className="text-2xl font-bold font-outfit text-emerald-400 mt-1">{stats.average_overall_score}%</span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-emerald-600/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                <Award className="w-5 h-5" />
-              </div>
-            </motion.div>
-
-            {/* Top Strengths */}
-            <motion.div
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ duration: 0.3, delay: 0.1 }}
-              className="p-5 rounded-2xl bg-slate-900/40 border border-white/5 shadow-neon-card flex items-center justify-between"
-            >
-              <div className="flex flex-col max-w-[70%]">
-                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Focus Areas</span>
-                <span className="text-sm font-semibold text-cyan-400 mt-2 truncate font-outfit">
-                  {stats.strong_topics[0]}
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-cyan-600/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center">
-                <Brain className="w-5 h-5 animate-pulse" />
-              </div>
-            </motion.div>
-
-            {/* Weak topics */}
-            <motion.div
-              variants={cardVariants}
-              initial="hidden"
-              animate="visible"
-              transition={{ duration: 0.3, delay: 0.15 }}
-              className="p-5 rounded-2xl bg-slate-900/40 border border-white/5 shadow-neon-card flex items-center justify-between"
-            >
-              <div className="flex flex-col max-w-[70%]">
-                <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">Critical Reviews</span>
-                <span className="text-sm font-semibold text-rose-400 mt-2 truncate font-outfit">
-                  {stats.weak_topics[0]}
-                </span>
-              </div>
-              <div className="w-10 h-10 rounded-xl bg-rose-600/10 border border-rose-500/20 text-rose-400 flex items-center justify-center">
-                <MessageSquare className="w-5 h-5" />
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Analytical Charts and Visualizations */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Score timeline graph */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
-              className="p-5 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-neon-card"
-            >
-              <h2 className="text-base font-bold font-outfit text-white mb-4">Overall Score Trends</h2>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={stats.score_trends}>
-                    <defs>
-                      <linearGradient id="scoreGlow" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="date" stroke="#64748b" fontSize={10} tickLine={false} />
-                    <YAxis domain={[0, 100]} stroke="#64748b" fontSize={10} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ background: '#0f172a', borderColor: '#1f2937', borderRadius: '12px' }}
-                      labelStyle={{ color: '#94a3b8', fontWeight: 'bold' }}
-                    />
-                    <Area type="monotone" dataKey="score" stroke="#6366f1" strokeWidth={2} fillOpacity={1} fill="url(#scoreGlow)" />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
-
-            {/* Categorical Dimension Breakdown */}
-            <motion.div
-              initial={{ opacity: 0, y: 15 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.1 }}
-              className="p-5 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-neon-card"
-            >
-              <h2 className="text-base font-bold font-outfit text-white mb-4">Dimension breakdown by Category</h2>
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={stats.category_performance}>
-                    <XAxis dataKey="category" stroke="#64748b" fontSize={10} tickLine={false} />
-                    <YAxis domain={[0, 100]} stroke="#64748b" fontSize={10} tickLine={false} />
-                    <Tooltip
-                      contentStyle={{ background: '#0f172a', borderColor: '#1f2937', borderRadius: '12px' }}
-                    />
-                    <Legend iconType="circle" wrapperStyle={{ fontSize: 10 }} />
-                    <Bar dataKey="technical" fill="#a855f7" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="communication" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="confidence" fill="#f43f5e" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </motion.div>
-          </div>
-
-          {/* Historical Logs List */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5 }}
-            className="rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-neon-card overflow-hidden"
-          >
-            <div className="p-5 border-b border-white/5 flex items-center justify-between">
-              <h2 className="text-base font-bold font-outfit text-white">Interview History logs</h2>
-              <span className="text-[10px] bg-indigo-500/10 text-indigo-400 px-2.5 py-1 rounded-full border border-indigo-500/20 font-bold uppercase">
-                Mock Database
-              </span>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead>
-                  <tr className="border-b border-white/5 bg-slate-950/20">
-                    <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest pl-6">Mock Role</th>
-                    <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Difficulty</th>
-                    <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Date Conducted</th>
-                    <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Rating Score</th>
-                    <th className="py-4 px-6 text-[10px] font-bold text-slate-500 uppercase tracking-widest pr-6">Action</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {history.map((session) => (
-                    <tr
-                      key={session.id}
-                      className="border-b border-white/5 hover:bg-slate-900/25 transition-all duration-200"
-                    >
-                      <td className="py-4 px-6 font-outfit text-sm font-semibold text-slate-200 pl-6">
-                        {session.role}
-                      </td>
-                      <td className="py-4 px-6">
-                        <span className={`text-[10px] px-2.5 py-1 rounded-full border font-bold uppercase tracking-wider ${
-                          session.difficulty === 'Advanced'
-                            ? 'bg-rose-500/10 border-rose-500/20 text-rose-400'
-                            : session.difficulty === 'Intermediate'
-                            ? 'bg-amber-500/10 border-amber-500/20 text-amber-400'
-                            : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
-                        }`}>
-                          {session.difficulty}
-                        </span>
-                      </td>
-                      <td className="py-4 px-6 text-xs text-slate-400 flex items-center gap-1.5 mt-2">
-                        <Calendar className="w-3.5 h-3.5 text-slate-500" />
-                        <span>{new Date(session.created_at).toLocaleDateString()}</span>
-                      </td>
-                      <td className="py-4 px-6 font-outfit text-sm font-semibold text-emerald-400">
-                        {session.overall_score > 0 ? `${session.overall_score}%` : 'Pending'}
-                      </td>
-                      <td className="py-4 px-6 pr-6">
-                        <button
-                          onClick={() => navigate(`/report/${session.id}`)}
-                          className="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-white/5 hover:border-indigo-500/30 bg-slate-950/40 text-slate-400 hover:text-indigo-400 text-xs font-semibold transition-all duration-300"
-                        >
-                          <Eye className="w-3.5 h-3.5" />
-                          <span>View Report</span>
-                          <ArrowUpRight className="w-3 h-3" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </motion.div>
-        </>
-      ) : (
-        /* Empty welcome screen */
-        <motion.div
-          initial={{ opacity: 0, y: 15 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="p-12 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-neon-card text-center flex flex-col items-center gap-4 max-w-2xl mx-auto mt-12"
-        >
-          <div className="w-16 h-16 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center pulse-border-purple">
-            <Compass className="w-8 h-8" />
-          </div>
-          <h2 className="text-xl font-bold font-outfit text-white">Begin your AI Practice Sessions</h2>
-          <p className="text-sm text-slate-500 leading-relaxed font-sans max-w-md">
-            No mock runs have been initiated yet. Select your industry roles, choose difficulty thresholds, calibrate your webcam, and receive real-time, comprehensive speech evaluations.
-          </p>
-          <button
-            onClick={() => navigate('/setup')}
-            className="flex items-center gap-2 mt-2 px-6 py-3 rounded-2xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-semibold font-outfit transition-all duration-300"
-          >
-            <Video className="w-4 h-4" />
-            <span>Launch Mock Interview Setup</span>
-          </button>
-        </motion.div>
+      {error && (
+        <div className="p-4 bg-cyber-pink/10 border border-cyber-pink/40 text-cyber-pink rounded-none font-tech text-sm flex gap-3 items-center">
+          <Terminal className="w-5 h-5 flex-shrink-0" />
+          <span>[SYSTEM ERROR]: {error}</span>
+        </div>
       )}
+
+      {/* Grid Stats */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="cyber-panel p-5 bg-cyber-dark/40 relative">
+          <div className="flex justify-between items-start">
+            <p className="text-xs uppercase tracking-wider text-cyber-text font-cyber">Total Sessions</p>
+            <Cpu className="text-cyber-cyan w-5 h-5 opacity-70" />
+          </div>
+          <p className="text-4xl font-extrabold text-white mt-4 font-cyber tracking-tight">
+            {stats.total_interviews.toString().padStart(2, '0')}
+          </p>
+          <div className="absolute bottom-0 right-0 w-24 h-1 bg-cyber-cyan/50"></div>
+        </div>
+
+        <div className="cyber-panel-pink p-5 bg-cyber-dark/40 relative">
+          <div className="flex justify-between items-start">
+            <p className="text-xs uppercase tracking-wider text-cyber-text font-cyber">Evaluation Completed</p>
+            <FileCheck className="text-cyber-pink w-5 h-5 opacity-70" />
+          </div>
+          <p className="text-4xl font-extrabold text-white mt-4 font-cyber tracking-tight">
+            {stats.completed.toString().padStart(2, '0')}
+          </p>
+          <div className="absolute bottom-0 right-0 w-24 h-1 bg-cyber-pink/50"></div>
+        </div>
+
+        <div className="cyber-panel p-5 bg-cyber-dark/40 relative">
+          <div className="flex justify-between items-start">
+            <p className="text-xs uppercase tracking-wider text-cyber-text font-cyber">Pending Analysis</p>
+            <Clock className="text-cyber-yellow w-5 h-5 opacity-70" />
+          </div>
+          <p className="text-4xl font-extrabold text-white mt-4 font-cyber tracking-tight text-cyber-yellow">
+            {stats.pending.toString().padStart(2, '0')}
+          </p>
+          <div className="absolute bottom-0 right-0 w-24 h-1 bg-cyber-yellow/50"></div>
+        </div>
+
+        <div className="cyber-panel p-5 bg-cyber-dark/40 relative">
+          <div className="flex justify-between items-start">
+            <p className="text-xs uppercase tracking-wider text-cyber-text font-cyber">Neural Mean Score</p>
+            <TrendingUp className="text-cyber-green w-5 h-5 opacity-70" />
+          </div>
+          <p className="text-4xl font-extrabold mt-4 font-cyber tracking-tight text-cyber-green">
+            {stats.average_score}%
+          </p>
+          <div className="absolute bottom-0 right-0 w-24 h-1 bg-cyber-green/50"></div>
+        </div>
+      </div>
+
+      {/* Main Panel Content: Sessions list */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        
+        {/* Left Side: Sessions Index */}
+        <div className="lg:col-span-2 space-y-4">
+          <div className="flex items-center gap-2">
+            <Layers className="text-cyber-cyan w-4 h-4" />
+            <h2 className="text-xl font-bold font-cyber text-white uppercase tracking-wider">Active Memory Segments</h2>
+          </div>
+
+          {loading ? (
+            <div className="cyber-panel p-12 flex flex-col items-center justify-center space-y-4 bg-cyber-dark/20 border border-cyber-cyan/10">
+              <RefreshCw className="w-8 h-8 text-cyber-cyan animate-spin" />
+              <p className="text-sm font-tech text-cyber-cyan">CONNECTING NEURAL CORRIDOR...</p>
+            </div>
+          ) : interviews.length === 0 ? (
+            <div className="cyber-panel p-12 flex flex-col items-center justify-center space-y-6 bg-cyber-dark/20 text-center border border-dashed border-cyber-cyan/20">
+              <p className="text-cyber-text text-sm">No neural evaluation sessions indexed in local SQLite storage.</p>
+              <button 
+                onClick={triggerSeed}
+                disabled={seeding}
+                className="px-6 py-2.5 bg-cyber-cyan text-black hover:bg-cyber-cyan/80 active:scale-95 text-xs font-cyber font-black uppercase tracking-wider clip-slanted transition"
+              >
+                {seeding ? "Populating Models..." : "Populate with Mock Neural Portfolio"}
+              </button>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {interviews.map((intv) => (
+                <div 
+                  key={intv.id} 
+                  className={`cyber-panel p-5 bg-cyber-dark/60 border ${
+                    intv.status === 'completed' 
+                      ? 'border-cyber-cyan/10 hover:border-cyber-cyan/40 hover:shadow-cyan-glow' 
+                      : 'border-cyber-pink/10 hover:border-cyber-pink/40 hover:shadow-pink-glow'
+                  } transition duration-300 relative group flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4`}
+                >
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                      <span className="font-tech text-xs text-cyber-text/50">ID: {intv.id.toString().padStart(3, '0')}</span>
+                      <span className={`text-[10px] uppercase font-cyber font-semibold px-2 py-0.5 tracking-wider ${
+                        intv.status === 'completed' 
+                          ? 'bg-cyber-cyan/10 text-cyber-cyan border border-cyber-cyan/20' 
+                          : intv.status === 'pending'
+                          ? 'bg-cyber-yellow/10 text-cyber-yellow border border-cyber-yellow/20 animate-pulse'
+                          : 'bg-cyber-pink/10 text-cyber-pink border border-cyber-pink/20'
+                      }`}>
+                        {intv.status}
+                      </span>
+                    </div>
+                    <h3 className="text-lg font-bold text-white group-hover:text-cyber-cyan transition">
+                      {intv.title}
+                    </h3>
+                    <div className="flex items-center gap-4 text-xs font-sans text-cyber-text">
+                      <span className="flex items-center gap-1">
+                        <Clock className="w-3.5 h-3.5 text-cyber-cyan" />
+                        {new Date(intv.created_at).toLocaleDateString()}
+                      </span>
+                      <span>•</span>
+                      <span>{intv.questions_count} Questions</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-4 self-end sm:self-center">
+                    {intv.status === 'completed' && intv.performance_score !== null && (
+                      <div className="text-right">
+                        <span className="text-[10px] text-cyber-text/40 block font-cyber">NEURAL GRADE</span>
+                        <span className="font-cyber font-black text-2xl text-cyber-green">{intv.performance_score}%</span>
+                      </div>
+                    )}
+                    
+                    {intv.status === 'completed' ? (
+                      <Link 
+                        to={`/analytics/${intv.id}`}
+                        className="flex items-center gap-2 px-4 py-2 border border-cyber-cyan text-cyber-cyan hover:bg-cyber-cyan hover:text-black font-cyber text-xs uppercase font-bold tracking-wider clip-slanted-sm transition cursor-pointer"
+                      >
+                        <span>Inspect Feed</span>
+                      </Link>
+                    ) : (
+                      <Link 
+                        to={`/simulator/${intv.id}`}
+                        className="flex items-center gap-2 px-4 py-2 bg-cyber-pink text-white hover:bg-cyber-pink/80 font-cyber text-xs uppercase font-bold tracking-wider clip-slanted-sm shadow-pink-glow hover:scale-105 active:scale-95 transition cursor-pointer"
+                      >
+                        <Play className="w-3.5 h-3.5 fill-current" />
+                        <span>Run Simulation</span>
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Right Side: Quick Action Terminal / Documentation */}
+        <div className="space-y-6">
+          <div className="flex items-center gap-2">
+            <Terminal className="text-cyber-pink w-4 h-4" />
+            <h2 className="text-xl font-bold font-cyber text-white uppercase tracking-wider">System Terminal</h2>
+          </div>
+
+          <div className="cyber-panel-pink p-5 bg-cyber-dark/80 crt-screen space-y-4">
+            <div className="flex justify-between items-center border-b border-cyber-pink/20 pb-2">
+              <span className="text-xs font-tech text-cyber-pink tracking-wider">ROOT@NEURAL-INTEL:~#</span>
+              <span className="w-2.5 h-2.5 bg-cyber-pink rounded-full animate-ping"></span>
+            </div>
+            
+            <div className="font-tech text-xs text-cyber-pink/90 space-y-3 leading-relaxed">
+              <p>&gt; Offline speech analysis engine activated.</p>
+              <p>&gt; Loading spacy en_core_web_sm: SUCCESS</p>
+              <p>&gt; Initializing faster-whisper (Base model): SUCCESS</p>
+              <p>&gt; Setting up local cognitive embedding matcher: READY</p>
+              <p>&gt; Audio file path sandbox enabled: app/uploads/</p>
+              <p className="border border-cyber-pink/30 p-2 bg-cyber-pink/5">
+                Press [NEURAL SEED] at the top right to populate mock evaluation profiles containing sample user, transcripts, acoustic timelines, and sentiment scoring variables.
+              </p>
+            </div>
+          </div>
+
+          <div className="cyber-panel p-5 bg-cyber-dark/60 space-y-4">
+            <h3 className="font-cyber font-bold text-sm text-white uppercase tracking-wider border-b border-cyber-gray pb-2">
+              Offline Stack Diagnostics
+            </h3>
+            
+            <div className="space-y-3 font-sans text-xs">
+              <div className="flex justify-between items-center text-cyber-text">
+                <span>Transcription Engine</span>
+                <span className="text-cyber-cyan font-tech">faster-whisper v1.0.1</span>
+              </div>
+              <div className="flex justify-between items-center text-cyber-text">
+                <span>Sentence Embeddings</span>
+                <span className="text-cyber-cyan font-tech">MiniLM-L6-v2 (sentence-transformers)</span>
+              </div>
+              <div className="flex justify-between items-center text-cyber-text">
+                <span>NLP Grammar Models</span>
+                <span className="text-cyber-cyan font-tech">spaCy (Local Pipeline)</span>
+              </div>
+              <div className="flex justify-between items-center text-cyber-text">
+                <span>Acoustic Frequency Analyzer</span>
+                <span className="text-cyber-cyan font-tech">librosa / numpy</span>
+              </div>
+              <div className="flex justify-between items-center text-cyber-text">
+                <span>SQL Engine Backend</span>
+                <span className="text-cyber-cyan font-tech">SQLite3 Local File</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
     </div>
   );
-};
-
-export default Dashboard;
+}

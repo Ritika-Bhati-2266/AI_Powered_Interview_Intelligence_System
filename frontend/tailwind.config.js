@@ -8,28 +8,43 @@ export default {
     extend: {
       colors: {
         cyber: {
-          950: "#030712", // obsidian background
-          900: "#0b0f19", // deep dashboard card
-          800: "#111827", // solid slate dark
-          700: "#1f2937",
-          glow: {
-            purple: "#a855f7",
-            cyan: "#06b6d4",
-            pink: "#ec4899"
-          }
+          bg: '#05050a',         // Deep obsidian background
+          dark: '#0a0a14',        // Secondary card/panel obsidian
+          gray: '#141428',        // Border/input gray-blue
+          light: '#1f1f3a',       // Active list item / button background
+          cyan: '#00f3ff',        // Neon Cyan accent
+          pink: '#ff007f',        // Neon Magenta accent
+          yellow: '#ffe600',      // Warning Neon Yellow
+          green: '#39ff14',       // Positive Neon Green
+          purple: '#8b5cf6',      // Tech Purple
+          text: '#a5a6c9',        // Slate-purple body text
+          glow: 'rgba(0, 243, 255, 0.15)'
         }
       },
       fontFamily: {
-        sans: ["Outfit", "Inter", "sans-serif"],
-      },
-      backgroundImage: {
-        "neon-gradient": "linear-gradient(to right, #6366f1, #a855f7, #ec4899)",
-        "neon-radial": "radial-gradient(circle, rgba(168,85,247,0.15) 0%, rgba(3,7,18,0) 70%)"
+        cyber: ['Orbitron', 'sans-serif'],
+        tech: ['Share Tech Mono', 'monospace'],
+        sans: ['Rajdhani', 'Inter', 'sans-serif'],
       },
       boxShadow: {
-        "neon-cyan": "0 0 15px rgba(6, 182, 212, 0.4)",
-        "neon-purple": "0 0 15px rgba(168, 85, 247, 0.4)",
-        "neon-card": "0 8px 32px 0 rgba(0, 0, 0, 0.37)"
+        'cyan-glow': '0 0 15px rgba(0, 243, 255, 0.35)',
+        'pink-glow': '0 0 15px rgba(255, 0, 127, 0.35)',
+        'green-glow': '0 0 15px rgba(57, 255, 20, 0.35)',
+        'yellow-glow': '0 0 15px rgba(255, 230, 0, 0.35)',
+        'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
+      },
+      backgroundImage: {
+        'grid-pattern': "radial-gradient(circle, rgba(0, 243, 255, 0.08) 1px, transparent 1px)",
+      },
+      animation: {
+        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+        'flicker': 'flicker 0.15s infinite alternate',
+      },
+      keyframes: {
+        flicker: {
+          '0%': { opacity: '0.97' },
+          '100%': { opacity: '1.0' }
+        }
       }
     },
   },

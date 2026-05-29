@@ -1,170 +1,177 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Lock, Cpu, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { 
+  UserPlus, 
+  Lock, 
+  Mail, 
+  Terminal, 
+  Sparkles, 
+  AlertTriangle 
+} from 'lucide-react';
 
-const Register = () => {
+export default function Register() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  
-  const [error, setError] = useState('');
-  const [success, setSuccess] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError('');
-    setSuccess(false);
-    setSubmitting(true);
+    if (!email || !password || !confirmPassword) {
+      setError("All credentials nodes must be specified.");
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError("Passphrase mismatch. Confirmation must match password.");
+      return;
+    }
+
+    if (password.length < 6) {
+      setError("Passphrase too weak. Minimum 6 characters required.");
+      return;
+    }
 
     try {
-      await register(email, password, fullName);
-      setSuccess(true);
-      setTimeout(() => {
-        navigate('/login');
-      }, 1500);
+      setLoading(true);
+      setError(null);
+
+      const result = await register(email, password);
+      if (result.success) {
+        navigate('/', { replace: true });
+      } else {
+        setError(result.error);
+      }
     } catch (err) {
-      setError(err);
+      setError("Identity creation pipeline error. Please try again.");
     } finally {
-      setSubmitting(false);
+      setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 flex items-center justify-center relative p-4 bg-neon-radial">
-      {/* Background neon glows */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-indigo-500/10 rounded-full blur-[100px]" />
-      <div className="absolute bottom-1/4 right-1/4 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px]" />
+    <div className="min-h-[80vh] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full space-y-8 relative">
+        
+        {/* Decorative Background Accents */}
+        <div className="absolute -top-10 -left-10 w-40 h-40 bg-cyber-pink/5 rounded-full blur-3xl pointer-events-none"></div>
+        <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-cyber-cyan/5 rounded-full blur-3xl pointer-events-none"></div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="w-full max-w-md p-8 rounded-3xl bg-slate-900/40 border border-white/5 backdrop-blur-xl shadow-neon-card relative z-10"
-      >
-        {/* Branding header */}
-        <div className="flex flex-col items-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-indigo-600/10 border border-indigo-500/20 text-indigo-400 flex items-center justify-center mb-3 pulse-border-purple">
-            <Cpu className="w-6 h-6" />
+        {/* Central Auth Cyber Panel Container */}
+        <div className="cyber-panel-pink p-8 bg-cyber-dark/85 backdrop-blur-xl relative crt-screen">
+          
+          {/* Header branding */}
+          <div className="text-center space-y-4 mb-8 border-b border-cyber-gray pb-6">
+            <div className="w-12 h-12 mx-auto border border-cyber-pink bg-cyber-pink/10 flex items-center justify-center clip-slanted-sm shadow-pink-glow">
+              <UserPlus className="w-5 h-5 text-cyber-pink animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-white font-cyber tracking-tight uppercase">
+                Secure Identity Provisioner
+              </h2>
+              <p className="text-xs font-tech text-cyber-cyan mt-1 tracking-widest">
+                REGISTER SYSTEM NODE
+              </p>
+            </div>
           </div>
-          <h2 className="text-2xl font-bold font-outfit bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-            Create Account
-          </h2>
-          <p className="text-slate-500 text-xs mt-1 font-sans">
-            AI Interview Intelligence Platform
-          </p>
+
+          {error && (
+            <div className="mb-6 p-4 bg-cyber-pink/10 border border-cyber-pink/40 text-cyber-pink font-tech text-xs rounded-none flex items-center gap-3">
+              <AlertTriangle className="w-5 h-5 flex-shrink-0 animate-bounce" />
+              <span>{error}</span>
+            </div>
+          )}
+
+          {/* Form */}
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            
+            {/* Email Field */}
+            <div className="space-y-2">
+              <label className="text-xs uppercase font-cyber font-semibold tracking-wider text-cyber-text block">
+                Register Email Address
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-cyber-text/50">
+                  <Mail className="w-4 h-4" />
+                </span>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full bg-cyber-bg border border-cyber-gray focus:border-cyber-pink p-3 pl-10 text-sm text-white font-tech rounded-none outline-none transition duration-150"
+                  placeholder="name@antigravity.ai"
+                />
+              </div>
+            </div>
+
+            {/* Password Field */}
+            <div className="space-y-2">
+              <label className="text-xs uppercase font-cyber font-semibold tracking-wider text-cyber-text block">
+                Decryption Passphrase
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-cyber-text/50">
+                  <Lock className="w-4 h-4" />
+                </span>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full bg-cyber-bg border border-cyber-gray focus:border-cyber-pink p-3 pl-10 text-sm text-white font-tech rounded-none outline-none transition duration-150"
+                  placeholder="•••••••••••• (Min 6 chars)"
+                />
+              </div>
+            </div>
+
+            {/* Confirm Password Field */}
+            <div className="space-y-2">
+              <label className="text-xs uppercase font-cyber font-semibold tracking-wider text-cyber-text block">
+                Confirm Passphrase
+              </label>
+              <div className="relative">
+                <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-cyber-text/50">
+                  <Lock className="w-4 h-4" />
+                </span>
+                <input
+                  type="password"
+                  required
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full bg-cyber-bg border border-cyber-gray focus:border-cyber-pink p-3 pl-10 text-sm text-white font-tech rounded-none outline-none transition duration-150"
+                  placeholder="••••••••••••"
+                />
+              </div>
+            </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 bg-cyber-pink hover:bg-cyber-pink/95 text-white hover:scale-[1.01] active:scale-[0.99] font-cyber text-xs uppercase font-black tracking-widest clip-slanted shadow-pink-glow transition duration-150 cursor-pointer"
+            >
+              {loading ? 'Generating Node...' : 'Establish Secure Profile'}
+            </button>
+
+          </form>
+
+          {/* Footer router trigger */}
+          <div className="mt-6 pt-6 border-t border-cyber-gray text-center text-xs font-sans text-cyber-text">
+            <span>Already have an active identity? </span>
+            <Link to="/login" className="text-cyber-cyan hover:text-white font-cyber uppercase tracking-wider transition underline cursor-pointer">
+              Decrypt Gateway
+            </Link>
+          </div>
+
         </div>
 
-        {error && (
-          <div className="mb-6 px-4 py-3 rounded-2xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs flex items-center gap-2 text-left">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{error}</span>
-          </div>
-        )}
-
-        {success && (
-          <div className="mb-6 px-4 py-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs flex items-center gap-2 text-left">
-            <CheckCircle className="w-4 h-4 shrink-0" />
-            <span>Registration successful! Redirecting to login...</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 text-left">
-          {/* Full Name input */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-400 font-outfit uppercase tracking-wider pl-1">
-              Full Name
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
-                <User className="w-4 h-4" />
-              </span>
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="Jane Doe"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-950 border border-white/5 text-slate-100 placeholder-slate-600 text-sm focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-300 outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Email input field */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-400 font-outfit uppercase tracking-wider pl-1">
-              Email Address
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
-                <Mail className="w-4 h-4" />
-              </span>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="developer@aegis.ai"
-                className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-950 border border-white/5 text-slate-100 placeholder-slate-600 text-sm focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-300 outline-none"
-              />
-            </div>
-          </div>
-
-          {/* Password input field */}
-          <div className="flex flex-col gap-1.5">
-            <label className="text-xs font-bold text-slate-400 font-outfit uppercase tracking-wider pl-1">
-              Password
-            </label>
-            <div className="relative">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center text-slate-500">
-                <Lock className="w-4 h-4" />
-              </span>
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min. 6 characters"
-                className="w-full pl-10 pr-10 py-3 rounded-2xl bg-slate-950 border border-white/5 text-slate-100 placeholder-slate-600 text-sm focus:border-indigo-500/50 focus:ring-1 focus:ring-indigo-500/20 transition-all duration-300 outline-none"
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-300"
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
-          </div>
-
-          {/* Submit button */}
-          <button
-            type="submit"
-            disabled={submitting || success}
-            className="w-full mt-2 py-3 rounded-2xl font-outfit font-bold text-sm bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {submitting ? 'Registering...' : 'Sign Up'}
-          </button>
-        </form>
-
-        <p className="mt-8 text-center text-xs text-slate-500 font-sans">
-          Already have an account?{' '}
-          <Link
-            to="/login"
-            className="font-semibold text-indigo-400 hover:text-indigo-300 transition-all duration-200"
-          >
-            Sign in
-          </Link>
-        </p>
-      </motion.div>
+      </div>
     </div>
   );
-};
-
-export default Register;
+}

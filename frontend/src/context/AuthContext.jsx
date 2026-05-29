@@ -1,75 +1,140 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import api from '../services/api';
+import axios from 'axios';
 
+// Create Auth Context
 const AuthContext = createContext(null);
 
-export const AuthProvider = ({ children }) => {
+// Configure Axios Default Interceptor
+// This interceptor automatically attaches the Bearer token to all outgoing API calls if present.
+axios.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('access_token');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
+
+export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
 
+  // Initialize and check persistent token in localStorage
   useEffect(() => {
-    const savedToken = localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-    const name = localStorage.getItem('name');
-    
-    if (savedToken && role) {
-      setUser({ token: savedToken, role, name });
+    const storedToken = localStorage.getItem('access_token');
+    const storedEmail = localStorage.getItem('user_email');
+    const storedId = localStorage.getItem('user_id');
+
+    if (storedToken && storedEmail && storedId) {
+      setUser({
+        email: storedEmail,
+        id: parseInt(storedId, 10),
+      });
     }
     setLoading(false);
   }, []);
 
+  // Configure response interceptor to auto-logout on 401 (expired/invalid token)
+  useEffect(() => {
+    const interceptor = axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (error.response && error.response.status === 401) {
+          // Automatic system logout on token expiry
+          logout();
+        }
+        return Promise.reject(error);
+      }
+    );
+
+    return () => {
+      axios.interceptors.response.eject(interceptor);
+    };
+  }, []);
+
   const login = async (email, password) => {
     try {
-      const response = await api.post('/auth/login', { email, password });
-      const { access_token, role, full_name } = response.data;
-      
-      localStorage.setItem('token', access_token);
-      localStorage.setItem('role', role);
-      localStorage.setItem('name', full_name || email);
-      
-      const loggedUser = { token: access_token, role, name: full_name || email };
-      setUser(loggedUser);
-      setToken(access_token);
-      return loggedUser;
+      const response = await axios.post('/api/auth/login', { email, password });
+      const { access_token, user_id, email: userEmail } = response.data;
+
+      // 1. Cache values inside localStorage
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('user_email', userEmail);
+      localStorage.setItem('user_id', user_id.toString());
+
+      // 2. Update React auth states
+      setUser({
+        email: userEmail,
+        id: user_id,
+      });
+
+      return { success: true };
     } catch (error) {
-      console.error("Login failure:", error);
-      throw error.response?.data?.detail || "Invalid login credentials.";
+      console.error("Login attempt failed:", error);
+      const message = error.response?.data?.detail || "Authentication server offline. Could not complete login.";
+      return { success: false, error: message };
     }
   };
 
-  const register = async (email, password, fullName) => {
+  const register = async (email, password) => {
     try {
-      await api.post('/auth/register', {
-        email,
-        password,
-        full_name: fullName
+      const response = await axios.post('/api/auth/register', { email, password });
+      const { access_token, user_id, email: userEmail } = response.data;
+
+      // 1. Cache values inside localStorage
+      localStorage.setItem('access_token', access_token);
+      localStorage.setItem('user_email', userEmail);
+      localStorage.setItem('user_id', user_id.toString());
+
+      // 2. Update React auth states
+      setUser({
+        email: userEmail,
+        id: user_id,
       });
+
+      return { success: true };
     } catch (error) {
-      console.error("Registration failure:", error);
-      throw error.response?.data?.detail || "Email is already registered.";
+      console.error("Registration attempt failed:", error);
+      const message = error.response?.data?.detail || "Registration failed. Database offline or invalid formatting.";
+      return { success: false, error: message };
     }
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('name');
+    // 1. Flush localStorage cached keys
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('user_email');
+    localStorage.removeItem('user_id');
+
+    // 2. Wipe React auth states
     setUser(null);
-    setToken(null);
+  };
+
+  const value = {
+    user,
+    loading,
+    login,
+    register,
+    logout,
+    isAuthenticated: !!user,
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout }}>
-      {children}
+    <AuthContext.Provider value={value}>
+      {!loading && children}
     </AuthContext.Provider>
   );
-};
+}
 
-export const useAuth = () => {
+// Custom hook helper for utilizing auth features in components
+export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be utilized within an AuthProvider.');
+    throw new Error('useAuth must be executed within an AuthProvider wrapper.');
   }
   return context;
-};
+}
