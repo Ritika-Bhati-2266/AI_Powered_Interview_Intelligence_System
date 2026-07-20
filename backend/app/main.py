@@ -1,5 +1,8 @@
 import json
 import logging
+import os
+import sys
+import base64
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -8,6 +11,16 @@ from typing import Dict, Any
 from app.core.config import settings
 from app.core.event_bus import event_bus, Event, EventType
 from app.services.session_manager import session_manager, InterviewSession
+
+# Dynamic import of CV Engine Processor
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../..")))
+try:
+    from cv_engine.src.processor import CVFrameProcessor
+    CV_AVAILABLE = True
+except Exception as e:
+    logging.getLogger("backend-main").warning(f"Could not import CVFrameProcessor: {e}")
+    CV_AVAILABLE = False
+
 
 # Setup Logging
 logging.basicConfig(
