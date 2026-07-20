@@ -1,0 +1,163 @@
+@'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Interview System - Register</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="page-register">
+    <div class="auth-page">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <div class="logo">&#x1f9d1;&#x200d;&#x1f3eb;</div>
+                    <h1>AI Interview Simulator</h1>
+                    <p>Practice interviews with AI. Get real-time feedback.</p>
+                </div>
+
+                <div id="ollama-status" style="text-align:center;font-size:0.8rem;color:var(--text-muted);margin-bottom:1.2rem;">
+                    Checking Ollama...
+                </div>
+
+                <div id="error-msg" class="hidden" style="margin-bottom:1rem;"></div>
+                <div id="skills-display" class="skills-container" style="margin-bottom:1rem;"></div>
+
+                <form id="registration-form" enctype="multipart/form-data">
+
+                    <div class="form-group">
+                        <label for="name">Full Name</label>
+                        <input type="text" id="name" name="name" class="form-input" placeholder="e.g., John Doe" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="email">Email Address</label>
+                        <input type="email" id="email" name="email" class="form-input" placeholder="e.g., john@example.com" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role">Target Role</label>
+                        <select id="role" name="role" class="form-select" required>
+                            <option value="">Select a role...</option>
+                            <option value="Python Developer">Python Developer</option>
+                            <option value="Full Stack Developer">Full Stack Developer</option>
+                            <option value="Frontend Developer">Frontend Developer</option>
+                            <option value="Backend Developer">Backend Developer</option>
+                            <option value="Data Scientist">Data Scientist</option>
+                            <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                            <option value="DevOps Engineer">DevOps Engineer</option>
+                            <option value="Software Engineer">Software Engineer</option>
+                            <option value="React Developer">React Developer</option>
+                            <option value="Node.js Developer">Node.js Developer</option>
+                            <option value="Java Developer">Java Developer</option>
+                            <option value="Cloud Engineer">Cloud Engineer</option>
+                            <option value="Product Manager">Product Manager</option>
+                            <option value="Data Analyst">Data Analyst</option>
+                            <option value="QA Engineer">QA Engineer</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="company">Target Company</label>
+                        <select id="company" name="company" class="form-select">
+                            <option value="General">General (No specific company)</option>
+                            <optgroup label="FAANG">
+                                <option value="Google">&#x1f7e2; Google</option>
+                                <option value="Amazon">&#x1f7e0; Amazon</option>
+                                <option value="Meta">&#x1f535; Meta</option>
+                                <option value="Microsoft">&#x1f7e6; Microsoft</option>
+                                <option value="Apple">&#x26aa; Apple</option>
+                            </optgroup>
+                            <optgroup label="Indian IT">
+                                <option value="Flipkart">&#x1f6d2; Flipkart</option>
+                                <option value="TCS">TCS</option>
+                                <option value="Infosys">Infosys</option>
+                                <option value="Wipro">Wipro</option>
+                                <option value="HCL">HCL</option>
+                            </optgroup>
+                            <option value="Startup">&#x1f680; Startup</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="experience">Years of Experience</label>
+                        <select id="experience" name="experience" class="form-select">
+                            <option value="0-1">0-1 years (Entry Level)</option>
+                            <option value="1-2">1-2 years (Junior)</option>
+                            <option value="2-4" selected>2-4 years (Mid-Level)</option>
+                            <option value="4-7">4-7 years (Senior)</option>
+                            <option value="7-10">7-10 years (Lead)</option>
+                            <option value="10+">10+ years (Principal/Architect)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Interview Mode</label>
+                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;margin-top:0.4rem;">
+                            <div class="mode-option selected" data-mode="technical" style="border:2px solid var(--accent-blue);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
+                                <div style="font-size:1.4rem;">&#x1f4bb;</div>
+                                <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">Technical</div>
+                            </div>
+                            <div class="mode-option" data-mode="hr" style="border:2px solid var(--border-color);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
+                                <div style="font-size:1.4rem;">&#x1f91d;</div>
+                                <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">HR Round</div>
+                            </div>
+                            <div class="mode-option" data-mode="coding" style="border:2px solid var(--border-color);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
+                                <div style="font-size:1.4rem;">&#x2328;&#xfe0f;</div>
+                                <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">Coding</div>
+                            </div>
+                        </div>
+                        <input type="hidden" id="interview-mode" name="mode" value="technical">
+                    </div>
+
+                    <div class="form-group">
+                        <label>Upload Resume (PDF or DOCX)</label>
+                        <div class="file-upload">
+                            <input type="file" id="resume-file" name="resume" accept=".pdf,.docx">
+                            <div class="upload-icon">&#x1f4c4;</div>
+                            <div class="upload-text">Click or drag resume here</div>
+                            <div class="upload-hint">PDF or DOCX (max 16MB)</div>
+                        </div>
+                        <div id="file-name" class="hidden" style="margin-top:0.3rem;font-size:0.85rem;color:var(--accent-blue);"></div>
+                    </div>
+
+                    <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;margin-top:0.5rem;">
+                        &#x1f680; Start Interview
+                    </button>
+                </form>
+
+                <div style="text-align:center;margin-top:1.5rem;font-size:0.78rem;color:var(--text-muted);">
+                    Powered by Hermes AI &bull; All processing is local &bull; No data leaves your machine
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mode selection
+        document.querySelectorAll('.mode-option').forEach(function(opt) {
+            opt.addEventListener('click', function() {
+                document.querySelectorAll('.mode-option').forEach(function(o) {
+                    o.style.borderColor = 'var(--border-color)';
+                });
+                this.style.borderColor = 'var(--accent-blue)';
+                document.getElementById('interview-mode').value = this.dataset.mode;
+            });
+        });
+
+        // File name display
+        document.getElementById('resume-file').addEventListener('change', function() {
+            var fn = document.getElementById('file-name');
+            if (this.files[0]) {
+                fn.textContent = '📎 ' + this.files[0].name;
+                fn.classList.remove('hidden');
+            }
+        });
+    </script>
+    <script src="/static/script.js"></script>
+</body>
+</html>
+'@ | Out-File -FilePath "templates\index.html" -Encoding UTF8

@@ -1,67 +1,81 @@
 # AI Interview Intelligence System
 
-A production-ready, modular, and 100% offline-compatible AI Interview System. This project structures interactive video and audio ingestion, real-time speech transcription, and local AI evaluation to simulate professional recruitment loops without requiring external paid APIs.
+A full-stack AI Interview Coach that runs locally with Flask, SQLite, Ollama (LLM), and
+OpenAI Whisper (speech-to-text). Candidates register, upload a resume, choose a role
+and company, answer role-specific questions (text or voice), receive instant multi-dimension
+feedback, and may rewrite each answer once for a re-score.
 
----
+## Features
 
-## System Architecture
+- **Candidate registration** with resume parsing (PDF/DOCX) and skill extraction
+- **Multi-round interviews** tailored to companies (Amazon, Google, Microsoft, Meta, etc.)
+- **Role-specific questions** for SWE, PM, DS, QA, DevOps, and more
+- **Local LLM** (Ollama) for question generation and answer evaluation
+- **Local speech-to-text** (Whisper) — record or upload audio, transcript is auto-filled
+- **Filler-word detection** (`um`, `uh`, `like`, `you know`, etc.) with score impact
+- **One rewrite per answer** — see feedback, rewrite, get a second evaluation
+- **Persistent history** in SQLite — sessions, answers, skill gaps, recommendations
+- **Dashboard** with progress charts, skill radar, and per-session comparison
 
-```
-AI Interview Intelligence System/
-├── backend/                # FastAPI Backend Service (Orchestration & Event Bus)
-├── frontend/               # Next.js 14 Web UI (TypeScript + Tailwind CSS)
-├── ai-engine/              # Question Generator Engine (Rule-based & Ollama LLM support)
-├── cv-engine/              # Computer Vision Engine (Emotion & Posture extraction)
-├── speech-engine/          # Speech Processing Engine (Offline Vosk STT)
-└── models/                 # Model registry and offline weights downloader
-```
+## Requirements
 
-### Key Architectural Flows
-1. **Resume Processing**: The user uploads a resume PDF. The `backend` calls the local PyMuPDF extractor to parse skills, projects, and career milestones.
-2. **Contextual Questioning**: The `ai-engine` consumes the resume JSON, targeting key technologies to generate **HR**, **Technical**, and **Follow-up** questions. It connects dynamically to a local **Ollama** daemon (defaults to `llama3`) or executes highly optimized fallback templates if offline.
-3. **Real-time Evaluation**: The user joins an interactive interview space. Microphone audio downsampled to 16kHz is streamed down a **FastAPI WebSocket** (`/ws/interview`). The `speech-engine` pipes these chunks into **Vosk** to stream live text transcripts and word-level timestamps.
-4. **Behavioral Telemetry**: Frontend WebRTC streams or calculations for emotion/posture feed into the `cv-engine` via WebSocket channels. The backend **Event Bus** orchestrates state updates and publishes insights reactively.
-
----
-
-## Local Setup Instructions
-
-### 1. Requirements
 - Python 3.10+
-- Node.js 18+
-- Ollama (Optional, for advanced LLM question variations)
+- Ollama running locally (`ollama serve`)
+- `ffmpeg` on PATH (required by Whisper)
 
-### 2. Install & Start Backend
-From the root directory:
-```bash
-cd backend
-pip install -r requirements.txt
-uvicorn app.main:app --reload
-```
-The server will boot on `http://localhost:8000`. You can query the health endpoint at `http://localhost:8000/health`.
+### Install ffmpeg on Windows
 
-### 3. Fetch Offline Speech Models
-In another terminal, download the local Vosk STT small model (~40MB) to enable full offline transcription:
 ```bash
-cd models
-python download_weights.py
+# Using winget (recommended)
+winget install Gyan.FFmpeg
+
+# Or download from https://www.gyan.dev/ffmpeg/builds/ and add bin/ to PATH
+ffmpeg -version  # verify
 ```
 
-### 4. Install & Start Frontend
-From the root directory:
+### Install Ollama model
+
 ```bash
-cd frontend
-npm install
-npm run dev
+ollama serve               # in one terminal
+ollama pull llama3.2:latest   # or llama3.1, llama3.2
 ```
-Open `http://localhost:3000` in your web browser.
 
----
+### Install Python dependencies
 
-## Key Scaffolding Modules
+```bash
+cd ai-interview-system
+python -m pip install -r requirements.txt
+```
 
-### 1. Async Event Bus (`backend/app/core/event_bus.py`)
-Provides reactive publish/subscribe handling for real-time video/audio telemetry and transcriptions, ensuring decoupled processing.
+Whisper downloads the `base` model on first transcription (~140 MB). Override with
+the environment variable `WHISPER_MODEL=tiny|base|small|medium|large`.
 
-### 2. Session Manager (`backend/app/services/session_manager.py`)
-Thread-safe session tracking. Manages candidate details, question buffers, WebSocket registries, and aggregated session performance indicators.
+## Run
+
+```bash
+python app.py
+# Server: http://127.0.0.1:5050
+```
+
+## Run tests
+
+```bash
+python -m pytest tests/ -v
+```
+
+## Project layout
+
+```
+ai-interview-system/
+├── app.py                 # Flask routes
+├── ai_service.py          # Ollama LLM prompts + role rubrics
+├── interview_engine.py    # Session state, rounds, evaluation
+├── stt_service.py         # Whisper STT + filler-word detection
+├── resume_parser.py       # PDF/DOCX resume parsing
+├── company_rounds.py      # Per-company round structures
+├── coding_questions_bank.py
+├── aptitude_bank.py       # Aptitude MCQ bank
+├── templates/             # HTML pages
+├── static/                # CSS/JS
+└── tests/                 # pytest suite
+```

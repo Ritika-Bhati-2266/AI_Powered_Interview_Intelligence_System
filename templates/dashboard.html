@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interview Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="page-dashboard">
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="navbar-brand">
+                <span class="brand-icon">&#x1f9d1;&#x200d;&#x1f3eb;</span>
+                AI Interview
+            </a>
+            <div class="navbar-links">
+                <a href="/">New Interview</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="dashboard-page">
+        <div class="container">
+            {% if data %}
+            <!-- Welcome -->
+            <div class="flex-between" style="margin-bottom:1.5rem;">
+                <div>
+                    <h1>Dashboard</h1>
+                    <p style="margin-bottom:0;">Welcome back, <strong>{{ data.candidate.name }}</strong></p>
+                </div>
+                <a href="/" class="btn btn-primary">&#x2795; New Interview</a>
+            </div>
+
+            <script>window.CANDIDATE_ID = {{ data.candidate.id }};</script>
+
+            <!-- Stats Cards -->
+            <div class="dashboard-grid">
+                <div class="stat-card blue">
+                    <div class="stat-value">{{ data.total_sessions }}</div>
+                    <div class="stat-label">Completed Interviews</div>
+                </div>
+                <div class="stat-card green">
+                    <div class="stat-value">{{ data.avg_overall }}</div>
+                    <div class="stat-label">Overall Score</div>
+                </div>
+                <div class="stat-card orange">
+                    <div class="stat-value">{{ data.avg_technical }}</div>
+                    <div class="stat-label">Technical Score</div>
+                </div>
+                <div class="stat-card purple">
+                    <div class="stat-value">{{ data.avg_communication }}</div>
+                    <div class="stat-label">Communication Score</div>
+                </div>
+            </div>
+
+            <!-- Score Breakdown Bars -->
+            <div class="card" style="margin-bottom:2rem;">
+                <div class="card-header">
+                    <h3>Score Breakdown</h3>
+                </div>
+                <div class="card-body">
+                    <div class="score-bars">
+                        <div class="bar-group">
+                            <div class="bar-value" style="color:var(--accent-blue);">{{ data.avg_technical }}</div>
+                            <div class="bar">
+                                <div class="bar-fill blue" data-height="{{ data.avg_technical * 10 }}"
+                                     style="height:0%;"></div>
+                            </div>
+                            <div class="bar-label">Technical</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-value" style="color:var(--accent-green);">{{ data.avg_communication }}</div>
+                            <div class="bar">
+                                <div class="bar-fill green" data-height="{{ data.avg_communication * 10 }}"
+                                     style="height:0%;"></div>
+                            </div>
+                            <div class="bar-label">Communication</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-value" style="color:var(--accent-orange);">{{ data.avg_confidence }}</div>
+                            <div class="bar">
+                                <div class="bar-fill orange" data-height="{{ data.avg_confidence * 10 }}"
+                                     style="height:0%;"></div>
+                            </div>
+                            <div class="bar-label">Confidence</div>
+                        </div>
+                        <div class="bar-group">
+                            <div class="bar-value" style="color:var(--accent-purple);">{{ data.avg_overall }}</div>
+                            <div class="bar">
+                                <div class="bar-fill purple" data-height="{{ data.avg_overall * 10 }}"
+                                     style="height:0%;"></div>
+                            </div>
+                            <div class="bar-label">Overall</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Progress Chart (Chart.js) -->
+            <div class="card" style="margin-bottom:2rem;">
+                <div class="card-header">
+                    <h3>Progress Over Time</h3>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container">
+                        <canvas id="progress-chart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Session History -->
+            <div class="card">
+                <div class="card-header">
+                    <h3>Interview History</h3>
+                    <span style="font-size:0.8rem;color:var(--text-muted);">
+                        {{ data.total_answers }} answers across {{ data.total_sessions }} sessions
+                    </span>
+                </div>
+                <div class="card-body">
+                    {% if data.sessions %}
+                    <div class="table-container">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Mode</th>
+                                    <th>Questions</th>
+                                    <th>Overall</th>
+                                    <th>Technical</th>
+                                    <th>Communication</th>
+                                    <th>Confidence</th>
+                                    <th>Report</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in data.sessions %}
+                                <tr>
+                                    <td>{{ session.created_at[:10] if session.created_at else 'N/A' }}</td>
+                                    <td>
+                                        <span class="mode-indicator {{ session.mode }}"
+                                              style="padding:0.2rem 0.5rem;font-size:0.72rem;display:inline;">
+                                            {{ session.mode|capitalize if session.mode else 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>{{ session.completed_questions or 0 }}/{{ session.total_questions or 0 }}</td>
+                                    <td class="score-cell" style="color:var(--accent-green);">
+                                        {{ '%.1f'|format(session.overall_score) if session.overall_score else '--' }}
+                                    </td>
+                                    <td class="score-cell">{{ '%.1f'|format(session.technical_score) if session.technical_score else '--' }}</td>
+                                    <td class="score-cell">{{ '%.1f'|format(session.communication_score) if session.communication_score else '--' }}</td>
+                                    <td class="score-cell">{{ '%.1f'|format(session.confidence_score) if session.confidence_score else '--' }}</td>
+                                    <td>
+                                        <a href="/report/{{ session.id }}" class="btn btn-sm btn-secondary">
+                                            View &#x2192;
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p style="text-align:center;padding:2rem 0;">No interview sessions yet. <a href="/">Start your first interview!</a></p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Comparison Stats (loaded dynamically) -->
+            <div id="comparison-section" class="card" style="margin-top:1.5rem;">
+                <div class="card-header">
+                    <h3>Performance Analysis</h3>
+                </div>
+                <div class="card-body" id="comparison-content">
+                    <p class="text-muted">Loading comparison data...</p>
+                </div>
+            </div>
+
+            <script>
+                // Load comparison data dynamically
+                (function() {
+                    const cid = window.CANDIDATE_ID;
+                    if (!cid) return;
+                    fetch('/api/compare/' + cid)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.error) {
+                                document.getElementById('comparison-content').innerHTML =
+                                    '<p class="text-muted">Complete more interviews to see comparison data.</p>';
+                                return;
+                            }
+                            const trendIcon = data.trend === 'improving' ? '&#x2197;' :
+                                             (data.trend === 'declining' ? '&#x2198;' : '&#x2192;');
+                            const trendClass = data.trend === 'improving' ? 'up' :
+                                             (data.trend === 'declining' ? 'down' : 'stable');
+                            document.getElementById('comparison-content').innerHTML =
+                                '<div class="comparison-grid">' +
+                                    '<div class="compare-stat">' +
+                                        '<div class="cmp-value">' + data.total_sessions + '</div>' +
+                                        '<div class="cmp-label">Total Sessions</div>' +
+                                    '</div>' +
+                                    '<div class="compare-stat">' +
+                                        '<div class="cmp-value" style="color:var(--accent-green);">' + data.improvement + '</div>' +
+                                        '<div class="cmp-label">Last Improvement</div>' +
+                                        '<div class="cmp-trend ' + trendClass + '">' + trendIcon + ' ' + data.trend + '</div>' +
+                                    '</div>' +
+                                    '<div class="compare-stat">' +
+                                        '<div class="cmp-value">' + data.consistency + '</div>' +
+                                        '<div class="cmp-label">Consistency /10</div>' +
+                                    '</div>' +
+                                    '<div class="compare-stat">' +
+                                        '<div class="cmp-value" style="color:var(--accent-blue);">Top ' + data.percentile + '%</div>' +
+                                        '<div class="cmp-label">Performance vs All</div>' +
+                                    '</div>' +
+                                    '<div class="compare-stat">' +
+                                        '<div class="cmp-value" style="color:var(--accent-orange);">' + (data.best_session.score || '--') + '</div>' +
+                                        '<div class="cmp-label">Best Score</div>' +
+                                        '<div class="cmp-trend" style="font-size:0.65rem;color:var(--text-muted);">' + (data.best_session.date || '') + '</div>' +
+                                    '</div>' +
+                                    '<div class="compare-stat">' +
+                                        '<div class="cmp-value">' + Math.round(data.consistency * data.total_sessions) + '</div>' +
+                                        '<div class="cmp-label">Trust Score</div>' +
+                                    '</div>' +
+                                '</div>';
+                        })
+                        .catch(() => {
+                            document.getElementById('comparison-content').innerHTML =
+                                '<p class="text-muted">Could not load comparison data.</p>';
+                        });
+                })();
+            </script>
+
+            <!-- Recent Answers Preview -->
+            {% if data.recent_answers %}
+            <div class="card" style="margin-top:1.5rem;">
+                <div class="card-header">
+                    <h3>Recent Answers</h3>
+                </div>
+                <div class="card-body">
+                    {% for ans in data.recent_answers[:5] %}
+                    <div class="qa-item">
+                        <div class="qa-header">
+                            <span class="qa-question" style="font-size:0.85rem;">
+                                Q: {{ ans.question[:100] }}{% if ans.question|length > 100 %}...{% endif %}
+                            </span>
+                            <span class="score-badge {{ getScoreClass(ans.overall_score) }}"
+                                  style="width:36px;height:36px;font-size:0.85rem;">
+                                {{ ans.overall_score }}
+                            </span>
+                        </div>
+                        <div class="qa-answer" style="font-size:0.82rem;">
+                            {{ ans.answer[:120] }}{% if ans.answer|length > 120 %}...{% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% else %}
+            <!-- No Data State -->
+            <div style="text-align:center;padding:4rem 2rem;">
+                <div style="font-size:4rem;margin-bottom:1rem;">&#x1f4ca;</div>
+                <h1>No Data Yet</h1>
+                <p>Complete an interview to see your performance dashboard.</p>
+                <a href="/" class="btn btn-primary btn-lg" style="margin-top:1rem;">
+                    &#x1f3e0; Start Your First Interview
+                </a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
