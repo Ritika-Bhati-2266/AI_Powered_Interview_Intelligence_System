@@ -154,17 +154,17 @@ async function checkOllamaStatus() {
         const data = await resp.json();
 
         if (data.status === 'connected' && data.model_available) {
-            statusEl.innerHTML = '<span style="color:var(--accent-green);">&#x25CF;</span> ' +
+            statusEl.innerHTML = '<span style="color:var(--accent-emerald);">&#x25CF;</span> ' +
                 escapeHtml(data.model_name) + ' ready';
         } else if (data.status === 'connected') {
-            statusEl.innerHTML = '<span style="color:var(--accent-orange);">&#x25CF;</span> ' +
+            statusEl.innerHTML = '<span style="color:var(--accent-amber);">&#x25CF;</span> ' +
                 'Model not found. Run: ollama pull llama3.2:latest';
         } else {
-            statusEl.innerHTML = '<span style="color:var(--accent-red);">&#x25CF;</span> ' +
+            statusEl.innerHTML = '<span style="color:var(--accent-rose);">&#x25CF;</span> ' +
                 'Ollama not connected. Ensure ollama serve is running.';
         }
     } catch {
-        statusEl.innerHTML = '<span style="color:var(--accent-red);">&#x25CF;</span> ' +
+        statusEl.innerHTML = '<span style="color:var(--accent-rose);">&#x25CF;</span> ' +
             'Cannot reach server';
     }
 }
@@ -672,12 +672,12 @@ function initInterview() {
                 // Completed
                 statusClass = 'stepper-completed';
                 statusIcon = '&#x2705;'; // checkmark
-                labelColor = 'var(--accent-green)';
+                labelColor = 'var(--accent-emerald)';
             } else if (idx === currentIdx) {
                 // Current (active)
                 statusClass = 'stepper-active';
                 statusIcon = '&#x25CF;'; // filled circle
-                labelColor = 'var(--accent-blue)';
+                labelColor = 'var(--accent-indigo)';
             } else {
                 // Upcoming
                 statusClass = 'stepper-upcoming';
@@ -1027,7 +1027,7 @@ function initInterview() {
         sidebarScores.innerHTML =
             '<div class="score-item"><span class="score-label">Overall</span>' +
             '<span class="score-value" style="color:' +
-            (eval.overall_score >= 6 ? 'var(--accent-green)' : 'var(--accent-orange)') +
+            (eval.overall_score >= 6 ? 'var(--accent-emerald)' : 'var(--accent-amber)') +
             '">' + (totalScores.overall / count).toFixed(1) + '</span></div>' +
             '<div class="score-item"><span class="score-label">Technical</span>' +
             '<span class="score-value">' + (totalScores.technical / count).toFixed(1) + '</span></div>' +
@@ -1853,10 +1853,10 @@ async function initProgressChart() {
 
             // Prepare datasets
             const chartDatasets = [
-                { label: 'Overall', data: data.datasets.overall, borderColor: '#58a6ff', backgroundColor: 'rgba(88,166,255,0.1)', fill: true, tension: 0.3 },
-                { label: 'Technical', data: data.datasets.technical, borderColor: '#3fb950', backgroundColor: 'rgba(63,185,80,0.05)', tension: 0.3 },
-                { label: 'Communication', data: data.datasets.communication, borderColor: '#d29922', backgroundColor: 'rgba(210,153,34,0.05)', tension: 0.3 },
-                { label: 'Confidence', data: data.datasets.confidence, borderColor: '#bc8cff', backgroundColor: 'rgba(188,140,255,0.05)', tension: 0.3 },
+                { label: 'Overall', data: data.datasets.overall, borderColor: '#6366f1', backgroundColor: 'rgba(99,102,241,0.1)', fill: true, tension: 0.3 },
+                { label: 'Technical', data: data.datasets.technical, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.05)', tension: 0.3 },
+                { label: 'Communication', data: data.datasets.communication, borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,0.05)', tension: 0.3 },
+                { label: 'Confidence', data: data.datasets.confidence, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,0.05)', tension: 0.3 },
             ];
 
             new Chart(ctx, {

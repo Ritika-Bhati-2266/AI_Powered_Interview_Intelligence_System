@@ -63,7 +63,7 @@
                 <div class="card-body">
                     <div class="score-bars">
                         <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-blue);">{{ data.avg_technical }}</div>
+                            <div class="bar-value" style="color:var(--accent-indigo);">{{ data.avg_technical }}</div>
                             <div class="bar">
                                 <div class="bar-fill blue" data-height="{{ data.avg_technical * 10 }}"
                                      style="height:0%;"></div>
@@ -71,7 +71,7 @@
                             <div class="bar-label">Technical</div>
                         </div>
                         <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-green);">{{ data.avg_communication }}</div>
+                            <div class="bar-value" style="color:var(--accent-emerald);">{{ data.avg_communication }}</div>
                             <div class="bar">
                                 <div class="bar-fill green" data-height="{{ data.avg_communication * 10 }}"
                                      style="height:0%;"></div>
@@ -79,7 +79,7 @@
                             <div class="bar-label">Communication</div>
                         </div>
                         <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-orange);">{{ data.avg_confidence }}</div>
+                            <div class="bar-value" style="color:var(--accent-amber);">{{ data.avg_confidence }}</div>
                             <div class="bar">
                                 <div class="bar-fill orange" data-height="{{ data.avg_confidence * 10 }}"
                                      style="height:0%;"></div>
@@ -87,7 +87,7 @@
                             <div class="bar-label">Confidence</div>
                         </div>
                         <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-purple);">{{ data.avg_overall }}</div>
+                            <div class="bar-value" style="color:var(--accent-violet);">{{ data.avg_overall }}</div>
                             <div class="bar">
                                 <div class="bar-fill purple" data-height="{{ data.avg_overall * 10 }}"
                                      style="height:0%;"></div>
@@ -145,7 +145,7 @@
                                         </span>
                                     </td>
                                     <td>{{ session.completed_questions or 0 }}/{{ session.total_questions or 0 }}</td>
-                                    <td class="score-cell" style="color:var(--accent-green);">
+                                    <td class="score-cell" style="color:var(--accent-emerald);">
                                         {{ '%.1f'|format(session.overall_score) if session.overall_score else '--' }}
                                     </td>
                                     <td class="score-cell">{{ '%.1f'|format(session.technical_score) if session.technical_score else '--' }}</td>
@@ -201,7 +201,7 @@
                                         '<div class="cmp-label">Total Sessions</div>' +
                                     '</div>' +
                                     '<div class="compare-stat">' +
-                                        '<div class="cmp-value" style="color:var(--accent-green);">' + data.improvement + '</div>' +
+                                        '<div class="cmp-value" style="color:var(--accent-emerald);">' + data.improvement + '</div>' +
                                         '<div class="cmp-label">Last Improvement</div>' +
                                         '<div class="cmp-trend ' + trendClass + '">' + trendIcon + ' ' + data.trend + '</div>' +
                                     '</div>' +
@@ -210,11 +210,11 @@
                                         '<div class="cmp-label">Consistency /10</div>' +
                                     '</div>' +
                                     '<div class="compare-stat">' +
-                                        '<div class="cmp-value" style="color:var(--accent-blue);">Top ' + data.percentile + '%</div>' +
+                                        '<div class="cmp-value" style="color:var(--accent-indigo);">Top ' + data.percentile + '%</div>' +
                                         '<div class="cmp-label">Performance vs All</div>' +
                                     '</div>' +
                                     '<div class="compare-stat">' +
-                                        '<div class="cmp-value" style="color:var(--accent-orange);">' + (data.best_session.score || '--') + '</div>' +
+                                        '<div class="cmp-value" style="color:var(--accent-amber);">' + (data.best_session.score || '--') + '</div>' +
                                         '<div class="cmp-label">Best Score</div>' +
                                         '<div class="cmp-trend" style="font-size:0.65rem;color:var(--text-muted);">' + (data.best_session.date || '') + '</div>' +
                                     '</div>' +
@@ -244,7 +244,7 @@
                             <span class="qa-question" style="font-size:0.85rem;">
                                 Q: {{ ans.question[:100] }}{% if ans.question|length > 100 %}...{% endif %}
                             </span>
-                            <span class="score-badge {{ getScoreClass(ans.overall_score) }}"
+                            <span class="score-badge {{ 'score-excellent' if ans.overall_score >= 8 else 'score-good' if ans.overall_score >= 6 else 'score-average' }}"
                                   style="width:36px;height:36px;font-size:0.85rem;">
                                 {{ ans.overall_score }}
                             </span>

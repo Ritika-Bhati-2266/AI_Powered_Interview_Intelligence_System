@@ -478,8 +478,13 @@ Question Category: {category}
 
 CRITICAL RULES:
 - Return ONLY the question text. No labels, no prefixes, no "Question:".
-- The question must be specific, realistic, and test practical knowledge.
-- For technical questions, ask about real technologies, design patterns, or problem-solving.
+- Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.
+- Match the difficulty STRICTLY to the candidate's stated experience level ({experience} years).
+  * 0-2 years: ask foundational, practical questions. NEVER ask senior-level system design, architecture, or large-scale distributed system questions.
+  * 3-5 years: ask intermediate questions about real-world tools, patterns, and moderate problem-solving.
+  * 6+ years: you may ask deeper system design, architecture, or leadership-oriented questions.
+- Use simple, conversational language — the way a real interviewer would speak. Avoid unnecessarily complex, academic, or overly formal phrasing.
+- For technical questions, ask about real technologies, design patterns, or problem-solving at the right difficulty.
 - For behavioral questions, use the STAR format style.
 - Make it conversational --- like a real interviewer speaking.
 - Match the AUTHENTIC style of what this company is known for asking."""

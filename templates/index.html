@@ -97,7 +97,7 @@
                     <div class="form-group">
                         <label>Interview Mode</label>
                         <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;margin-top:0.4rem;">
-                            <div class="mode-option selected" data-mode="technical" style="border:2px solid var(--accent-blue);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
+                            <div class="mode-option selected" data-mode="technical" style="border:2px solid var(--accent-indigo);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
                                 <div style="font-size:1.4rem;">&#x1f4bb;</div>
                                 <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">Technical</div>
                             </div>
@@ -121,7 +121,7 @@
                             <div class="upload-text">Click or drag resume here</div>
                             <div class="upload-hint">PDF or DOCX (max 16MB)</div>
                         </div>
-                        <div id="file-name" class="hidden" style="margin-top:0.3rem;font-size:0.85rem;color:var(--accent-blue);"></div>
+                        <div id="file-name" class="hidden" style="margin-top:0.3rem;font-size:0.85rem;color:var(--accent-indigo);"></div>
                     </div>
 
                     <button type="submit" id="submit-btn" class="btn btn-primary btn-lg" style="width:100%;margin-top:0.5rem;">
@@ -143,7 +143,7 @@
                 document.querySelectorAll('.mode-option').forEach(function(o) {
                     o.style.borderColor = 'var(--border-color)';
                 });
-                this.style.borderColor = 'var(--accent-blue)';
+                this.style.borderColor = 'var(--accent-indigo)';
                 document.getElementById('interview-mode').value = this.dataset.mode;
             });
         });
