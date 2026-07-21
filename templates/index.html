@@ -96,18 +96,21 @@
 
                     <div class="form-group">
                         <label>Interview Mode</label>
-                        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:0.6rem;margin-top:0.4rem;">
-                            <div class="mode-option selected" data-mode="technical" style="border:2px solid var(--accent-indigo);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
-                                <div style="font-size:1.4rem;">&#x1f4bb;</div>
-                                <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">Technical</div>
+                        <div class="mode-selector">
+                            <div class="mode-option selected" data-mode="technical">
+                                <div class="mode-icon">&#x1f4bb;</div>
+                                <div class="mode-name">Technical</div>
+                                <div class="mode-desc">Role-specific questions</div>
                             </div>
-                            <div class="mode-option" data-mode="hr" style="border:2px solid var(--border-color);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
-                                <div style="font-size:1.4rem;">&#x1f91d;</div>
-                                <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">HR Round</div>
+                            <div class="mode-option" data-mode="hr">
+                                <div class="mode-icon">&#x1f91d;</div>
+                                <div class="mode-name">HR Round</div>
+                                <div class="mode-desc">Behavioral &amp; soft skills</div>
                             </div>
-                            <div class="mode-option" data-mode="coding" style="border:2px solid var(--border-color);border-radius:10px;padding:0.8rem;text-align:center;cursor:pointer;background:var(--bg-card);">
-                                <div style="font-size:1.4rem;">&#x2328;&#xfe0f;</div>
-                                <div style="font-size:0.8rem;font-weight:600;margin-top:0.3rem;">Coding</div>
+                            <div class="mode-option" data-mode="coding">
+                                <div class="mode-icon">&#x2328;&#xfe0f;</div>
+                                <div class="mode-name">Coding</div>
+                                <div class="mode-desc">Algorithm &amp; DSA problems</div>
                             </div>
                         </div>
                         <input type="hidden" id="interview-mode" name="mode" value="technical">
@@ -141,9 +144,9 @@
         document.querySelectorAll('.mode-option').forEach(function(opt) {
             opt.addEventListener('click', function() {
                 document.querySelectorAll('.mode-option').forEach(function(o) {
-                    o.style.borderColor = 'var(--border-color)';
+                    o.classList.remove('selected');
                 });
-                this.style.borderColor = 'var(--accent-indigo)';
+                this.classList.add('selected');
                 document.getElementById('interview-mode').value = this.dataset.mode;
             });
         });

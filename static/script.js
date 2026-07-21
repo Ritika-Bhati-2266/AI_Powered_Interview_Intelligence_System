@@ -655,6 +655,18 @@ function initInterview() {
 
     // ── Round Progress UI Functions ──
 
+    function getRoundIcon(roundName, roundType) {
+        var name = (roundName || '').toLowerCase();
+        var type = (roundType || '').toLowerCase();
+        if (name.includes('resume') || name.includes('hr')) return '&#x1f4cb;';
+        if (name.includes('aptitude') || type === 'aptitude') return '&#x1f4ca;';
+        if (name.includes('technical') || type === 'technical') return '&#x1f4bb;';
+        if (name.includes('coding') || type === 'coding') return '&#x2328;&#xfe0f;';
+        if (name.includes('hr') || name.includes('behavioral')) return '&#x1f91d;';
+        if (name.includes('system design')) return '&#x1f4e1;';
+        return '&#x1f4ac;';
+    }
+
     function renderRoundStepper(rounds, currentIdx) {
         if (!roundStepper || !rounds || rounds.length === 0) return;
 
@@ -663,41 +675,44 @@ function initInterview() {
         rounds.forEach(function(round, idx) {
             const item = document.createElement('div');
             item.className = 'stepper-item';
+            if (idx < currentIdx) item.classList.add('completed');
+            if (idx === currentIdx) item.classList.add('active');
 
             let statusClass = '';
-            let statusIcon = '&#x25CB;'; // circle
-            let labelColor = 'var(--text-muted)';
+            let statusIcon = '';
 
             if (idx < currentIdx) {
-                // Completed
                 statusClass = 'stepper-completed';
-                statusIcon = '&#x2705;'; // checkmark
-                labelColor = 'var(--accent-emerald)';
+                statusIcon = '&#x2713;';
             } else if (idx === currentIdx) {
-                // Current (active)
                 statusClass = 'stepper-active';
-                statusIcon = '&#x25CF;'; // filled circle
-                labelColor = 'var(--accent-indigo)';
+                statusIcon = (idx + 1).toString();
             } else {
-                // Upcoming
                 statusClass = 'stepper-upcoming';
-                statusIcon = '&#x25CB;';
-                labelColor = 'var(--text-muted)';
+                statusIcon = (idx + 1).toString();
             }
 
             var roundName = round.name || 'Round ' + (idx + 1);
+            var roundType = round.type || '';
             var isResume = round.is_resume_phase ? ' (Resume)' : '';
+            var icon = getRoundIcon(roundName, roundType);
+
+            var focusClass = '';
+            var focusColor = 'var(--text-muted)';
+            if (idx < currentIdx) { focusClass = 'completed-focus'; focusColor = 'var(--accent-emerald)'; }
+            else if (idx === currentIdx) { focusClass = 'active-focus'; focusColor = 'var(--accent-indigo)'; }
 
             item.innerHTML =
                 '<div class="stepper-indicator ' + statusClass + '">' +
                     statusIcon +
                 '</div>' +
                 '<div class="stepper-content">' +
-                    '<div class="stepper-name" style="color:' + labelColor + ';">' +
-                        escapeHtml(roundName) + escapeHtml(isResume) +
+                    '<div class="stepper-name">' +
+                        '<span class="stepper-icon">' + icon + '</span>' +
+                        '<span>' + escapeHtml(roundName) + escapeHtml(isResume) + '</span>' +
                     '</div>' +
-                    '<div class="stepper-focus" style="color:var(--text-muted);font-size:0.68rem;">' +
-                        escapeHtml(round.focus?.substring(0, 30) || '') +
+                    '<div class="stepper-focus ' + focusClass + '">' +
+                        escapeHtml(round.focus?.substring(0, 35) || '') +
                     '</div>' +
                 '</div>';
 
@@ -736,11 +751,15 @@ function initInterview() {
     function updateStepperOnCompletion() {
         if (!roundStepper) return;
         $$('.stepper-item').forEach(function(item, idx) {
+            item.classList.add('completed');
+            item.classList.remove('active');
             var indicator = item.querySelector('.stepper-indicator');
             if (indicator) {
                 indicator.className = 'stepper-indicator stepper-completed';
-                indicator.innerHTML = '&#x2705;';
+                indicator.innerHTML = '\u2713';
             }
+        });
+    }
         });
     }
 
@@ -786,13 +805,17 @@ function initInterview() {
             text = text.replace(/\n?\*\[Context:[^\]]*\]/, '');
         }
 
-        div.innerHTML = companyBadgeHtml +
-                        '<div class="message-bubble">' +
-                        escapeHtml(text) +
-                        '</div>' +
-                        '<div class="message-meta">AI Interviewer' +
-                        (metaHtml ? ' &#x00B7; ' + metaHtml : '') +
-                        '</div>';
+        div.innerHTML =
+            '<div class="message-avatar">&#x1f916;</div>' +
+            '<div class="message-content">' +
+                companyBadgeHtml +
+                '<div class="message-bubble">' +
+                escapeHtml(text) +
+                '</div>' +
+                '<div class="message-meta">AI Interviewer' +
+                (metaHtml ? ' &#x00B7; ' + metaHtml : '') +
+                '</div>' +
+            '</div>';
 
         messagesContainer.appendChild(div);
         scrollToBottom();
@@ -802,10 +825,14 @@ function initInterview() {
     function addUserMessage(text) {
         const div = document.createElement('div');
         div.className = 'message user';
-        div.innerHTML = '<div class="message-bubble">' +
-                        escapeHtml(text) +
-                        '</div>' +
-                        '<div class="message-meta">You</div>';
+        div.innerHTML =
+            '<div class="message-avatar">&#x1f464;</div>' +
+            '<div class="message-content">' +
+                '<div class="message-bubble">' +
+                escapeHtml(text) +
+                '</div>' +
+                '<div class="message-meta">You</div>' +
+            '</div>';
 
         messagesContainer.appendChild(div);
         scrollToBottom();
@@ -841,14 +868,22 @@ function initInterview() {
 
         div.innerHTML =
             '<div class="score-row">' +
-                '<div class="score-chip">Overall: <span class="chip-value">' +
-                    (evaluation.overall_score || 0) + '</span>/10</div>' +
-                '<div class="score-chip">Technical: <span class="chip-value">' +
-                    (evaluation.technical_score || 0) + '</span>/10</div>' +
-                '<div class="score-chip">Communication: <span class="chip-value">' +
-                    (evaluation.communication_score || 0) + '</span>/10</div>' +
-                '<div class="score-chip">Confidence: <span class="chip-value">' +
-                    (evaluation.confidence_score || 0) + '</span>/10</div>' +
+                '<div class="score-chip chip-overall">' +
+                    '<span class="chip-icon">&#x1f3af;</span>' +
+                    '<span class="chip-label">Overall</span> ' +
+                    '<span class="chip-value">' + (evaluation.overall_score || 0) + '</span>/10</div>' +
+                '<div class="score-chip chip-technical">' +
+                    '<span class="chip-icon">&#x1f4bb;</span>' +
+                    '<span class="chip-label">Technical</span> ' +
+                    '<span class="chip-value">' + (evaluation.technical_score || 0) + '</span>/10</div>' +
+                '<div class="score-chip chip-communication">' +
+                    '<span class="chip-icon">&#x1f4ac;</span>' +
+                    '<span class="chip-label">Communication</span> ' +
+                    '<span class="chip-value">' + (evaluation.communication_score || 0) + '</span>/10</div>' +
+                '<div class="score-chip chip-confidence">' +
+                    '<span class="chip-icon">&#x2728;</span>' +
+                    '<span class="chip-label">Confidence</span> ' +
+                    '<span class="chip-value">' + (evaluation.confidence_score || 0) + '</span>/10</div>' +
             '</div>' +
             (evaluation.feedback ? '<div class="feedback-text">' +
                 escapeHtml(evaluation.feedback) + '</div>' : '') +
@@ -1324,9 +1359,13 @@ function submitAptitudeAnswer() {
                 if (messagesContainer && data.completion) {
                     const div = document.createElement('div');
                     div.className = 'message ai';
-                    div.innerHTML = '<div class="message-bubble">' +
-                        escapeHtml(data.completion.message || 'Interview complete!') +
-                        '</div><div class="message-meta">AI Interviewer</div>';
+                    div.innerHTML =
+                        '<div class="message-avatar">&#x1f916;</div>' +
+                        '<div class="message-content">' +
+                            '<div class="message-bubble">' +
+                            escapeHtml(data.completion.message || 'Interview complete!') +
+                            '</div><div class="message-meta">AI Interviewer</div>' +
+                        '</div>';
                     messagesContainer.appendChild(div);
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }
@@ -1334,10 +1373,12 @@ function submitAptitudeAnswer() {
                 // Update stepper
                 const stepperItems = document.querySelectorAll('.stepper-item');
                 stepperItems.forEach(function(item) {
+                    item.classList.add('completed');
+                    item.classList.remove('active');
                     const indicator = item.querySelector('.stepper-indicator');
                     if (indicator) {
                         indicator.className = 'stepper-indicator stepper-completed';
-                        indicator.innerHTML = '\u2705';
+                        indicator.innerHTML = '\u2713';
                     }
                 });
 
@@ -1396,9 +1437,13 @@ function submitAptitudeAnswer() {
                     if (messagesContainer) {
                         const div = document.createElement('div');
                         div.className = 'message ai';
-                        div.innerHTML = '<div class="message-bubble">' +
-                            escapeHtml(data.next_question) +
-                            '</div><div class="message-meta">AI Interviewer</div>';
+                        div.innerHTML =
+                            '<div class="message-avatar">&#x1f916;</div>' +
+                            '<div class="message-content">' +
+                                '<div class="message-bubble">' +
+                                escapeHtml(data.next_question) +
+                                '</div><div class="message-meta">AI Interviewer</div>' +
+                            '</div>';
                         messagesContainer.appendChild(div);
                         messagesContainer.scrollTop = messagesContainer.scrollHeight;
                     }
@@ -1421,9 +1466,13 @@ function submitAptitudeAnswer() {
                 if (messagesContainer) {
                     const div = document.createElement('div');
                     div.className = 'message ai';
-                    div.innerHTML = '<div class="message-bubble">' +
-                        escapeHtml(data.next_question) +
-                        '</div><div class="message-meta">AI Interviewer</div>';
+                    div.innerHTML =
+                        '<div class="message-avatar">&#x1f916;</div>' +
+                        '<div class="message-content">' +
+                            '<div class="message-bubble">' +
+                            escapeHtml(data.next_question) +
+                            '</div><div class="message-meta">AI Interviewer</div>' +
+                        '</div>';
                     messagesContainer.appendChild(div);
                     messagesContainer.scrollTop = messagesContainer.scrollHeight;
                 }
@@ -1823,6 +1872,19 @@ document.addEventListener('DOMContentLoaded', function() {
 // ── Dashboard Page ───────────────────────────────────────────────────────────
 
 function initDashboard() {
+    // Staggered entrance for stat cards
+    const statCards = $$('.stat-card');
+    statCards.forEach(function(card, i) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(12px)';
+        card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+        setTimeout(function() {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + i * 100);
+    });
+
+    // Animate bar fills
     const barFills = $$('.bar-fill');
     setTimeout(() => {
         barFills.forEach(bar => {
@@ -1898,6 +1960,18 @@ async function initProgressChart() {
 // ── Report Page ──────────────────────────────────────────────────────────────
 
 function initReport() {
+    // Staggered fade-in for cards
+    const cards = $$('.card');
+    cards.forEach(function(card, i) {
+        card.style.opacity = '0';
+        card.style.transform = 'translateY(15px)';
+        card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+        setTimeout(function() {
+            card.style.opacity = '1';
+            card.style.transform = 'translateY(0)';
+        }, 100 + i * 80);
+    });
+
     // Animate distribution bars
     const distFills = $$('.dist-fill');
     setTimeout(() => {
@@ -1932,7 +2006,8 @@ function initReport() {
             navigator.clipboard.writeText(window.location.href).then(() => {
                 const orig = this.innerHTML;
                 this.innerHTML = '&#x2705; Copied!';
-                setTimeout(() => { this.innerHTML = orig; }, 2000);
+                this.classList.add('btn-primary');
+                setTimeout(() => { this.innerHTML = orig; this.classList.remove('btn-primary'); }, 2000);
             });
         });
     }

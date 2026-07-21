@@ -93,6 +93,8 @@
                 </div>
             </div>
 
+            <hr class="section-divider">
+
             <!-- ═══ MOTIVATIONAL BANNER ═══ -->
             <div class="motivational-banner
                 {% if report.overall_score >= 8 %}excellent
@@ -190,8 +192,10 @@
             </div>
             {% endif %}
 
+            <hr class="section-divider">
+
             <!-- ═══ QUESTION BY QUESTION REVIEW ═══ -->
-            <div class="card full-width" style="margin-bottom:2rem;">
+            <div class="card full-width card-accent" style="margin-bottom:2rem;">
                 <div class="card-header">
                     <h3>Question-by-Question Analysis</h3>
                     <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.answers|length }} answers</span>
@@ -272,9 +276,11 @@
                 </div>
             </div>
 
+            <hr class="section-divider">
+
             <!-- ═══ REWRITE IMPROVEMENT SECTION ═══ -->
             {% if report.has_rewrites %}
-            <div class="card full-width" style="margin-bottom:2rem;">
+            <div class="card full-width card-accent green" style="margin-bottom:2rem;">
                 <div class="card-header">
                     <h3>&#x270f;&#xfe0f; Rewrite Improvements</h3>
                     <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.rewrite_count }} answers rewritten</span>
@@ -338,9 +344,11 @@
             </div>
             {% endif %}
 
+            <hr class="section-divider">
+
             <!-- ═══ FILLER WORD STATISTICS ═══ -->
             {% if report.filler_word_stats %}
-            <div class="card full-width" style="margin-bottom:2rem;">
+            <div class="card full-width card-accent orange" style="margin-bottom:2rem;">
                 <div class="card-header">
                     <h3>&#x1f4ac; Filler Word Analysis</h3>
                     <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.filler_word_stats.total }} total fillers</span>
@@ -380,9 +388,11 @@
             </div>
             {% endif %}
 
+            <hr class="section-divider">
+
             <!-- ═══ APTITUDE TEST RESULTS ═══ -->
             {% if report.aptitude_data %}
-            <div class="card full-width aptitude-report-card" style="margin-bottom:1.5rem;">
+            <div class="card full-width aptitude-report-card card-accent" style="margin-bottom:1.5rem;">
                 <div class="card-header">
                     <h3>&#x1f4ca; Aptitude Test Results</h3>
                     <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.aptitude_data.questions|length }} questions</span>
@@ -460,6 +470,8 @@
             </div>
             {% endif %}
 
+            <hr class="section-divider">
+
             <!-- ═══ SKILL GAPS ═══ -->
             {% if report.skill_gaps %}
             <div class="report-grid" style="margin-bottom:2rem;">
@@ -504,9 +516,11 @@
             </div>
             {% endif %}
 
+            <hr class="section-divider">
+
             <!-- ═══ IMPROVEMENT ROADMAP ═══ -->
             {% if report.improvement_roadmap %}
-            <div class="card full-width" style="margin-bottom:2rem;">
+            <div class="card full-width card-accent" style="margin-bottom:2rem;">
                 <div class="card-header">
                     <h3>&#x1f9f3; 30-Day Improvement Roadmap</h3>
                 </div>
