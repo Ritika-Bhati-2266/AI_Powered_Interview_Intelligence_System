@@ -3,36 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Report</title>
+    <title>Interview Performance Report</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="page-report">
+    <!-- Navbar -->
     <nav class="navbar">
-        <div class="container">
+        <div class="container navbar-container">
             <a href="/" class="navbar-brand">
-                <span class="brand-icon">&#x1f9d1;&#x200d;&#x1f3eb;</span>
-                AI Interview
+                <span class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                </span>
+                AI Interview Coach
             </a>
             <div class="navbar-links">
-                <a href="/dashboard">Dashboard</a>
-                <a href="/">New Interview</a>
+                <a href="/dashboard" class="nav-link">Dashboard</a>
+                <a href="/" class="nav-link-btn">New Session</a>
             </div>
         </div>
     </nav>
 
     {% if report and report.error %}
     <div class="container" style="margin-top:2rem;">
-        <div class="alert alert-error">{{ report.error }}</div>
+        <div class="alert alert-error">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px; margin-right: 8px; display: inline-block; vertical-align: middle;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            {{ report.error }}
+        </div>
     </div>
 
     {% elif report %}
     <div class="report-page">
         <div class="container">
 
-            <!-- ═══ HEADER: Name | Role | Grade | Date ═══ -->
-            <div class="report-header">
-                <div style="display:flex;align-items:center;justify-content:center;gap:2rem;flex-wrap:wrap;margin-bottom:1rem;">
+            <!-- Report Header Hero Card -->
+            <div class="report-hero-card">
+                <div class="hero-split-layout">
                     <!-- Circular Score Ring -->
                     <div class="score-ring-container">
                         <div class="score-ring">
@@ -44,7 +52,7 @@
                                         stroke="{% if report.overall_score >= 8 %}#10b981{% elif report.overall_score >= 6 %}#f59e0b{% else %}#f43f5e{% endif %}"/>
                             </svg>
                             <div class="ring-center">
-                                <span class="ring-score" style="color:{% if report.overall_score >= 8 %}var(--accent-emerald){% elif report.overall_score >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">
+                                <span class="ring-score {% if report.overall_score >= 8 %}color-emerald{% elif report.overall_score >= 6 %}color-amber{% else %}color-rose{% endif %}">
                                     {{ report.overall_score }}
                                 </span>
                                 <span class="ring-label">out of 10</span>
@@ -52,100 +60,102 @@
                         </div>
                     </div>
 
-                    <div style="text-align:left;">
-                        <div style="display:flex;align-items:center;gap:0.8rem;flex-wrap:wrap;justify-content:center;">
-                            <h1 style="font-size:1.6rem;margin-bottom:0;">{{ report.candidate_info.name }}</h1>
-                            <span class="grade-badge
-                                {% if report.grade == 'A+' %}a-plus{% elif report.grade == 'A' %}a{% elif report.grade == 'B+' %}b-plus{% elif report.grade == 'B' %}b{% elif report.grade == 'C' %}c{% else %}f{% endif %}">
+                    <!-- Meta Details -->
+                    <div class="hero-details">
+                        <div class="profile-header-row">
+                            <h1>{{ report.candidate_info.name }}</h1>
+                            <span class="grade-badge {% if report.grade == 'A+' %}a-plus{% elif report.grade == 'A' %}a{% elif report.grade == 'B+' %}b-plus{% elif report.grade == 'B' %}b{% elif report.grade == 'C' %}c{% else %}f{% endif %}">
                                 {{ report.grade }}
                             </span>
                         </div>
-                        <div style="margin-top:0.4rem;display:flex;gap:1rem;flex-wrap:wrap;justify-content:center;font-size:0.9rem;color:var(--text-secondary);">
-                            <span>&#x1f3e2; {{ report.candidate_info.role }}</span>
-                            <span>&#x1f4c5; {{ report.session_data.mode|capitalize if report.session_data.mode else 'Technical' }} Interview</span>
-                            <span>&#x2753; {{ report.total_questions }} Questions</span>
-                            <span>&#x23f1; {{ report.session_data.duration }}s</span>
+
+                        <div class="candidate-meta-badges">
+                            <span class="meta-pill"><span class="meta-icon">🏢</span> {{ report.candidate_info.role }}</span>
+                            <span class="meta-pill"><span class="meta-icon">⏱️</span> {{ report.session_data.mode|capitalize if report.session_data.mode else 'Technical' }}</span>
+                            <span class="meta-pill"><span class="meta-icon">❓</span> {{ report.total_questions }} Questions</span>
+                            <span class="meta-pill"><span class="meta-icon">⏱️</span> {{ report.session_data.duration }}s duration</span>
                         </div>
+
                         <!-- Star Rating -->
-                        <div class="star-rating" style="justify-content:center;margin-top:0.4rem;">
+                        <div class="star-rating">
                             {% for i in range(1,6) %}
-                            <span class="star {% if i <= report.star_rating %}filled{% endif %}">&#x2605;</span>
+                            <span class="star {% if i <= report.star_rating %}filled{% endif %}">★</span>
                             {% endfor %}
-                            <span style="font-size:0.75rem;color:var(--text-muted);margin-left:0.3rem;">{{ report.overall_score }}/10</span>
+                            <span class="star-text-value">{{ report.overall_score }}/10 baseline</span>
                         </div>
                     </div>
                 </div>
 
                 {% if report.summary %}
-                <div class="summary-text">{{ report.summary }}</div>
+                <div class="summary-box">
+                    <p class="summary-paragraph">{{ report.summary }}</p>
+                </div>
                 {% endif %}
 
-                <!-- Readiness Score -->
-                <div style="margin-top:1rem;max-width:400px;margin-left:auto;margin-right:auto;">
+                <!-- Readiness Score Progress -->
+                <div class="readiness-meter-wrapper">
                     <div class="readiness-container">
-                        <span style="font-size:0.8rem;color:var(--text-secondary);">Interview Readiness</span>
+                        <span class="readiness-title">Interview Readiness Score</span>
                         <div class="readiness-bar">
-                            <div class="readiness-fill" data-width="{{ report.readiness_score }}%"
-                                 style="width:0%;"></div>
+                            <div class="readiness-fill" data-width="{{ report.readiness_score }}%" style="width:0%;"></div>
                         </div>
                         <span class="readiness-label">{{ report.readiness_score }}%</span>
                     </div>
                 </div>
             </div>
 
-            <hr class="section-divider">
-
-            <!-- ═══ MOTIVATIONAL BANNER ═══ -->
-            <div class="motivational-banner
-                {% if report.overall_score >= 8 %}excellent
-                {% elif report.overall_score >= 6 %}good
-                {% elif report.overall_score >= 4 %}average
-                {% else %}needs-work{% endif %}">
-                <div class="motivational-icon">
-                    {% if report.overall_score >= 8 %}&#x1f31f;
-                    {% elif report.overall_score >= 6 %}&#x2705;
-                    {% elif report.overall_score >= 4 %}&#x1f4aa;
-                    {% else %}&#x1f4aa;{% endif %}
+            <!-- Motivational Banner -->
+            <div class="motivational-banner-premium {% if report.overall_score >= 8 %}banner-excellent{% elif report.overall_score >= 6 %}banner-good{% elif report.overall_score >= 4 %}banner-average{% else %}banner-needs-work{% endif %}">
+                <div class="motivational-icon-wrapper">
+                    {% if report.overall_score >= 8 %}🏆
+                    {% elif report.overall_score >= 6 %}✅
+                    {% elif report.overall_score >= 4 %}💪
+                    {% else %}💡{% endif %}
                 </div>
-                <div class="motivational-text">{{ report.motivational }}</div>
+                <div class="motivational-message">{{ report.motivational }}</div>
             </div>
 
-            <!-- ═══ SCORE CATEGORIES ═══ -->
-            <div class="report-grid">
-                <div class="card">
+            <!-- Double Column Analysis Grid -->
+            <div class="report-analysis-grid">
+                <!-- Breakdown -->
+                <div class="card card-accent-indigo">
                     <div class="card-header">
-                        <h3>Score Breakdown</h3>
+                        <h3>Detailed Competency Breakdown</h3>
                     </div>
                     <div class="card-body">
                         {% set score_fields = [
                             ('Technical Accuracy', 'technical_score'),
-                            ('Communication', 'communication_score'),
+                            ('Communication Delivery', 'communication_score'),
                             ('Confidence Level', 'confidence_score'),
-                            ('Problem Solving', 'problem_solving_score'),
+                            ('Problem Solving Strategy', 'problem_solving_score'),
                             ('Time Management', 'time_management_score'),
                             ('Conceptual Clarity', 'conceptual_clarity_score'),
                         ] %}
-                        {% for label, field in score_fields %}
-                        {% set val = report.get(field, 0) %}
-                        <div class="score-detail-bar">
-                            <span class="score-name">{{ label }}</span>
-                            <div class="bar-track">
-                                <div class="bar-fill" data-width="{{ val * 10 }}%"
-                                     style="width:0%;background:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">
+                        <div class="competency-bars-container">
+                            {% for label, field in score_fields %}
+                            {% set val = report.get(field, 0) %}
+                            <div class="competency-bar-item">
+                                <div class="competency-bar-meta flex-between">
+                                    <span class="competency-name">{{ label }}</span>
+                                    <span class="competency-score" style="color:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">
+                                        {{ val }} / 10
+                                    </span>
+                                </div>
+                                <div class="bar-track">
+                                    <div class="bar-fill" data-width="{{ val * 10 }}%"
+                                         style="width:0%; background:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">
+                                    </div>
                                 </div>
                             </div>
-                            <span class="bar-value" style="color:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">
-                                {{ val }}
-                            </span>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
 
-                <!-- Score Distribution -->
-                <div class="card">
+                <!-- Score Distribution Graph -->
+                <div class="card card-accent-emerald">
                     <div class="card-header">
-                        <h3>Score Distribution</h3>
+                        <h3>Question Score Distribution</h3>
                     </div>
                     <div class="card-body">
                         {% if report.score_distribution %}
@@ -157,185 +167,207 @@
                             ('Average (4-5)', dist['average (4-5)'], 'var(--accent-amber)'),
                             ('Needs Improvement (0-3)', dist['needs improvement (0-3)'], 'var(--accent-rose)'),
                         ] %}
-                        {% for label, count, color in dist_items %}
-                        <div class="distribution-item">
-                            <span class="dist-label">{{ label }}</span>
-                            <div class="dist-bar">
-                                <div class="dist-fill" data-width="{{ (count / max_count) * 100 }}"
-                                     style="width:0%;background:{{ color }};"></div>
+                        <div class="distribution-bars">
+                            {% for label, count, color in dist_items %}
+                            <div class="dist-bar-row">
+                                <div class="dist-meta flex-between">
+                                    <span class="dist-label-text">{{ label }}</span>
+                                    <span class="dist-badge">{{ count }} Qs</span>
+                                </div>
+                                <div class="dist-bar-track">
+                                    <div class="dist-bar-fill" data-width="{{ (count / max_count) * 100 }}"
+                                         style="width:0%; background:{{ color }};"></div>
+                                </div>
                             </div>
-                            <span class="dist-count">{{ count }}</span>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                        {% else %}
+                        <div class="empty-analytics-msg">No distribution data available.</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
 
-            <!-- Weak Areas Highlight -->
+            <!-- Weak Areas Focus -->
             {% if report.weak_areas %}
-            <div class="card" style="margin-bottom:1.5rem;">
+            <div class="card card-accent-amber" style="margin-bottom: 2rem;">
                 <div class="card-header">
-                    <h3>Areas to Improve</h3>
+                    <h3>Focus Development Areas</h3>
                 </div>
                 <div class="card-body">
-                    <div class="weak-areas">
+                    <div class="weak-tags-grid">
                         {% for wa in report.weak_areas[:4] %}
-                        <span class="weak-tag">&#x26a0; {{ wa.area.replace('_', ' ').title() }} ({{ wa.score }}/10)</span>
+                        <span class="weak-pill-tag">
+                            <span class="warning-triangle">⚠️</span>
+                            {{ wa.area.replace('_', ' ').title() }}
+                            <span class="weak-pill-score">{{ wa.score }}/10</span>
+                        </span>
                         {% endfor %}
                     </div>
-                    <p style="font-size:0.85rem;margin-bottom:0;margin-top:0.5rem;">
-                        Focus on the areas above to boost your overall score. Each point improvement in a weak area
-                        significantly impacts your total readiness.
+                    <p class="weak-tip-text">
+                        We detected minor gaps in these categories. Direct preparation in these areas will yield the highest return on investment for your overall interview readiness.
                     </p>
                 </div>
             </div>
             {% endif %}
 
-            <hr class="section-divider">
-
-            <!-- ═══ QUESTION BY QUESTION REVIEW ═══ -->
-            <div class="card full-width card-accent" style="margin-bottom:2rem;">
+            <!-- Question by Question Review -->
+            <div class="card card-accent-indigo" style="margin-bottom: 2rem;">
                 <div class="card-header">
-                    <h3>Question-by-Question Analysis</h3>
-                    <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.answers|length }} answers</span>
+                    <h3>Detailed Response Analysis</h3>
                 </div>
                 <div class="card-body">
                     {% if report.answers %}
-                    {% for qa in report.answers %}
-                    <div class="qa-item">
-                        <div class="qa-header">
-                            <div style="flex:1;">
-                                <span style="font-size:0.75rem;color:var(--text-muted);font-weight:600;">Q{{ qa.number }}.</span>
-                                <span class="qa-question">{{ qa.question }}</span>
+                    <div class="qa-analysis-list">
+                        {% for qa in report.answers %}
+                        <div class="qa-analysis-card">
+                            <div class="qa-analysis-header flex-between">
+                                <div class="qa-title-block">
+                                    <span class="qa-num-badge">Q{{ qa.number }}</span>
+                                    <span class="qa-question-content">{{ qa.question }}</span>
+                                </div>
+                                <div class="qa-meta-badges">
+                                    <span class="badge-difficulty diff-{{ qa.difficulty }}">{{ qa.difficulty }}</span>
+                                    {% set qa_score = qa.overall_score %}
+                                    <span class="badge-pill {% if qa_score >= 8 %}badge-green{% elif qa_score >= 6 %}badge-amber{% else %}badge-red{% endif %}">
+                                        Score: {{ qa_score }}/10
+                                    </span>
+                                </div>
                             </div>
-                            <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0;margin-left:0.5rem;">
-                                <span class="difficulty-badge {{ qa.difficulty }}">{{ qa.difficulty }}</span>
-                                <span class="score-badge {{ 'score-excellent' if qa.overall_score >= 8 else 'score-good' if qa.overall_score >= 6 else 'score-average' }}"
-                                      style="width:36px;height:36px;font-size:0.8rem;">{{ qa.overall_score }}</span>
+
+                            <div class="qa-block qa-user-answer">
+                                <strong>Your Answer:</strong>
+                                <p>{{ qa.answer }}</p>
                             </div>
-                        </div>
 
-                        <!-- Answer -->
-                        <div class="qa-answer"><strong>Your Answer:</strong> {{ qa.answer }}</div>
+                            <div class="qa-critique-grid">
+                                <!-- Strengths -->
+                                {% if qa.strengths %}
+                                <div class="critique-column strengths-col">
+                                    <div class="critique-header">
+                                        <span class="critique-icon">✓</span> Key Strengths
+                                    </div>
+                                    <ul class="critique-list">
+                                        {% for s in qa.strengths %}
+                                        <li>{{ s }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
 
-                        <!-- Strengths -->
-                        {% if qa.strengths %}
-                        <div class="qa-strengths">
-                            {% for s in qa.strengths %}
-                            <span class="qa-strength-item">&#x2705; {{ s }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                                <!-- Weaknesses -->
+                                {% if qa.weaknesses %}
+                                <div class="critique-column weaknesses-col">
+                                    <div class="critique-header">
+                                        <span class="critique-icon">✗</span> Gaps Identified
+                                    </div>
+                                    <ul class="critique-list">
+                                        {% for w in qa.weaknesses %}
+                                        <li>{{ w }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
 
-                        <!-- Weaknesses -->
-                        {% if qa.weaknesses %}
-                        <div class="qa-strengths">
-                            {% for w in qa.weaknesses %}
-                            <span class="qa-weakness-item">&#x274c; {{ w }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                            <!-- Keywords -->
+                            {% if qa.keywords_used or qa.keywords_missed %}
+                            <div class="keywords-analysis-block">
+                                <div class="keywords-list">
+                                    {% for kw in qa.keywords_used[:4] %}
+                                    <span class="keyword-pill keyword-used">✓ {{ kw }}</span>
+                                    {% endfor %}
+                                    {% for kw in qa.keywords_missed[:3] %}
+                                    <span class="keyword-pill keyword-missed">✗ {{ kw }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% endif %}
 
-                        <!-- Keywords -->
-                        {% if qa.keywords_used or qa.keywords_missed %}
-                        <div class="keywords-container">
-                            {% for kw in qa.keywords_used[:4] %}
-                            <span class="keyword-tag used">&#x2713; {{ kw }}</span>
-                            {% endfor %}
-                            {% for kw in qa.keywords_missed[:3] %}
-                            <span class="keyword-tag missed">&#x2717; {{ kw }}</span>
-                            {% endfor %}
-                        </div>
-                        {% endif %}
+                            <!-- Ideal Answer -->
+                            {% if qa.ideal_answer or qa.improved_answer %}
+                            <div class="ideal-answer-box">
+                                <div class="ideal-answer-header">💡 Benchmark Answer Suggestion</div>
+                                <p>{{ qa.ideal_answer or qa.improved_answer }}</p>
+                            </div>
+                            {% endif %}
 
-                        <!-- Ideal Answer -->
-                        {% if qa.ideal_answer or qa.improved_answer %}
-                        <div class="improved-answer" style="margin-top:0.5rem;">
-                            <strong>&#x1f4a1; Ideal Answer:</strong><br>
-                            {{ qa.ideal_answer or qa.improved_answer }}
-                        </div>
-                        {% endif %}
+                            <!-- Evaluator Feedback -->
+                            {% if qa.feedback %}
+                            <div class="feedback-summary-box">
+                                <strong>Feedback summary:</strong> {{ qa.feedback }}
+                            </div>
+                            {% endif %}
 
-                        <!-- Feedback & Improvement Tip -->
-                        {% if qa.feedback %}
-                        <div class="qa-feedback" style="margin-top:0.4rem;">
-                            <strong>Feedback:</strong> {{ qa.feedback }}
+                            <!-- Actionable Tip -->
+                            {% if qa.improvement_tip %}
+                            <div class="actionable-tip-box">
+                                <span class="tip-tag">Practice Tip</span>
+                                <p>{{ qa.improvement_tip }}</p>
+                            </div>
+                            {% endif %}
                         </div>
-                        {% endif %}
-                        {% if qa.improvement_tip %}
-                        <div style="margin-top:0.3rem;font-size:0.8rem;color:var(--accent-indigo);padding-left:0.8rem;border-left:2px solid var(--accent-indigo);">
-                            <strong>&#x1f4a1; Tip:</strong> {{ qa.improvement_tip }}
-                        </div>
-                        {% endif %}
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                     {% else %}
-                    <p class="text-muted" style="text-align:center;padding:2rem;">No answers recorded for this session.</p>
+                    <div class="empty-state-sub">No answers were logged during this session.</div>
                     {% endif %}
                 </div>
             </div>
 
-            <hr class="section-divider">
-
-            <!-- ═══ REWRITE IMPROVEMENT SECTION ═══ -->
+            <!-- Rewrite Recommendations -->
             {% if report.has_rewrites %}
-            <div class="card full-width card-accent green" style="margin-bottom:2rem;">
-                <div class="card-header">
-                    <h3>&#x270f;&#xfe0f; Rewrite Improvements</h3>
-                    <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.rewrite_count }} answers rewritten</span>
+            <div class="card card-accent-emerald" style="margin-bottom: 2rem;">
+                <div class="card-header flex-between">
+                    <h3>Interactive Rewrite Improvements</h3>
+                    <span class="card-header-badge">{{ report.rewrite_count }} answers optimized</span>
                 </div>
                 <div class="card-body">
-                    <div class="rewrite-summary" style="margin-bottom:1rem;">
-                        <div class="rewrite-summary-stat">
-                            <span class="rewrite-summary-label">Total Rewritten</span>
-                            <span class="rewrite-summary-value">{{ report.rewrite_count }}</span>
+                    <div class="rewrite-summary-cards">
+                        <div class="rewrite-stat-card">
+                            <span class="rewrite-stat-label">Total Answers Rewritten</span>
+                            <span class="rewrite-stat-value">{{ report.rewrite_count }}</span>
                         </div>
-                        <div class="rewrite-summary-stat">
-                            <span class="rewrite-summary-label">Avg Improvement</span>
-                            <span class="rewrite-summary-value" style="color:var(--accent-emerald);">{{ report.avg_rewrite_improvement }}</span>
+                        <div class="rewrite-stat-card">
+                            <span class="rewrite-stat-label">Avg Improvement Delta</span>
+                            <span class="rewrite-stat-value color-emerald">{{ report.avg_rewrite_improvement }}</span>
                         </div>
                     </div>
 
                     {% for rewrite in report.rewrites %}
-                    <div class="qa-item">
-                        <div class="qa-header">
-                            <span class="qa-question">Q{{ loop.index }}: {{ rewrite.question[:80] }}...</span>
-                        </div>
-                        <div style="display:flex;gap:1rem;">
-                            <div style="flex:1;">
-                                <div class="rewrite-original-answer">
-                                    <strong>Original:</strong> {{ rewrite.original_answer[:120] }}
-                                </div>
-                                <div class="score-row" style="gap:0.4rem;">
+                    <div class="rewrite-item-card">
+                        <h4 class="rewrite-q-title">Q{{ loop.index }}: {{ rewrite.question[:100] }}...</h4>
+                        <div class="rewrite-comparison-grid">
+                            <div class="rewrite-side original-side">
+                                <div class="side-header">Original Attempt</div>
+                                <p class="side-text">"{{ rewrite.original_answer }}"</p>
+                                <div class="side-scores-chips">
                                     {% for key, val in rewrite.original_scores.items() %}
-                                    <div class="score-chip" style="padding:0.15rem 0.4rem;">
-                                        {{ key|replace('_', ' ')|title }}: {{ val }}
-                                    </div>
+                                    <span class="score-chip">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
                                     {% endfor %}
                                 </div>
                             </div>
-                            <div style="flex:1;">
-                                <div class="rewrite-rewritten-answer">
-                                    <strong>Rewritten:</strong> {{ rewrite.rewritten_answer[:120] }}
-                                </div>
-                                <div class="score-row" style="gap:0.4rem;">
+                            <div class="rewrite-side optimized-side">
+                                <div class="side-header">Optimized Attempt</div>
+                                <p class="side-text">"{{ rewrite.rewritten_answer }}"</p>
+                                <div class="side-scores-chips">
                                     {% for key, val in rewrite.rewritten_scores.items() %}
-                                    <div class="score-chip" style="padding:0.15rem 0.4rem;">
-                                        {{ key|replace('_', ' ')|title }}: {{ val }}
-                                    </div>
+                                    <span class="score-chip score-chip-active">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
                                     {% endfor %}
                                 </div>
                             </div>
                         </div>
+
                         {% if rewrite.improvement %}
-                        <div class="improvement-delta" style="margin-top:0.5rem;">
-                            <strong>Improvement:</strong>
-                            {% for key, delta in rewrite.improvement.items() %}
-                            <span style="color:{% if delta > 0 %}var(--accent-emerald){% elif delta < 0 %}var(--accent-rose){% else %}var(--text-muted){% endif %};">
-                                {{ key|replace('_', ' ')|title }}: {% if delta > 0 %}+{% endif %}{{ delta }}
-                            </span>
-                            {% endfor %}
+                        <div class="improvement-deltas-row">
+                            <span class="delta-title">Metric Delta:</span>
+                            <div class="delta-chips">
+                                {% for key, delta in rewrite.improvement.items() %}
+                                <span class="delta-chip {% if delta > 0 %}delta-up{% elif delta < 0 %}delta-down{% else %}delta-flat{% endif %}">
+                                    {{ key|replace('_', ' ')|title }}: {% if delta > 0 %}+{% endif %}{{ delta }}
+                                </span>
+                                {% endfor %}
+                            </div>
                         </div>
                         {% endif %}
                     </div>
@@ -344,123 +376,104 @@
             </div>
             {% endif %}
 
-            <hr class="section-divider">
-
-            <!-- ═══ FILLER WORD STATISTICS ═══ -->
+            <!-- Filler Word Analysis -->
             {% if report.filler_word_stats %}
-            <div class="card full-width card-accent orange" style="margin-bottom:2rem;">
-                <div class="card-header">
-                    <h3>&#x1f4ac; Filler Word Analysis</h3>
-                    <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.filler_word_stats.total }} total fillers</span>
+            <div class="card card-accent-amber" style="margin-bottom: 2rem;">
+                <div class="card-header flex-between">
+                    <h3>Speech Fluency Analysis</h3>
+                    <span class="card-header-badge">{{ report.filler_word_stats.total }} total fillers flagged</span>
                 </div>
                 <div class="card-body">
                     {% if report.filler_word_stats.by_question %}
-                    <div class="filler-word-grid">
+                    <div class="filler-questions-grid">
                         {% for q_filler in report.filler_word_stats.by_question %}
-                        <div class="filler-question-item">
-                            <div class="filler-question-text">
-                                <span class="filler-q-number">Q{{ q_filler.number }}.</span>
-                                {{ q_filler.question[:60] }}
+                        <div class="filler-question-row">
+                            <div class="filler-question-meta">
+                                <span class="fq-num">Q{{ q_filler.number }}</span>
+                                <span class="fq-text">{{ q_filler.question[:80] }}...</span>
                             </div>
-                            <div class="filler-stats">
-                                <span class="filler-count">{{ q_filler.count }} filler word(s)</span>
-                                <div class="filler-bar" style="width:{{ (q_filler.count / report.filler_word_stats.max_count) * 100 }}%;"></div>
+                            <div class="filler-progress-track">
+                                <div class="filler-progress-bar" style="width:{{ (q_filler.count / report.filler_word_stats.max_count) * 100 }}%;"></div>
+                                <span class="filler-qty-label">{{ q_filler.count }} word(s)</span>
                             </div>
                         </div>
                         {% endfor %}
                     </div>
                     {% endif %}
 
-                    <div class="filler-word-breakdown">
-                        <h4 style="font-size:0.85rem;margin-bottom:0.5rem;">Breakdown by Word</h4>
-                        <div class="filler-word-chips">
+                    <div class="filler-frequency-breakdown">
+                        <h5>High Frequency Fillers</h5>
+                        <div class="filler-chips-list">
                             {% for word, count in report.filler_word_stats.breakdown.items() %}
-                            <span class="filler-word-chip">{{ word }}: {{ count }}</span>
+                            <span class="filler-frequency-chip">{{ word }}: <strong>{{ count }}</strong></span>
                             {% endfor %}
                         </div>
                     </div>
 
-                    <div class="filler-advice" style="margin-top:0.5rem;">
-                        <strong>Tip:</strong> Reducing filler words improves your communication and confidence scores.
-                        Practice using the &ldquo;pause and breathe&rdquo; technique before answering.
+                    <div class="speech-advice-box">
+                        <strong>Fluency Strategy:</strong> Reducing fillers directly impacts both your Communication and Confidence scores. Consider slowing down your average speech speed, pausing intentionally, and breathing when transitioning between points.
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            <hr class="section-divider">
-
-            <!-- ═══ APTITUDE TEST RESULTS ═══ -->
+            <!-- Aptitude Test Details -->
             {% if report.aptitude_data %}
-            <div class="card full-width aptitude-report-card card-accent" style="margin-bottom:1.5rem;">
+            <div class="card card-accent-indigo" style="margin-bottom: 2rem;">
                 <div class="card-header">
-                    <h3>&#x1f4ca; Aptitude Test Results</h3>
-                    <span style="font-size:0.8rem;color:var(--text-muted);">{{ report.aptitude_data.questions|length }} questions</span>
+                    <h3>Cognitive Aptitude Performance</h3>
                 </div>
                 <div class="card-body">
-                    <!-- Overall score -->
-                    <div class="aptitude-report-overall">
-                        <div class="aptitude-report-score-circle
-                            {% if report.aptitude_data.score >= 80 %}good
-                            {% elif report.aptitude_data.score >= 50 %}average
-                            {% else %}poor{% endif %}">
-                            <span>{{ report.aptitude_data.score_out_of_10 }}/10</span>
-                            <small>{{ report.aptitude_data.score }}%</small>
+                    <div class="aptitude-summary-block">
+                        <div class="aptitude-score-donut {% if report.aptitude_data.score >= 80 %}score-high{% elif report.aptitude_data.score >= 50 %}score-mid{% else %}score-low{% endif %}">
+                            <span class="donut-number">{{ report.aptitude_data.score_out_of_10 }}/10</span>
+                            <span class="donut-percentage">{{ report.aptitude_data.score }}% accuracy</span>
                         </div>
-                        <div class="aptitude-report-stats">
-                            <div class="aptitude-report-stat">
-                                <span class="aptitude-report-stat-label">Correct Answers</span>
-                                <span class="aptitude-report-stat-value" style="color:var(--accent-emerald);">
-                                    {{ report.aptitude_data.correct }}
-                                </span>
+                        <div class="aptitude-stats-cards">
+                            <div class="apt-stat-mini">
+                                <span class="label">Correct Answers</span>
+                                <span class="value color-emerald">{{ report.aptitude_data.correct }}</span>
                             </div>
-                            <div class="aptitude-report-stat">
-                                <span class="aptitude-report-stat-label">Total Questions</span>
-                                <span class="aptitude-report-stat-value">{{ report.aptitude_data.total }}</span>
+                            <div class="apt-stat-mini">
+                                <span class="label">Total Questions</span>
+                                <span class="value">{{ report.aptitude_data.total }}</span>
                             </div>
-                            <div class="aptitude-report-stat">
-                                <span class="aptitude-report-stat-label">Accuracy</span>
-                                <span class="aptitude-report-stat-value">{{ report.aptitude_data.score }}%</span>
+                            <div class="apt-stat-mini">
+                                <span class="label">Success Margin</span>
+                                <span class="value">{{ report.aptitude_data.score }}%</span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Category breakdown -->
-                    <h4 style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;">Category-wise Breakdown</h4>
-                    <div class="aptitude-category-chips">
+                    <h5 class="sub-section-title">Cognitive Domain Breakdown</h5>
+                    <div class="aptitude-category-row">
                         {% for cat_name, cat_data in report.aptitude_data.category_breakdown.items() %}
-                        <div class="aptitude-category-chip">
-                            <span class="aptitude-category-chip-name">{{ cat_name }}</span>
-                            <span class="aptitude-category-chip-score"
-                                  style="color:{% if cat_data.score >= 80 %}var(--accent-emerald){% elif cat_data.score >= 50 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">
-                                {{ cat_data.correct }}/{{ cat_data.total }}
-                            </span>
-                            <span class="aptitude-category-chip-label">{{ cat_data.score }}%</span>
+                        <div class="aptitude-category-badge">
+                            <span class="cat-name">{{ cat_name|replace('_', ' ')|title }}</span>
+                            <div class="cat-stats-row">
+                                <span class="cat-fraction">{{ cat_data.correct }}/{{ cat_data.total }}</span>
+                                <span class="cat-pct {% if cat_data.score >= 80 %}color-emerald{% elif cat_data.score >= 50 %}color-amber{% else %}color-rose{% endif %}">{{ cat_data.score }}%</span>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
 
-                    <!-- Per-question review -->
-                    <h4 style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:0.5rem;">Question Review</h4>
-                    <div class="aptitude-question-list">
+                    <h5 class="sub-section-title">Response Audit</h5>
+                    <div class="aptitude-audit-list">
                         {% for q in report.aptitude_data.questions %}
-                        <div class="aptitude-q-item {% if q.is_correct %}correct-answer{% else %}wrong-answer{% endif %}">
-                            <div class="aptitude-q-header">
-                                <span class="aptitude-q-text">
-                                    <strong>Q{{ q.number }}.</strong> {{ q.question }}
-                                </span>
-                                <span class="aptitude-q-icon">
-                                    {% if q.is_correct %}&#x2705;{% else %}&#x274c;{% endif %}
-                                </span>
+                        <div class="aptitude-audit-card {% if q.is_correct %}audit-correct{% else %}audit-incorrect{% endif %}">
+                            <div class="audit-header flex-between">
+                                <span class="audit-q-title">Q{{ q.number }}. {{ q.question }}</span>
+                                <span class="audit-status-badge">{% if q.is_correct %}✓ Correct{% else %}✗ Incorrect{% endif %}</span>
                             </div>
-                            <div class="aptitude-q-detail">
-                                <span><strong>Your answer:</strong> {{ q.answer }}</span>
-                                <span><strong>Correct answer:</strong> {{ q.correct_answer }}</span>
-                                <span><strong>Category:</strong> {{ q.category|replace('_', ' ')|title }}</span>
+                            <div class="audit-comparison-row">
+                                <span><strong>Your Selection:</strong> {{ q.answer }}</span>
+                                <span><strong>Correct Solution:</strong> {{ q.correct_answer }}</span>
+                                <span><strong>Domain:</strong> {{ q.category|replace('_', ' ')|title }}</span>
                             </div>
                             {% if q.explanation %}
-                            <div class="aptitude-q-explanation">
-                                &#x1f4a1; {{ q.explanation }}
+                            <div class="audit-explanation">
+                                <strong>Explanation:</strong> {{ q.explanation }}
                             </div>
                             {% endif %}
                         </div>
@@ -470,112 +483,149 @@
             </div>
             {% endif %}
 
-            <hr class="section-divider">
-
-            <!-- ═══ SKILL GAPS ═══ -->
+            <!-- Skill Gaps and Recommendations Grid -->
             {% if report.skill_gaps %}
-            <div class="report-grid" style="margin-bottom:2rem;">
-                <div class="card">
-                    <div class="card-header"><h3>Skill Gaps Detected</h3></div>
+            <div class="report-analysis-grid" style="margin-bottom: 2rem;">
+                <!-- Skill Gaps -->
+                <div class="card card-accent-amber">
+                    <div class="card-header">
+                        <h3>Skill Gaps Analysis</h3>
+                    </div>
                     <div class="card-body">
-                        {% for gap in report.skill_gaps %}
-                        <div class="gap-item">
-                            <div>
-                                <div class="gap-skill">{{ gap.skill }}</div>
-                                <span class="gap-level {{ gap.level }}">{{ gap.level }}</span>
+                        <div class="gap-analysis-list">
+                            {% for gap in report.skill_gaps %}
+                            <div class="gap-item-premium">
+                                <div class="gap-item-header flex-between">
+                                    <span class="gap-skill-name">{{ gap.skill }}</span>
+                                    <span class="gap-level-badge level-{{ gap.level }}">{{ gap.level|upper }} Priority</span>
+                                </div>
+                                <div class="gap-item-body">
+                                    <p class="gap-desc">{{ gap.gap }}</p>
+                                    <div class="gap-rec-box">
+                                        <strong>Rec:</strong> {{ gap.recommendation }}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="gap-details">
-                                <p>{{ gap.gap }}</p>
-                                <p style="color:var(--accent-indigo);"><strong>&#x1f4a1;</strong> {{ gap.recommendation }}</p>
-                            </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                     </div>
                 </div>
 
-                <!-- Learning Recommendations -->
-                <div class="card">
-                    <div class="card-header"><h3>Learning Recommendations</h3></div>
+                <!-- Learning resources -->
+                <div class="card card-accent-indigo">
+                    <div class="card-header">
+                        <h3>Learning Recommendations</h3>
+                    </div>
                     <div class="card-body">
                         {% if report.recommendations %}
-                        {% for rec in report.recommendations %}
-                        <div class="rec-item">
-                            <div class="rec-icon">&#x1f4da;</div>
-                            <div class="rec-content">
-                                <h4>{{ rec.area }}</h4>
-                                <p>{{ rec.description }}</p>
-                                <span class="rec-priority {{ rec.priority }}">{{ rec.priority }} priority</span>
+                        <div class="recommendations-list">
+                            {% for rec in report.recommendations %}
+                            <div class="rec-card-premium">
+                                <div class="rec-icon-box">📚</div>
+                                <div class="rec-details">
+                                    <h4>{{ rec.area }}</h4>
+                                    <p>{{ rec.description }}</p>
+                                    <span class="rec-priority-badge priority-{{ rec.priority }}">{{ rec.priority }} priority</span>
+                                </div>
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
                         {% else %}
-                        <p class="text-muted">No specific recommendations generated.</p>
+                        <div class="empty-analytics-msg">No specific educational recommendations generated.</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            <hr class="section-divider">
-
-            <!-- ═══ IMPROVEMENT ROADMAP ═══ -->
+            <!-- Roadmap Section -->
             {% if report.improvement_roadmap %}
-            <div class="card full-width card-accent" style="margin-bottom:2rem;">
+            <div class="card card-accent-indigo" style="margin-bottom: 2rem;">
                 <div class="card-header">
-                    <h3>&#x1f9f3; 30-Day Improvement Roadmap</h3>
+                    <h3>30-Day Guided Performance Roadmap</h3>
                 </div>
                 <div class="card-body">
-                    <p style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1rem;">
-                        {{ report.improvement_roadmap.overall_advice }}
-                    </p>
+                    <p class="roadmap-intro-text">{{ report.improvement_roadmap.overall_advice }}</p>
 
                     {% set roadmap = report.improvement_roadmap.roadmap %}
                     {% if roadmap %}
-                    {% for week_key in ['week_1', 'week_2', 'week_3', 'week_4'] %}
-                    {% set week = roadmap.get(week_key, {}) %}
-                    <div class="roadmap-week">
-                        <div class="week-header">
-                            <span class="week-number">{{ week_key.replace('_', ' ').title() }}</span>
-                            <span class="week-focus">&#x1f3af; {{ week.focus }}</span>
+                    <div class="roadmap-timeline">
+                        {% for week_key in ['week_1', 'week_2', 'week_3', 'week_4'] %}
+                        {% set week = roadmap.get(week_key, {}) %}
+                        <div class="roadmap-week-card">
+                            <div class="roadmap-week-header flex-between">
+                                <span class="week-title-text">{{ week_key.replace('_', ' ').title() }}</span>
+                                <span class="week-focus-badge">🎯 {{ week.focus }}</span>
+                            </div>
+                            <div class="week-goal-statement">
+                                <strong>Weekly Goal:</strong> {{ week.goal }}
+                            </div>
+                            <ul class="week-tasks-list">
+                                {% for task in week.daily_plan %}
+                                <li>{{ task }}</li>
+                                {% endfor %}
+                            </ul>
                         </div>
-                        <div class="week-goal">{{ week.goal }}</div>
-                        <ul class="week-plan">
-                            {% for task in week.daily_plan %}
-                            <li>{{ task }}</li>
-                            {% endfor %}
-                        </ul>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                     {% endif %}
 
-                    <!-- Learning Resources from Roadmap -->
                     {% if report.improvement_roadmap.learning_resources %}
-                    <h4 style="margin-top:1rem;margin-bottom:0.5rem;">&#x1f4c3; Recommended Resources</h4>
-                    {% for res in report.improvement_roadmap.learning_resources %}
-                    <div class="resource-card">
-                        <div class="resource-info">
-                            <h4>{{ res.title }}</h4>
+                    <h5 class="sub-section-title">Reference Documentation & Tutorials</h5>
+                    <div class="roadmap-resources-grid">
+                        {% for res in report.improvement_roadmap.learning_resources %}
+                        <div class="resource-card-premium">
+                            <div class="resource-meta flex-between">
+                                <h4>{{ res.title }}</h4>
+                                <span class="resource-type-tag">{{ res.type }}</span>
+                            </div>
                             <p>{{ res.description }}</p>
                         </div>
-                        <span class="resource-type">{{ res.type }}</span>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                     {% endif %}
                 </div>
             </div>
             {% endif %}
 
-            <!-- ═══ ACTIONS ═══ -->
-            <div class="action-buttons">
-                <a href="/dashboard" class="btn btn-secondary btn-lg">&#x1f4ca; Dashboard</a>
-                <a href="/" class="btn btn-primary btn-lg">&#x1f504; Practice Again</a>
-                <button onclick="window.print()" class="btn btn-accent btn-lg">&#x1f5a8; Download PDF</button>
-                <button id="copy-report-link" class="btn btn-secondary btn-lg">&#x1f517; Copy Report Link</button>
+            <!-- Report Bottom CTA buttons -->
+            <div class="report-cta-action-row">
+                <a href="/dashboard" class="btn btn-secondary btn-lg">Dashboard</a>
+                <a href="/" class="btn btn-primary btn-lg">Practice Again</a>
+                <button onclick="window.print()" class="btn btn-accent btn-lg">Print Report</button>
+                <button id="copy-report-link" class="btn btn-secondary btn-lg">Copy Link</button>
             </div>
         </div>
     </div>
     {% endif %}
 
     <script src="/static/script.js"></script>
+    <script>
+        // Trigger animations for report views
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                // Animate circular progress rings
+                document.querySelectorAll(".ring-progress").forEach(function(ring) {
+                    var score = parseFloat(ring.getAttribute("data-score")) || 0;
+                    var radius = ring.r.baseVal.value;
+                    var circumference = 2 * Math.PI * radius;
+                    ring.style.strokeDasharray = circumference;
+                    
+                    var offset = circumference - (score / 10) * circumference;
+                    ring.style.strokeDashoffset = offset;
+                });
+
+                // Animate linear progress tracks
+                document.querySelectorAll(".bar-fill, .dist-fill, .dist-bar-fill, .readiness-fill, .filler-progress-bar").forEach(function(bar) {
+                    var width = bar.getAttribute("data-width") || "0%";
+                    // handle raw values if count was used
+                    if (!width.endsWith("%") && !isNaN(width)) {
+                        width = width + "%";
+                    }
+                    bar.style.width = width;
+                });
+            }, 200);
+        });
+    </script>
 </body>
 </html>

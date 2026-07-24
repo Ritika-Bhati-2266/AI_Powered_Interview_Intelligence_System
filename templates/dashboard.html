@@ -3,20 +3,24 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Interview Dashboard</title>
+    <title>Interview Performance Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="page-dashboard">
     <!-- Navbar -->
     <nav class="navbar">
-        <div class="container">
+        <div class="container navbar-container">
             <a href="/" class="navbar-brand">
-                <span class="brand-icon">&#x1f9d1;&#x200d;&#x1f3eb;</span>
-                AI Interview
+                <span class="brand-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                </span>
+                AI Interview Coach
             </a>
             <div class="navbar-links">
-                <a href="/">New Interview</a>
+                <a href="/" class="nav-link-btn">New Interview</a>
             </div>
         </div>
     </nav>
@@ -24,136 +28,171 @@
     <div class="dashboard-page">
         <div class="container">
             {% if data %}
-            <!-- Welcome -->
-            <div class="flex-between" style="margin-bottom:1.5rem;">
+            <!-- Welcome Header -->
+            <div class="dashboard-header flex-between">
                 <div>
                     <h1>Dashboard</h1>
-                    <p style="margin-bottom:0;">Welcome back, <strong>{{ data.candidate.name }}</strong></p>
+                    <p class="welcome-text">Welcome back, <strong>{{ data.candidate.name }}</strong>. Track your progress below.</p>
                 </div>
-                <a href="/" class="btn btn-primary">&#x2795; New Interview</a>
+                <a href="/" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; margin-right: 6px; display: inline-block; vertical-align: middle;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    New Session
+                </a>
             </div>
 
             <script>window.CANDIDATE_ID = {{ data.candidate.id }};</script>
 
-            <!-- Stats Cards -->
+            <!-- Stats Grid -->
             <div class="dashboard-grid">
-                <div class="stat-card blue">
-                    <div class="stat-value">{{ data.total_sessions }}</div>
-                    <div class="stat-label">Completed Interviews</div>
+                <div class="stat-card card-indigo">
+                    <div class="stat-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ data.total_sessions }}</div>
+                        <div class="stat-label">Interviews Completed</div>
+                    </div>
                 </div>
-                <div class="stat-card green">
-                    <div class="stat-value">{{ data.avg_overall }}</div>
-                    <div class="stat-label">Overall Score</div>
+                <div class="stat-card card-emerald">
+                    <div class="stat-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ data.avg_overall }}/10</div>
+                        <div class="stat-label">Overall Avg Score</div>
+                    </div>
                 </div>
-                <div class="stat-card orange">
-                    <div class="stat-value">{{ data.avg_technical }}</div>
-                    <div class="stat-label">Technical Score</div>
+                <div class="stat-card card-cyan">
+                    <div class="stat-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ data.avg_technical }}/10</div>
+                        <div class="stat-label">Technical Avg</div>
+                    </div>
                 </div>
-                <div class="stat-card purple">
-                    <div class="stat-value">{{ data.avg_communication }}</div>
-                    <div class="stat-label">Communication Score</div>
+                <div class="stat-card card-violet">
+                    <div class="stat-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ data.avg_communication }}/10</div>
+                        <div class="stat-label">Communication Avg</div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Score Breakdown Bars -->
-            <div class="card card-accent" style="margin-bottom:2rem;">
-                <div class="card-header">
-                    <h3>Score Breakdown</h3>
+            <!-- Main Panels -->
+            <div class="panels-split">
+                <!-- Score Breakdown -->
+                <div class="card panel-card card-accent-indigo">
+                    <div class="card-header">
+                        <h3>Core Dimension Breakdown</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="score-bars">
+                            <div class="bar-group">
+                                <div class="bar-info flex-between">
+                                    <span class="bar-label">Technical Competence</span>
+                                    <span class="bar-value value-indigo">{{ data.avg_technical }} / 10</span>
+                                </div>
+                                <div class="bar">
+                                    <div class="bar-fill bg-indigo" data-width="{{ data.avg_technical * 10 }}%" style="width:0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="bar-group">
+                                <div class="bar-info flex-between">
+                                    <span class="bar-label">Communication Delivery</span>
+                                    <span class="bar-value value-emerald">{{ data.avg_communication }} / 10</span>
+                                </div>
+                                <div class="bar">
+                                    <div class="bar-fill bg-emerald" data-width="{{ data.avg_communication * 10 }}%" style="width:0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="bar-group">
+                                <div class="bar-info flex-between">
+                                    <span class="bar-label">Confidence and Presence</span>
+                                    <span class="bar-value value-amber">{{ data.avg_confidence }} / 10</span>
+                                </div>
+                                <div class="bar">
+                                    <div class="bar-fill bg-amber" data-width="{{ data.avg_confidence * 10 }}%" style="width:0%;"></div>
+                                </div>
+                            </div>
+
+                            <div class="bar-group">
+                                <div class="bar-info flex-between">
+                                    <span class="bar-label">Overall Score Baseline</span>
+                                    <span class="bar-value value-violet">{{ data.avg_overall }} / 10</span>
+                                </div>
+                                <div class="bar">
+                                    <div class="bar-fill bg-violet" data-width="{{ data.avg_overall * 10 }}%" style="width:0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <div class="card-body">
-                    <div class="score-bars">
-                        <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-indigo);">{{ data.avg_technical }}</div>
-                            <div class="bar">
-                                <div class="bar-fill blue" data-height="{{ data.avg_technical * 10 }}"
-                                     style="height:0%;"></div>
-                            </div>
-                            <div class="bar-label">Technical</div>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-emerald);">{{ data.avg_communication }}</div>
-                            <div class="bar">
-                                <div class="bar-fill green" data-height="{{ data.avg_communication * 10 }}"
-                                     style="height:0%;"></div>
-                            </div>
-                            <div class="bar-label">Communication</div>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-amber);">{{ data.avg_confidence }}</div>
-                            <div class="bar">
-                                <div class="bar-fill orange" data-height="{{ data.avg_confidence * 10 }}"
-                                     style="height:0%;"></div>
-                            </div>
-                            <div class="bar-label">Confidence</div>
-                        </div>
-                        <div class="bar-group">
-                            <div class="bar-value" style="color:var(--accent-violet);">{{ data.avg_overall }}</div>
-                            <div class="bar">
-                                <div class="bar-fill purple" data-height="{{ data.avg_overall * 10 }}"
-                                     style="height:0%;"></div>
-                            </div>
-                            <div class="bar-label">Overall</div>
+
+                <!-- Progress Chart -->
+                <div class="card panel-card card-accent-emerald">
+                    <div class="card-header">
+                        <h3>Progress Over Time</h3>
+                    </div>
+                    <div class="card-body chart-body">
+                        <div class="chart-container">
+                            <canvas id="progress-chart"></canvas>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Progress Chart (Chart.js) -->
-            <div class="card card-accent green" style="margin-bottom:2rem;">
-                <div class="card-header">
-                    <h3>Progress Over Time</h3>
-                </div>
-                <div class="card-body">
-                    <div class="chart-container">
-                        <canvas id="progress-chart"></canvas>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Session History -->
-            <div class="card card-accent orange">
-                <div class="card-header">
-                    <h3>Interview History</h3>
-                    <span style="font-size:0.8rem;color:var(--text-muted);">
-                        {{ data.total_answers }} answers across {{ data.total_sessions }} sessions
+            <!-- History and Performance Analysis Details -->
+            <div class="card card-accent-violet" style="margin-bottom: 2rem;">
+                <div class="card-header flex-between">
+                    <h3>Interview Session History</h3>
+                    <span class="card-header-badge">
+                        {{ data.total_answers }} responses across {{ data.total_sessions }} sessions
                     </span>
                 </div>
                 <div class="card-body">
                     {% if data.sessions %}
                     <div class="table-container">
-                        <table>
+                        <table class="dashboard-table">
                             <thead>
                                 <tr>
                                     <th>Date</th>
                                     <th>Mode</th>
                                     <th>Questions</th>
-                                    <th>Overall</th>
+                                    <th>Overall Score</th>
                                     <th>Technical</th>
                                     <th>Communication</th>
                                     <th>Confidence</th>
-                                    <th>Report</th>
+                                    <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for session in data.sessions %}
                                 <tr>
-                                    <td>{{ session.created_at[:10] if session.created_at else 'N/A' }}</td>
+                                    <td class="date-cell">{{ session.created_at[:10] if session.created_at else 'N/A' }}</td>
                                     <td>
-                                        <span class="mode-indicator {{ session.mode }}"
-                                              style="padding:0.2rem 0.5rem;font-size:0.72rem;display:inline;">
+                                        <span class="mode-badge mode-{{ session.mode }}">
                                             {{ session.mode|capitalize if session.mode else 'N/A' }}
                                         </span>
                                     </td>
-                                    <td>{{ session.completed_questions or 0 }}/{{ session.total_questions or 0 }}</td>
-                                    <td class="score-cell" style="color:var(--accent-emerald);">
-                                        {{ '%.1f'|format(session.overall_score) if session.overall_score else '--' }}
+                                    <td class="count-cell">{{ session.completed_questions or 0 }} / {{ session.total_questions or 0 }}</td>
+                                    <td>
+                                        {% set ovr = session.overall_score %}
+                                        <span class="badge-pill {% if ovr >= 8 %}badge-green{% elif ovr >= 6 %}badge-amber{% else %}badge-red{% endif %}">
+                                            {{ '%.1f'|format(ovr) if ovr else '--' }}
+                                        </span>
                                     </td>
                                     <td class="score-cell">{{ '%.1f'|format(session.technical_score) if session.technical_score else '--' }}</td>
                                     <td class="score-cell">{{ '%.1f'|format(session.communication_score) if session.communication_score else '--' }}</td>
                                     <td class="score-cell">{{ '%.1f'|format(session.confidence_score) if session.confidence_score else '--' }}</td>
                                     <td>
-                                        <a href="/report/{{ session.id }}" class="btn btn-sm btn-secondary">
-                                            View &#x2192;
+                                        <a href="/report/{{ session.id }}" class="btn btn-secondary btn-sm table-btn">
+                                            Report →
                                         </a>
                                     </td>
                                 </tr>
@@ -162,110 +201,64 @@
                         </table>
                     </div>
                     {% else %}
-                    <p style="text-align:center;padding:2rem 0;">No interview sessions yet. <a href="/">Start your first interview!</a></p>
+                    <div class="empty-state-sub">No interview sessions found.</div>
                     {% endif %}
                 </div>
             </div>
 
-            <!-- Comparison Stats (loaded dynamically) -->
-            <div id="comparison-section" class="card" style="margin-top:1.5rem;">
+            <!-- Comparison Section (Dynamic API) -->
+            <div id="comparison-section" class="card card-accent-amber" style="margin-bottom: 2rem;">
                 <div class="card-header">
-                    <h3>Performance Analysis</h3>
+                    <h3>Performance Analytics & Benchmark</h3>
                 </div>
                 <div class="card-body" id="comparison-content">
-                    <p class="text-muted">Loading comparison data...</p>
+                    <div class="skeleton-pulse">
+                        <div class="skeleton-line shadow-pulse"></div>
+                        <div class="skeleton-line shadow-pulse" style="width: 80%;"></div>
+                        <div class="skeleton-line shadow-pulse" style="width: 60%;"></div>
+                    </div>
                 </div>
             </div>
 
-            <script>
-                // Load comparison data dynamically
-                (function() {
-                    const cid = window.CANDIDATE_ID;
-                    if (!cid) return;
-                    fetch('/api/compare/' + cid)
-                        .then(r => r.json())
-                        .then(data => {
-                            if (data.error) {
-                                document.getElementById('comparison-content').innerHTML =
-                                    '<p class="text-muted">Complete more interviews to see comparison data.</p>';
-                                return;
-                            }
-                            const trendIcon = data.trend === 'improving' ? '&#x2197;' :
-                                             (data.trend === 'declining' ? '&#x2198;' : '&#x2192;');
-                            const trendClass = data.trend === 'improving' ? 'up' :
-                                             (data.trend === 'declining' ? 'down' : 'stable');
-                            document.getElementById('comparison-content').innerHTML =
-                                '<div class="comparison-grid">' +
-                                    '<div class="compare-stat">' +
-                                        '<div class="cmp-value">' + data.total_sessions + '</div>' +
-                                        '<div class="cmp-label">Total Sessions</div>' +
-                                    '</div>' +
-                                    '<div class="compare-stat">' +
-                                        '<div class="cmp-value" style="color:var(--accent-emerald);">' + data.improvement + '</div>' +
-                                        '<div class="cmp-label">Last Improvement</div>' +
-                                        '<div class="cmp-trend ' + trendClass + '">' + trendIcon + ' ' + data.trend + '</div>' +
-                                    '</div>' +
-                                    '<div class="compare-stat">' +
-                                        '<div class="cmp-value">' + data.consistency + '</div>' +
-                                        '<div class="cmp-label">Consistency /10</div>' +
-                                    '</div>' +
-                                    '<div class="compare-stat">' +
-                                        '<div class="cmp-value" style="color:var(--accent-indigo);">Top ' + data.percentile + '%</div>' +
-                                        '<div class="cmp-label">Performance vs All</div>' +
-                                    '</div>' +
-                                    '<div class="compare-stat">' +
-                                        '<div class="cmp-value" style="color:var(--accent-amber);">' + (data.best_session.score || '--') + '</div>' +
-                                        '<div class="cmp-label">Best Score</div>' +
-                                        '<div class="cmp-trend" style="font-size:0.65rem;color:var(--text-muted);">' + (data.best_session.date || '') + '</div>' +
-                                    '</div>' +
-                                    '<div class="compare-stat">' +
-                                        '<div class="cmp-value">' + Math.round(data.consistency * data.total_sessions) + '</div>' +
-                                        '<div class="cmp-label">Trust Score</div>' +
-                                    '</div>' +
-                                '</div>';
-                        })
-                        .catch(() => {
-                            document.getElementById('comparison-content').innerHTML =
-                                '<p class="text-muted">Could not load comparison data.</p>';
-                        });
-                })();
-            </script>
-
             <!-- Recent Answers Preview -->
             {% if data.recent_answers %}
-            <div class="card" style="margin-top:1.5rem;">
+            <div class="card">
                 <div class="card-header">
-                    <h3>Recent Answers</h3>
+                    <h3>Recent Answers Review</h3>
                 </div>
                 <div class="card-body">
-                    {% for ans in data.recent_answers[:5] %}
-                    <div class="qa-item">
-                        <div class="qa-header">
-                            <span class="qa-question" style="font-size:0.85rem;">
-                                Q: {{ ans.question[:100] }}{% if ans.question|length > 100 %}...{% endif %}
-                            </span>
-                            <span class="score-badge {{ 'score-excellent' if ans.overall_score >= 8 else 'score-good' if ans.overall_score >= 6 else 'score-average' }}"
-                                  style="width:36px;height:36px;font-size:0.85rem;">
-                                {{ ans.overall_score }}
-                            </span>
+                    <div class="qa-recent-list">
+                        {% for ans in data.recent_answers[:5] %}
+                        <div class="qa-recent-item">
+                            <div class="qa-recent-header flex-between">
+                                <span class="qa-recent-question">
+                                    <strong>Q:</strong> {{ ans.question[:130] }}{% if ans.question|length > 130 %}...{% endif %}
+                                </span>
+                                {% set ans_ovr = ans.overall_score %}
+                                <span class="badge-pill {% if ans_ovr >= 8 %}badge-green{% elif ans_ovr >= 6 %}badge-amber{% else %}badge-red{% endif %}">
+                                    Score: {{ ans_ovr }}
+                                </span>
+                            </div>
+                            <div class="qa-recent-answer">
+                                {{ ans.answer[:180] }}{% if ans.answer|length > 180 %}...{% endif %}
+                            </div>
                         </div>
-                        <div class="qa-answer" style="font-size:0.82rem;">
-                            {{ ans.answer[:120] }}{% if ans.answer|length > 120 %}...{% endif %}
-                        </div>
+                        {% endfor %}
                     </div>
-                    {% endfor %}
                 </div>
             </div>
             {% endif %}
 
             {% else %}
             <!-- No Data State -->
-            <div style="text-align:center;padding:4rem 2rem;">
-                <div style="font-size:4rem;margin-bottom:1rem;">&#x1f4ca;</div>
-                <h1>No Data Yet</h1>
-                <p>Complete an interview to see your performance dashboard.</p>
-                <a href="/" class="btn btn-primary btn-lg" style="margin-top:1rem;">
-                    &#x1f3e0; Start Your First Interview
+            <div class="empty-state-card">
+                <div class="empty-state-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 64px; height: 64px; color: var(--text-muted);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                </div>
+                <h1>No Data Recorded Yet</h1>
+                <p>Welcome to AI Interview Coach. Start your first session to capture deep analytics and track performance.</p>
+                <a href="/" class="btn btn-primary btn-lg" style="margin-top: 1rem;">
+                    Start Your First Interview
                 </a>
             </div>
             {% endif %}
@@ -273,5 +266,16 @@
     </div>
 
     <script src="/static/script.js"></script>
+    <script>
+        // Trigger style.css progress bar animations
+        document.addEventListener("DOMContentLoaded", function() {
+            setTimeout(function() {
+                document.querySelectorAll(".bar-fill").forEach(function(bar) {
+                    var width = bar.getAttribute("data-width") || "0%";
+                    bar.style.width = width;
+                });
+            }, 150);
+        });
+    </script>
 </body>
 </html>

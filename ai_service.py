@@ -374,7 +374,7 @@ def generate_question(role: str, experience: str, skills: list, category: str,
         if context else 'This is the start of the interview - generate a good opening question.'
     )
     resume_part = (
-        f'Resume Context:{newline}{resume_text[:1000]}'
+        f'Resume Context:{newline}{resume_text[:4000]}'
         if resume_text else ''
     )
 
@@ -449,10 +449,10 @@ def generate_question(role: str, experience: str, skills: list, category: str,
     resume_instruction = ""
     if is_resume_phase and resume_text:
         resume_instruction = (
-            f"CRITICAL: This is the RESUME DISCUSSION phase. The question MUST reference "
-            f"specific projects, skills, or experiences mentioned in the candidate's resume below. "
-            f"Ask about a specific project, technology, or experience from their resume. "
-            f"Be specific - mention the project or skill by name from the resume context."
+            f"CRITICAL - RESUME DISCUSSION ROUND:\n"
+            f"1. The question MUST reference specific projects, skills, or experiences mentioned in the candidate's resume below.\n"
+            f"2. Reference a specific project, technology, or experience by name directly from the resume context.\n"
+            f"3. Target Role Alignment: The candidate's target role is '{role}'. You MUST align the question to this target role. If a project or experience in the resume is from a different domain (for example, a frontend web project on a Data Scientist candidate's resume), do NOT ask generic questions about that domain. Instead, REFRAME the project/experience around the target role '{role}' (e.g., asking how they would design machine learning models, run data experiments, set up data pipelines, handle backend scale, or manage data schemas for that specific web project)."
         )
     elif round_info and round_info.get("focus"):
         resume_instruction = (
@@ -465,6 +465,7 @@ def generate_question(role: str, experience: str, skills: list, category: str,
 
     prompt = f"""Generate a single {difficulty} interview question for a {role} candidate with {experience} years of experience.{company_tag}
 
+Candidate's Target Role: {role}
 Candidate's Skills: {skills_str}
 Question Category: {category}
 
@@ -477,23 +478,27 @@ Question Category: {category}
 {resume_instruction}
 
 CRITICAL RULES:
-- Return ONLY the question text. No labels, no prefixes, no "Question:".
+- Return ONLY the question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
 - Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.
-- Match the difficulty STRICTLY to the candidate's stated experience level ({experience} years).
-  * 0-2 years: ask foundational, practical questions. NEVER ask senior-level system design, architecture, or large-scale distributed system questions.
-  * 3-5 years: ask intermediate questions about real-world tools, patterns, and moderate problem-solving.
-  * 6+ years: you may ask deeper system design, architecture, or leadership-oriented questions.
-- Use simple, conversational language — the way a real interviewer would speak. Avoid unnecessarily complex, academic, or overly formal phrasing.
-- For technical questions, ask about real technologies, design patterns, or problem-solving at the right difficulty.
-- For behavioral questions, use the STAR format style.
-- Make it conversational --- like a real interviewer speaking.
-- Match the AUTHENTIC style of what this company is known for asking."""
+- Keep it highly conversational, like a real human interviewer speaking.
+- The question MUST be relevant to the candidate's target role '{role}' and their stated experience level ({experience} years).
+- NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', or any other annotations) in the response."""
 
     response = _call_ollama(prompt, QUESTION_GENERATION_SYSTEM, temperature=0.8)
 
-    # Clean up common prefixes the model might add
+    # Clean up common prefixes and leaked headers/notes
     response = re.sub(r'^(Question[:\s]*|Q[:\s]*|"|\')', '', response).strip()
     response = re.sub(r'["\']$', '', response).strip()
+    
+    # Strip parenthetical annotations or tags models leak (e.g. "(This maps to Amazon Leadership Principle: Ownership)")
+    response = re.sub(r'\s*[\(\[][^\]\)]*?(?:maps to|relates to|principle|leadership|company|context|role|experience|difficulty|category|question)[^\]\)]*?[\)\]]', '', response, flags=re.IGNORECASE).strip()
+    
+    # Strip common conversational introductory filler phrases that leak system instructions
+    response = re.sub(r'^(Based on your resume,?\s*|Here is a question:?\s*|Let\'s discuss your resume:?\s*|Could you tell me,?\s*|Tell me,?\s*|Sure,?\s*|Here is an? \w+ question:?\s*)', '', response, flags=re.IGNORECASE).strip()
+    
+    # Ensure the first letter is capitalized
+    if response:
+        response = response[0].upper() + response[1:]
     
     if not response or response.startswith("[OLLAMA_"):
         # Fallback questions if Ollama is unavailable
@@ -589,7 +594,7 @@ Also include 'filler_word_count': {filler_data['total_count']} in the response.
         return _get_fallback_evaluation(answer)
     
     result = _extract_json(response)
-    if result and result.get('overall_score') is not None:
+    if result and isinstance(result, dict) and result.get('overall_score') is not None:
         # Ensure all score fields exist with defaults
         score_keys = [
             'overall_score', 'technical_score', 'communication_score',
@@ -678,7 +683,7 @@ Return as JSON ONLY with this structure:
     response = _call_ollama(prompt, system_prompt, temperature=0.4)
     
     result = _extract_json(response)
-    if result and 'skill_gaps' in result:
+    if result and isinstance(result, dict) and 'skill_gaps' in result:
         return result['skill_gaps']
     
     # Fallback
