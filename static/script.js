@@ -346,6 +346,7 @@ function initInterview() {
     let interviewComplete = false;
     let totalScores = { overall: 0, technical: 0, communication: 0, confidence: 0 };
     let answerCount = 0;
+    let evaluatedAnswersCount = 0;
 
     // Company state (for context badges)
     let currentCompany = '';
@@ -1079,23 +1080,32 @@ function initInterview() {
     function updateSidebarScores(eval) {
         if (!eval || !sidebarScores) return;
 
-        totalScores.overall += eval.overall_score || 0;
-        totalScores.technical += eval.technical_score || 0;
-        totalScores.communication += eval.communication_score || 0;
-        totalScores.confidence += eval.confidence_score || 0;
+        totalScores.overall += (typeof eval.overall_score === 'number' ? eval.overall_score : 0);
+        totalScores.technical += (typeof eval.technical_score === 'number' ? eval.technical_score : 0);
+        totalScores.communication += (typeof eval.communication_score === 'number' ? eval.communication_score : 0);
+        totalScores.confidence += (typeof eval.confidence_score === 'number' ? eval.confidence_score : 0);
 
-        const count = answerCount;
+        evaluatedAnswersCount++;
+
+        const count = evaluatedAnswersCount;
+        if (count <= 0) return;
+
+        const avgOverall = (totalScores.overall / count).toFixed(1);
+        const avgTech = (totalScores.technical / count).toFixed(1);
+        const avgComm = (totalScores.communication / count).toFixed(1);
+        const avgConf = (totalScores.confidence / count).toFixed(1);
+
+        const overallColor = parseFloat(avgOverall) >= 7.0 ? 'var(--accent-emerald)' : (parseFloat(avgOverall) >= 5.0 ? 'var(--accent-amber)' : 'var(--accent-rose)');
+
         sidebarScores.innerHTML =
             '<div class="score-item"><span class="score-label">Overall</span>' +
-            '<span class="score-value" style="color:' +
-            (eval.overall_score >= 6 ? 'var(--accent-emerald)' : 'var(--accent-amber)') +
-            '">' + (totalScores.overall / count).toFixed(1) + '</span></div>' +
+            '<span class="score-value" style="color:' + overallColor + '">' + avgOverall + '</span></div>' +
             '<div class="score-item"><span class="score-label">Technical</span>' +
-            '<span class="score-value">' + (totalScores.technical / count).toFixed(1) + '</span></div>' +
+            '<span class="score-value">' + avgTech + '</span></div>' +
             '<div class="score-item"><span class="score-label">Communication</span>' +
-            '<span class="score-value">' + (totalScores.communication / count).toFixed(1) + '</span></div>' +
+            '<span class="score-value">' + avgComm + '</span></div>' +
             '<div class="score-item"><span class="score-label">Confidence</span>' +
-            '<span class="score-value">' + (totalScores.confidence / count).toFixed(1) + '</span></div>';
+            '<span class="score-value">' + avgConf + '</span></div>';
     }
 
     // ── Helper: Input ──
