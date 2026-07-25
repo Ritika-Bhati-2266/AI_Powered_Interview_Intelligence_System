@@ -5,12 +5,12 @@
 /* ── CSS Variables / Theme ─────────────────────────────────────────────────── */
 
 :root {
-    --bg-primary: #0f172a;
-    --bg-secondary: #1e293b;
-    --bg-card: #1e293b;
-    --bg-card-elevated: #273549;
-    --bg-input: #0f172a;
-    --bg-hover: #334155;
+    --bg-primary: #0a0e1a;
+    --bg-secondary: #12172a;
+    --bg-card: #12172a;
+    --bg-card-elevated: #182038;
+    --bg-input: #1d2744;
+    --bg-hover: #253256;
     
     --text-primary: #f8fafc;
     --text-secondary: #94a3b8;
@@ -18,7 +18,7 @@
 
     --accent-indigo: #6366f1;
     --accent-indigo-hover: #4f46e5;
-    --accent-indigo-glow: rgba(99, 102, 241, 0.25);
+    --accent-indigo-glow: rgba(99, 102, 241, 0.3);
     --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
     
     --accent-emerald: #10b981;
@@ -30,10 +30,10 @@
     --border-color: rgba(255, 255, 255, 0.08);
     --border-focus: #6366f1;
 
-    --shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.3);
-    --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.4);
-    --shadow-lg: 0 12px 36px rgba(0, 0, 0, 0.5);
-    --shadow-glow: 0 0 25px rgba(99, 102, 241, 0.35);
+    --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.5);
+    --shadow-md: 0 6px 24px rgba(0, 0, 0, 0.65);
+    --shadow-lg: 0 14px 45px rgba(0, 0, 0, 0.8);
+    --shadow-glow: 0 0 28px rgba(99, 102, 241, 0.35);
 
     --radius-sm: 8px;
     --radius-md: 12px;
@@ -179,7 +179,7 @@ p {
 /* ── Header / Navbar ───────────────────────────────────────────────────────── */
 
 .navbar {
-    background: rgba(30, 41, 59, 0.7);
+    background: rgba(18, 23, 42, 0.85);
     border-bottom: 1px solid var(--border-color);
     padding: 1rem 0;
     position: sticky;
@@ -944,7 +944,10 @@ p {
 /* ── Interview Screen ──────────────────────────────────────────────────────── */
 
 .page-interview {
-    overflow-y: hidden;
+    background: var(--bg-primary);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
 }
 
 .page-interview .navbar {
@@ -952,22 +955,37 @@ p {
     z-index: 10;
 }
 
+.interview-container {
+    max-width: 1440px;
+    margin: 1.25rem auto;
+    padding: 0 1.25rem;
+    width: 100%;
+    height: calc(100vh - 100px);
+    display: flex;
+    flex-direction: column;
+}
+
 .interview-page {
     display: grid;
-    grid-template-columns: var(--sidebar-width) 1fr;
-    height: calc(100vh - 72px);
+    grid-template-columns: 320px 1fr;
+    flex: 1;
+    height: 100%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg), 0 0 35px rgba(0, 0, 0, 0.6);
     overflow: hidden;
 }
 
 /* Sidebar */
 .interview-sidebar {
-    background: var(--bg-secondary);
+    background: var(--bg-card-elevated);
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
     padding: 1.5rem;
     overflow-y: auto;
-    gap: 1.75rem;
+    gap: 1.5rem;
 }
 
 .candidate-info-card {
@@ -1327,7 +1345,7 @@ p {
     display: flex;
     flex-direction: column;
     height: 100%;
-    background: var(--bg-primary);
+    background: var(--bg-card);
 }
 
 .chat-header {
@@ -1336,7 +1354,7 @@ p {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    background: var(--bg-secondary);
+    background: var(--bg-card-elevated);
 }
 
 .chat-header-info {
@@ -1461,7 +1479,7 @@ p {
 }
 
 .message-bubble {
-    background: var(--bg-card);
+    background: var(--bg-input);
     border: 1px solid var(--border-color);
     border-radius: 4px 16px 16px 16px;
     padding: 1rem 1.35rem;
@@ -3029,6 +3047,18 @@ p {
 /* ── Responsive Styling ────────────────────────────────────────────────────── */
 
 @media (max-width: 1024px) {
+    .interview-container {
+        margin: 0;
+        padding: 0;
+        height: auto;
+    }
+    
+    .interview-page {
+        border-radius: 0;
+        border: none;
+        box-shadow: none;
+    }
+
     .dashboard-grid {
         grid-template-columns: repeat(2, 1fr);
     }

@@ -819,6 +819,24 @@ function initInterview() {
         scrollToBottom();
     }
 
+    // ── Helper: Add user message ──
+    function addUserMessage(text) {
+        if (!messagesContainer) return;
+        const div = document.createElement('div');
+        div.className = 'message user';
+        div.innerHTML =
+            '<div class="message-avatar">&#x1f464;</div>' +
+            '<div class="message-content">' +
+                '<div class="message-bubble">' +
+                escapeHtml(text) +
+                '</div>' +
+                '<div class="message-meta">You</div>' +
+            '</div>';
+
+        messagesContainer.appendChild(div);
+        scrollToBottom();
+    }
+
     // ── Global Rewrite Editor ──────────────────────────────────────────
     window.openRewriteEditor = function(answerIndex, currentScore) {
         // Find the last user message for this answer index

@@ -845,7 +845,7 @@ def _generate_next_question(session: InterviewSession) -> dict:
         context_parts.append(f"Q: {qa.get('question', '')}\nA: {qa.get('answer', '')}")
     context = "\n\n".join(context_parts)
 
-    # Generate the question with round info and resume phase flag
+    # Generate the question with round info, resume phase flag, and previous questions history
     question = generate_question(
         role=session.candidate_role,
         experience=session.candidate_experience,
@@ -857,6 +857,7 @@ def _generate_next_question(session: InterviewSession) -> dict:
         round_info=round_info,
         is_resume_phase=is_resume,
         company=session.company,
+        previous_questions=session.questions,
     )
 
     if not question or question.startswith("[OLLAMA_") or question.startswith("[PARSE_"):

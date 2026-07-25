@@ -348,7 +348,7 @@ Use the company-specific style guidance provided in the prompt below."""
 def generate_question(role: str, experience: str, skills: list, category: str,
                       difficulty: str, context: str = "", resume_text: str = "",
                       round_info: dict = None, is_resume_phase: bool = False,
-                      company: str = "General") -> str:
+                      company: str = "General", previous_questions: list = None) -> str:
     """
     Generate an interview question based on candidate profile.
     
@@ -360,6 +360,7 @@ def generate_question(role: str, experience: str, skills: list, category: str,
         difficulty: "easy", "medium", "hard"
         context: Previous Q&A context for follow-ups
         resume_text: Extracted resume content
+        previous_questions: List of questions previously asked in this session
     
     Returns:
         Question string
@@ -372,6 +373,21 @@ def generate_question(role: str, experience: str, skills: list, category: str,
         f'Previous Interview Context (generate a relevant follow-up question based on this):{newline}{context[:1500]}'
         if context else 'This is the start of the interview - generate a good opening question.'
     )
+
+    # Anti-repetition section from previous session questions
+    prev_q_part = ""
+    if previous_questions:
+        recent_qs = [q.strip() for q in previous_questions[-5:] if q and isinstance(q, str) and q.strip()]
+        if recent_qs:
+            formatted_qs = "\n".join([f"- {q}" for q in recent_qs])
+            prev_q_part = (
+                f"PREVIOUSLY ASKED QUESTIONS IN THIS SESSION (DO NOT REPEAT THESE TOPICS):\n"
+                f"{formatted_qs}\n\n"
+                f"CRITICAL TOPIC VARIETY RULE:\n"
+                f"Do NOT ask about any technology, database, framework, project, or concept already covered in the questions above. "
+                f"(For example, if caching, Redis, Express.js, or system architecture was already asked, pick a COMPLETELY DIFFERENT skill or project from the candidate's resume/skills list)."
+            )
+
     resume_part = (
         f'Resume Context:{newline}{resume_text[:4000]}'
         if resume_text else ''
@@ -477,6 +493,8 @@ Question Category: {category}
 
 {context_part}
 
+{prev_q_part}
+
 {resume_part}
 
 {round_type_instruction}
@@ -487,6 +505,7 @@ CRITICAL RULES:
 - Return ONLY the raw question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
 - Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.
 - Keep it highly conversational and direct, like an interviewer asking a candidate in person.
+- Ensure high TOPIC VARIETY: Do NOT repeat topics or technologies from previous questions in this session.
 - The question MUST be relevant to the candidate's target role '{role}' and their stated experience level ({experience} years).
 - NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', '[Context: ...]', or any other annotations) in the response."""
 
