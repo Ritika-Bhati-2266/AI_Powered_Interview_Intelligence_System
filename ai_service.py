@@ -171,10 +171,9 @@ COMPANY_HR_STYLE = {
         ],
         "style_note": (
             "Amazon behavioral rounds are defined by the 16 Leadership Principles. "
-            "EVERY behavioral question MUST explicitly reference one specific Leadership "
-            "Principle by name. Format: 'Tell me about a time when... (this maps to "
-            "[Principle Name])'. Interviewers expect STAR-format (Situation, Task, Action, "
-            "Result) answers with specific, quantified examples."
+            "EVERY behavioral question MUST assess one specific Leadership Principle. "
+            "Interviewers expect STAR-format (Situation, Task, Action, Result) answers "
+            "with specific, quantified examples."
         ),
     },
     "microsoft": {
@@ -414,8 +413,8 @@ def generate_question(role: str, experience: str, skills: list, category: str,
                 principles_str = "\n".join([f"- {p}" for p in principles])
                 company_round_style = (
                     "CRITICAL - This interview is for AMAZON. You MUST follow these rules:\n"
-                    "1. Reference ONE of Amazon's 16 Leadership Principles by name in the question.\n"
-                    "2. Format: 'Tell me about a time when... (this maps to [Principle Name])'\n"
+                    "1. Focus on ONE of Amazon's 16 Leadership Principles in the question.\n"
+                    "2. Ask a direct behavioral question evaluating how the candidate demonstrates this principle. Do NOT append parenthetical tags or internal notes.\n"
                     f"3. The 16 Leadership Principles are:\n{principles_str}\n"
                     "4. Pick a DIFFERENT principle than previously used in this session.\n"
                     "5. Expect STAR-format (Situation, Task, Action, Result) answers."
@@ -445,19 +444,26 @@ def generate_question(role: str, experience: str, skills: list, category: str,
         else:
             round_type_instruction = f"Ask a {rtype} question appropriate for this round."
 
-    # Resume-phase specific instruction
+    # Resume-phase and general resume context instruction
     resume_instruction = ""
     if is_resume_phase and resume_text:
         resume_instruction = (
             f"CRITICAL - RESUME DISCUSSION ROUND:\n"
-            f"1. The question MUST reference specific projects, skills, or experiences mentioned in the candidate's resume below.\n"
-            f"2. Reference a specific project, technology, or experience by name directly from the resume context.\n"
-            f"3. Target Role Alignment: The candidate's target role is '{role}'. You MUST align the question to this target role. If a project or experience in the resume is from a different domain (for example, a frontend web project on a Data Scientist candidate's resume), do NOT ask generic questions about that domain. Instead, REFRAME the project/experience around the target role '{role}' (e.g., asking how they would design machine learning models, run data experiments, set up data pipelines, handle backend scale, or manage data schemas for that specific web project)."
+            f"1. You MUST pull a specific, concrete project, technology, tool, or past experience mentioned in the candidate's resume.\n"
+            f"2. TARGET ROLE ALIGNMENT: The candidate's target role is '{role}'. You MUST frame the question around how that resume project or skill connects to a '{role}' role.\n"
+            f"   - For example: If candidate targets 'Data Scientist' but resume mentions a web dev project, do NOT ask frontend/CSS questions. Reframe around data engineering, ML algorithms, performance metrics, or data pipelines for that project.\n"
+            f"   - For example: If candidate targets 'DevOps Engineer', reframe their backend/project experience around deployment, CI/CD, scalability, or monitoring.\n"
+            f"3. Keep the question conversational, concise (1-2 sentences), and tailored to {experience} years of experience."
+        )
+    elif resume_text:
+        resume_instruction = (
+            f"RESUME CONTEXT INTEGRATION:\n"
+            f"Where relevant, pull specific details from the candidate's resume below, but ALWAYS frame the question to evaluate core competencies needed for their target role '{role}'."
         )
     elif round_info and round_info.get("focus"):
         resume_instruction = (
             f"ROUND FOCUS: This round covers '{round_info.get('name', '')}' with focus on: "
-            f"{round_focus}. Tailor the question accordingly."
+            f"{round_focus}. Tailor the question accordingly to the target role '{role}'."
         )
 
     # Company-specific tag for the question itself
@@ -478,11 +484,11 @@ Question Category: {category}
 {resume_instruction}
 
 CRITICAL RULES:
-- Return ONLY the question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
+- Return ONLY the raw question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
 - Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.
-- Keep it highly conversational, like a real human interviewer speaking.
+- Keep it highly conversational and direct, like an interviewer asking a candidate in person.
 - The question MUST be relevant to the candidate's target role '{role}' and their stated experience level ({experience} years).
-- NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', or any other annotations) in the response."""
+- NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', '[Context: ...]', or any other annotations) in the response."""
 
     response = _call_ollama(prompt, QUESTION_GENERATION_SYSTEM, temperature=0.8)
 
@@ -491,10 +497,10 @@ CRITICAL RULES:
     response = re.sub(r'["\']$', '', response).strip()
     
     # Strip parenthetical annotations or tags models leak (e.g. "(This maps to Amazon Leadership Principle: Ownership)")
-    response = re.sub(r'\s*[\(\[][^\]\)]*?(?:maps to|relates to|principle|leadership|company|context|role|experience|difficulty|category|question)[^\]\)]*?[\)\]]', '', response, flags=re.IGNORECASE).strip()
+    response = re.sub(r'\s*[\(\[][^\]\)]*?(?:maps to|relates to|principle|leadership|company|context|role|experience|difficulty|category|question|amazon|google|meta|microsoft)[^\]\)]*?[\)\]]', '', response, flags=re.IGNORECASE).strip()
     
     # Strip common conversational introductory filler phrases that leak system instructions
-    response = re.sub(r'^(Based on your resume,?\s*|Here is a question:?\s*|Let\'s discuss your resume:?\s*|Could you tell me,?\s*|Tell me,?\s*|Sure,?\s*|Here is an? \w+ question:?\s*)', '', response, flags=re.IGNORECASE).strip()
+    response = re.sub(r'^(Based on your resume,?\s*|Looking at your resume,?\s*|In your resume,?\s*|Here is a question:?\s*|Let\'s discuss your resume:?\s*|Could you tell me,?\s*|Sure,?\s*|Here is an? \w+ question:?\s*)', '', response, flags=re.IGNORECASE).strip()
     
     # Ensure the first letter is capitalized
     if response:
@@ -1083,38 +1089,27 @@ def _get_fallback_question(role: str, category: str, difficulty: str, company: s
     # ── Company-specific behavioral questions for known patterns ──
     if category in ("behavioral", "hr"):
         if company_lower == "amazon":
-            amazon_lps = [
-                "Customer Obsession",
-                "Ownership",
-                "Invent and Simplify",
-                "Are Right, A Lot",
-                "Learn and Be Curious",
-                "Hire and Develop the Best",
-                "Deliver Results",
+            amazon_questions = [
+                "Tell me about a time you went above and beyond for a customer or end-user. How did you handle their needs and what was the outcome?",
+                "Describe a situation where you had to take full ownership of a project outside your core responsibilities. What steps did you take?",
+                "Tell me about a complex process or system you simplified. What was the impact of that simplification?",
+                "Give an example of a tough decision you had to make with incomplete data. How did you arrive at your decision?"
             ]
-            lp = random.choice(amazon_lps)
-            return (
-                f"Tell me about a time you went above and beyond for a customer or user. "
-                f"How did you handle their needs and what was the outcome? "
-                f"(This maps to Amazon Leadership Principle: {lp})"
-            )
+            return random.choice(amazon_questions)
         elif company_lower == "google":
             return (
-                f"Tell me about a time when you had to work on a project with ambiguous "
-                f"requirements and unclear direction. How did you approach it and what was "
-                f"the result? (This relates to Google Googleyness: Handling Ambiguity)"
+                "Tell me about a time when you had to work on a project with ambiguous "
+                "requirements and unclear direction. How did you approach it and what was the result?"
             )
         elif company_lower == "microsoft":
             return (
-                f"Tell me about a time you failed at something and what you learned from it. "
-                f"How did this experience change your approach? "
-                f"(This relates to Microsoft Growth Mindset)"
+                "Tell me about a time you failed at a task and what specific lessons you learned from it. "
+                "How did this experience change your overall technical approach?"
             )
         elif company_lower == "meta":
             return (
-                f"Tell me about a time you disagreed with a team member's technical decision. "
-                f"How did you handle the disagreement and what was the outcome? "
-                f"(This relates to Meta's value of direct communication)"
+                "Tell me about a time you disagreed with a team member's technical decision. "
+                "How did you handle the disagreement and what was the resolution?"
             )
 
     # ── Standard fallback questions for all other cases ──

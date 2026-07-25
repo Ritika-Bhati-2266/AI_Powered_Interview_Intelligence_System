@@ -760,8 +760,6 @@ function initInterview() {
             }
         });
     }
-        });
-    }
 
     function addTransitionBanner(message) {
         if (!messagesContainer) return;
@@ -816,82 +814,6 @@ function initInterview() {
                 (metaHtml ? ' &#x00B7; ' + metaHtml : '') +
                 '</div>' +
             '</div>';
-
-        messagesContainer.appendChild(div);
-        scrollToBottom();
-    }
-
-    // ── Helper: Add user message ──
-    function addUserMessage(text) {
-        const div = document.createElement('div');
-        div.className = 'message user';
-        div.innerHTML =
-            '<div class="message-avatar">&#x1f464;</div>' +
-            '<div class="message-content">' +
-                '<div class="message-bubble">' +
-                escapeHtml(text) +
-                '</div>' +
-                '<div class="message-meta">You</div>' +
-            '</div>';
-
-        messagesContainer.appendChild(div);
-        scrollToBottom();
-    }
-
-    // ── Helper: Add evaluation card ──
-    function addEvaluationCard(evaluation) {
-        if (!evaluation) return;
-
-        const div = document.createElement('div');
-        div.className = 'evaluation-card';
-
-        const overallClass = getScoreClass(evaluation.overall_score || 0);
-
-        // Filler-word display
-        let fillerHtml = '';
-        if (evaluation.filler_word_count && evaluation.filler_word_count > 0) {
-            fillerHtml = '<div class="filler-warning">' +
-                '<span class="filler-icon">\u26a0\ufe0f</span>' +
-                '<span class="filler-text">' + evaluation.filler_word_count + ' filler word(s) detected</span>' +
-                '</div>';
-        }
-
-        // Rewrite button
-        const answerIndex = answerCount;
-        let rewriteBtnHtml = '';
-        if (!interviewComplete && !isProcessing) {
-            rewriteBtnHtml = '<div class="rewrite-controls">' +
-                '<button class="btn btn-sm btn-rewrite" onclick="openRewriteEditor(' + answerIndex + ', \'' + escapeHtml(evaluation.overall_score) + '\')">' +
-                '\u270f\ufe0f Rewrite Answer</button>' +
-                '</div>';
-        }
-
-        div.innerHTML =
-            '<div class="score-row">' +
-                '<div class="score-chip chip-overall">' +
-                    '<span class="chip-icon">&#x1f3af;</span>' +
-                    '<span class="chip-label">Overall</span> ' +
-                    '<span class="chip-value">' + (evaluation.overall_score || 0) + '</span>/10</div>' +
-                '<div class="score-chip chip-technical">' +
-                    '<span class="chip-icon">&#x1f4bb;</span>' +
-                    '<span class="chip-label">Technical</span> ' +
-                    '<span class="chip-value">' + (evaluation.technical_score || 0) + '</span>/10</div>' +
-                '<div class="score-chip chip-communication">' +
-                    '<span class="chip-icon">&#x1f4ac;</span>' +
-                    '<span class="chip-label">Communication</span> ' +
-                    '<span class="chip-value">' + (evaluation.communication_score || 0) + '</span>/10</div>' +
-                '<div class="score-chip chip-confidence">' +
-                    '<span class="chip-icon">&#x2728;</span>' +
-                    '<span class="chip-label">Confidence</span> ' +
-                    '<span class="chip-value">' + (evaluation.confidence_score || 0) + '</span>/10</div>' +
-            '</div>' +
-            (evaluation.feedback ? '<div class="feedback-text">' +
-                escapeHtml(evaluation.feedback) + '</div>' : '') +
-            (evaluation.improved_answer ? '<div class="improved-answer">' +
-                '<strong>Model Answer:</strong><br>' +
-                escapeHtml(evaluation.improved_answer) + '</div>' : '') +
-            fillerHtml +
-            rewriteBtnHtml;
 
         messagesContainer.appendChild(div);
         scrollToBottom();
@@ -992,6 +914,92 @@ function initInterview() {
         const editor = btnEl.closest('.rewrite-editor');
         if (editor) editor.remove();
     };
+
+    // ── Helper: Add evaluation card after answer ──
+    function addEvaluationCard(evaluation) {
+        if (!evaluation || !messagesContainer) return;
+
+        const card = document.createElement('div');
+        card.className = 'evaluation-card';
+
+        const scores = [
+            { label: 'Overall', key: 'overall_score', cls: 'value-indigo' },
+            { label: 'Technical', key: 'technical_score', cls: 'value-emerald' },
+            { label: 'Communication', key: 'communication_score', cls: 'value-amber' },
+            { label: 'Confidence', key: 'confidence_score', cls: 'value-violet' },
+            { label: 'Problem Solving', key: 'problem_solving_score', cls: 'value-indigo' },
+            { label: 'Time Management', key: 'time_management_score', cls: 'value-emerald' },
+            { label: 'Conceptual Clarity', key: 'conceptual_clarity_score', cls: 'value-amber' },
+        ];
+
+        let html = '<div class="eval-header"><span class="eval-title">Evaluation</span></div>';
+
+        html += '<div class="score-bars">';
+        scores.forEach(function(s) {
+            var val = evaluation[s.key] || 0;
+            var label = s.label;
+            var colorClass = val >= 7 ? 'bg-emerald' : (val >= 5 ? 'bg-amber' : 'bg-violet');
+            html += '<div class="bar-group">' +
+                '<div class="bar-info"><span class="bar-label">' + label + '</span> <span class="bar-value ' + s.cls + '">' + val + '/10</span></div>' +
+                '<div class="bar"><div class="bar-fill ' + colorClass + '" style="width:' + (val * 10) + '%;"></div></div>' +
+            '</div>';
+        });
+        html += '</div>';
+
+        if (evaluation.feedback) {
+            html += '<div class="feedback-summary-box">' + escapeHtml(evaluation.feedback) + '</div>';
+        }
+
+        if (evaluation.improvement_tip) {
+            html += '<div class="actionable-tip-box"><span class="tip-tag">Tip:</span> <p>' + escapeHtml(evaluation.improvement_tip) + '</p></div>';
+        }
+
+        var strengths = evaluation.strengths || [];
+        var weaknesses = evaluation.weaknesses || [];
+        if (strengths.length > 0 || weaknesses.length > 0) {
+            html += '<div class="qa-critique-grid">';
+            if (strengths.length > 0) {
+                html += '<div class="critique-column strengths-col"><div class="critique-header">Strengths</div><ul class="critique-list">';
+                strengths.forEach(function(s) { html += '<li>' + escapeHtml(s) + '</li>'; });
+                html += '</ul></div>';
+            }
+            if (weaknesses.length > 0) {
+                html += '<div class="critique-column weaknesses-col"><div class="critique-header">Areas to Improve</div><ul class="critique-list">';
+                weaknesses.forEach(function(w) { html += '<li>' + escapeHtml(w) + '</li>'; });
+                html += '</ul></div>';
+            }
+            html += '</div>';
+        }
+
+        var keywordsUsed = evaluation.keywords_used || [];
+        var keywordsMissed = evaluation.keywords_missed || [];
+        if (keywordsUsed.length > 0 || keywordsMissed.length > 0) {
+            html += '<div class="keywords-analysis-block">';
+            if (keywordsUsed.length > 0) {
+                html += '<div class="keywords-list">';
+                keywordsUsed.forEach(function(k) { html += '<span class="keyword-pill keyword-used">' + escapeHtml(k) + '</span>'; });
+                html += '</div>';
+            }
+            if (keywordsMissed.length > 0) {
+                html += '<div class="keywords-list" style="margin-top: 0.3rem;">';
+                keywordsMissed.forEach(function(k) { html += '<span class="keyword-pill keyword-missed">' + escapeHtml(k) + '</span>'; });
+                html += '</div>';
+            }
+            html += '</div>';
+        }
+
+        if (evaluation.ideal_answer) {
+            html += '<div class="ideal-answer-box"><div class="ideal-answer-header">Ideal Answer</div><p>' + escapeHtml(evaluation.ideal_answer) + '</p></div>';
+        }
+
+        if (evaluation.filler_word_count > 0) {
+            html += '<div class="filler-badge" style="display:inline-flex;">Filler words: ' + evaluation.filler_word_count + '</div>';
+        }
+
+        card.innerHTML = html;
+        messagesContainer.appendChild(card);
+        scrollToBottom();
+    }
 
     // ── Helper: Add filler-word to sidebar after eval ──
     function addFillerWordToSidebar(evaluation) {
