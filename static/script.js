@@ -776,7 +776,7 @@ function initInterview() {
     // ── Helper: Add AI message ──
     function addAIMessage(text, difficulty, companyContext) {
         const div = document.createElement('div');
-        div.className = 'message ai';
+        div.className = 'message ai fade-through';
 
         let metaHtml = '';
         if (difficulty) {
@@ -836,7 +836,7 @@ function initInterview() {
     function addUserMessage(text) {
         if (!messagesContainer) return;
         const div = document.createElement('div');
-        div.className = 'message user';
+        div.className = 'message user fade-through';
         div.innerHTML =
             '<div class="message-avatar">&#x1f464;</div>' +
             '<div class="message-content">' +

@@ -27,6 +27,16 @@ from aptitude_bank import get_aptitude_set, format_aptitude_answer_record
 # Question categories for each interview mode
 HR_CATEGORIES = ["behavioral", "behavioral", "situational", "experience"]
 TECHNICAL_CATEGORIES = ["technical", "technical", "project", "problem-solving"]
+CODING_CATEGORIES = [
+    "arrays_strings", "arrays_strings",
+    "linked_lists",
+    "trees_graphs",
+    "dynamic_programming",
+    "sorting_searching",
+    "recursion_backtracking",
+    "hashing",
+    "two_pointers_sliding_window",
+]
 
 # Difficulty levels
 DIFFICULTY_LEVELS = ["easy", "medium", "hard"]
@@ -1026,6 +1036,8 @@ def _generate_next_question(session: InterviewSession) -> dict:
     # Determine category based on mode and question index
     if session.mode == "hr":
         categories = HR_CATEGORIES
+    elif session.mode == "coding":
+        categories = CODING_CATEGORIES
     else:
         categories = TECHNICAL_CATEGORIES
 
@@ -1065,7 +1077,12 @@ def _generate_next_question(session: InterviewSession) -> dict:
 
     if not question or question.startswith("[OLLAMA_") or question.startswith("[PARSE_"):
         # Fallback: use a pre-built question (respects round type)
-        question = _fallback_question(session.candidate_role, round_info.get("type", category), difficulty)
+        question = _fallback_question(
+            session.candidate_role,
+            round_info.get("type", category),
+            difficulty,
+            company=session.company,
+        )
         # Tag the fallback with company context
         company_label = ""
         if session.company and session.company.lower() != "general":
@@ -1113,11 +1130,18 @@ def _adapt_difficulty(session: InterviewSession):
         session.current_difficulty = max(0, session.current_difficulty - 1)
 
 
-def _fallback_question(role: str, category: str, difficulty: str) -> str:
+def _fallback_question(role: str, category: str, difficulty: str, company: str = "General") -> str:
     """
     Provide a sensible fallback question when AI generation fails.
     Respects round type (coding/technical/hr).
+    For coding mode, pulls from the DSA question bank with company-specific style.
     """
+    # ── Coding mode: use the dedicated DSA question bank ──
+    if category == "coding":
+        from coding_questions_bank import get_coding_fallback
+        q_data = get_coding_fallback(difficulty=difficulty, company=company)
+        return q_data["question"]
+
     fallbacks = {
         "technical": [
             f"Can you walk me through your experience with technologies relevant to a {role} position?",

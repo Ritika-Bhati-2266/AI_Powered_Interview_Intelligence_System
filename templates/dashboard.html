@@ -14,26 +14,13 @@
             background: linear-gradient(145deg, var(--bg-card), rgba(99,102,241,0.08));
             border: 1px solid rgba(99,102,241,0.3);
             border-radius: var(--radius-lg);
-            padding: 1.75rem 2rem;
+            padding: var(--space-md) var(--space-lg);
             display: flex;
             align-items: center;
             gap: 1.5rem;
-            box-shadow: 0 0 30px rgba(99,102,241,0.12), var(--shadow-md);
             transition: var(--transition);
             animation: fadeUp 0.5s ease;
             position: relative;
-        }
-        .stat-card-hero::before {
-            content: '';
-            position: absolute;
-            inset: -1px;
-            border-radius: var(--radius-lg);
-            padding: 1px;
-            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet), transparent 60%);
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask-composite: exclude;
-            pointer-events: none;
         }
         .stat-card-hero .stat-value {
             font-size: 2.5rem;
@@ -90,7 +77,7 @@
             <script>window.CANDIDATE_ID = {{ data.candidate.id }};</script>
 
             <div class="dashboard-grid">
-                <div class="stat-card-hero card-indigo">
+                <div class="stat-card-hero card-indigo card-border-gradient shadow-elevated">
                     <div class="stat-icon-wrapper">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     </div>
@@ -254,9 +241,9 @@
                 </div>
                 <div class="card-body" id="comparison-content">
                     <div class="skeleton-pulse">
-                        <div class="skeleton-line shadow-pulse"></div>
-                        <div class="skeleton-line shadow-pulse" style="width:80%;"></div>
-                        <div class="skeleton-line shadow-pulse" style="width:60%;"></div>
+                        <div class="skeleton-line"></div>
+                        <div class="skeleton-line" style="width:80%;"></div>
+                        <div class="skeleton-line" style="width:60%;"></div>
                     </div>
                 </div>
             </div>

@@ -12,7 +12,6 @@
         .report-hero-card {
             background: linear-gradient(145deg, var(--bg-card), rgba(99,102,241,0.06));
             border: 1px solid rgba(99,102,241,0.2);
-            box-shadow: 0 0 50px rgba(99,102,241,0.08), var(--shadow-lg);
         }
         .score-ring { width: 220px; height: 220px; }
         .ring-score { font-size: 4.5rem; }
@@ -52,7 +51,7 @@
     <div class="report-page">
         <div class="container">
 
-            <div class="report-hero-card">
+            <div class="report-hero-card card-border-gradient shadow-elevated">
                 <div class="hero-split-layout">
                     <div class="score-ring-container">
                         <div class="score-ring">
@@ -207,7 +206,7 @@
                 <div class="card-body">
                     <div class="weak-tags-grid">
                         {% for wa in report.weak_areas[:4] %}
-                        <span class="pill-badge edge-builder-pill" style="background:linear-gradient(135deg,rgba(236,72,153,0.12),rgba(168,85,247,0.12));border:1px solid rgba(236,72,153,0.3);color:#f472b6;">
+                        <span class="pill-badge edge-builder-pill badge-pink">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                             {{ wa.area.replace('_', ' ').title() }}
                             <span class="pill-badge-sm" style="background:rgba(245,158,11,0.2);padding:0.1rem 0.35rem;border-radius:4px;margin-left:0.15rem;">{{ wa.score }}/10</span>
