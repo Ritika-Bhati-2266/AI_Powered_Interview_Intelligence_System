@@ -7,15 +7,14 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="page-interview">
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="container navbar-container">
             <a href="/" class="navbar-brand">
                 <span class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
                 </span>
                 <span class="text-gradient-indigo">AI Interview Coach</span>
             </a>
@@ -28,12 +27,10 @@
 
     <div class="interview-container">
         <div class="interview-page">
-        <!-- Sidebar -->
         <aside class="interview-sidebar">
-            <!-- Candidate Profile -->
             <div class="candidate-info-card">
                 <div class="profile-avatar">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px; color: var(--accent-indigo);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;color:var(--accent-indigo);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 </div>
                 <div class="profile-details">
                     <h3>{{ candidate_name }}</h3>
@@ -46,18 +43,16 @@
                 {{ mode|capitalize }} Interview
             </div>
 
-            <!-- Round Progress Stepper -->
             <div class="round-stepper-section">
                 <h4>Round Progress</h4>
                 <div id="round-stepper" class="round-stepper">
                     <div class="stepper-placeholder">
                         <div class="skeleton-text"></div>
-                        <div class="skeleton-text" style="width: 70%;"></div>
+                        <div class="skeleton-text" style="width:70%;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Aptitude Score Tally (MCQ Specific) -->
             <div id="aptitude-score-section" class="aptitude-score-section" style="display:none;">
                 <h4>Aptitude Score</h4>
                 <div class="aptitude-stats-row">
@@ -72,19 +67,18 @@
                 </div>
             </div>
 
-            <!-- Camera Video Feed Container -->
             <div class="camera-section">
                 <div class="camera-container">
                     <video id="camera-feed" class="camera-video" playsinline autoplay muted></video>
                     <div class="camera-overlay" id="camera-overlay">
                         <div class="camera-off-indicator">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 32px; height: 32px; color: var(--text-muted);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:32px;height:32px;color:var(--text-muted);"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                             <span>Camera Off</span>
                         </div>
                     </div>
                 </div>
                 <button id="camera-toggle-btn" class="btn btn-secondary btn-sm btn-block" onclick="toggleCamera()">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; margin-right: 6px; display: inline-block; vertical-align: middle;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px;display:inline-block;vertical-align:middle;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                     Turn Camera On
                 </button>
                 <div id="camera-aptitude-note" class="camera-aptitude-note" style="display:none;">
@@ -92,7 +86,6 @@
                 </div>
             </div>
 
-            <!-- Progress Meter -->
             <div class="progress-section">
                 <div class="flex-between">
                     <h4>Current Level</h4>
@@ -109,7 +102,6 @@
                 </div>
             </div>
 
-            <!-- Real-time Metrics -->
             <div class="score-summary">
                 <h4>Session Analytics</h4>
                 <div id="sidebar-scores" class="sidebar-scores-grid">
@@ -121,12 +113,11 @@
             </div>
         </aside>
 
-        <!-- Chat Area -->
         <main class="chat-area">
             <div class="chat-header">
                 <div class="chat-header-info">
                     <span class="chat-title">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--accent-indigo);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--accent-indigo);"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                         AI Coaching Session
                     </span>
                     <span id="current-round-badge" class="badge-round" style="display:none;">Round 1</span>
@@ -137,20 +128,14 @@
                 </span>
             </div>
 
-            <!-- Focus Banner -->
             <div id="round-focus-banner" class="round-focus-banner" style="display:none;">
                 <span id="round-focus-text"></span>
             </div>
 
-            <!-- Messages Window -->
-            <div id="messages" class="messages-container">
-                <!-- Messages will be dynamically inserted here by script.js -->
-            </div>
+            <div id="messages" class="messages-container"></div>
 
-            <!-- Aptitude MCQ Area (MCQ Specific) -->
             <div id="aptitude-area" class="aptitude-area" style="display:none;">
                 <div id="aptitude-question-text" class="aptitude-question-text"></div>
-
                 <div id="aptitude-options" class="aptitude-options-grid">
                     <div class="aptitude-option" data-option="0" onclick="selectAptitudeOption(this, 0)">
                         <span class="aptitude-option-letter">A</span>
@@ -169,31 +154,26 @@
                         <span class="aptitude-option-text" id="apt-opt-3"></span>
                     </div>
                 </div>
-
-                <button id="aptitude-submit-btn" class="btn btn-primary btn-block aptitude-submit-btn" disabled style="width: 100%;">
+                <button id="aptitude-submit-btn" class="btn btn-primary btn-block aptitude-submit-btn" disabled style="width:100%;">
                     Confirm Selection
-                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </button>
-
                 <div id="aptitude-feedback" class="aptitude-feedback" style="display:none;">
                     <div id="aptitude-feedback-text" class="aptitude-feedback-text"></div>
                     <div id="aptitude-feedback-explanation" class="aptitude-feedback-explanation"></div>
                 </div>
             </div>
 
-            <!-- Controls and Inputs -->
             <div id="input-area" class="input-area">
-                <!-- Voice Mode -->
                 <div id="voice-section" class="voice-section">
                     <div class="voice-btn-container">
                         <button id="voice-btn" class="voice-btn-premium" onclick="toggleVoiceRecording()">
                             <span id="voice-btn-icon" class="voice-mic-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                             </span>
                             <span id="voice-btn-text" class="voice-btn-label">Speak Your Response</span>
                         </button>
                     </div>
-
                     <div id="voice-transcript-container" class="voice-transcript-container" style="display:none;">
                         <div id="voice-transcript" class="voice-transcript-bubble">
                             <span id="voice-final-text" class="voice-final-text"></span>
@@ -201,31 +181,24 @@
                         </div>
                         <div id="voice-status" class="voice-status-label">Listening...</div>
                     </div>
-
-                    <!-- Audio Upload Options -->
                     <div class="audio-upload-row-premium">
                         <label for="audio-upload" class="audio-upload-trigger">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; margin-right: 6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             Upload audio file
                         </label>
                         <input type="file" id="audio-upload" class="audio-upload-input" accept="audio/*" onchange="handleAudioUpload(this)">
                         <span id="audio-upload-name" class="audio-upload-file-name"></span>
                     </div>
-
-                    <!-- Speech Warning Indicators -->
                     <div id="filler-warning" class="warning-badge" style="display:none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px; color: var(--accent-amber); margin-right: 6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;color:var(--accent-amber);margin-right:6px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
                         <span id="filler-warning-text"></span>
                     </div>
-
                     <div class="toggle-input-mode">
                         <button id="voice-mode-switch" class="btn-mode-toggle" onclick="switchToTypeMode()">
                             Keyboard mode
                         </button>
                     </div>
                 </div>
-
-                <!-- Keyboard Mode -->
                 <div id="type-section" class="type-section" style="display:none;">
                     <div class="input-row-premium">
                         <textarea id="answer-input" class="chat-textarea" placeholder="Type your answer here... (Enter to send, Shift+Enter for newline)" rows="1" disabled></textarea>
@@ -239,8 +212,6 @@
                         </button>
                     </div>
                 </div>
-
-                <!-- Speech Unsupported Browser Fallback -->
                 <div id="voice-unsupported" class="voice-unsupported" style="display:none;">
                     <div class="input-row-premium">
                         <textarea id="answer-input-fallback" class="chat-textarea" placeholder="Type your answer here... (Enter to send, Shift+Enter for newline)" rows="1" disabled></textarea>

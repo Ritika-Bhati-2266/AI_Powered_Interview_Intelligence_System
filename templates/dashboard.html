@@ -7,15 +7,62 @@
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        .stat-card-hero {
+            grid-column: span 2;
+            background: linear-gradient(145deg, var(--bg-card), rgba(99,102,241,0.08));
+            border: 1px solid rgba(99,102,241,0.3);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            box-shadow: 0 0 30px rgba(99,102,241,0.12), var(--shadow-md);
+            transition: var(--transition);
+            animation: fadeUp 0.5s ease;
+            position: relative;
+        }
+        .stat-card-hero::before {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: var(--radius-lg);
+            padding: 1px;
+            background: linear-gradient(135deg, var(--accent-indigo), var(--accent-violet), transparent 60%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .stat-card-hero .stat-value {
+            font-size: 2.5rem;
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .stat-card-hero .stat-icon-wrapper {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2)) !important;
+            border: 1px solid rgba(99,102,241,0.3);
+        }
+        .stat-card-hero .stat-icon-wrapper svg {
+            width: 28px;
+            height: 28px;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body class="page-dashboard">
-    <!-- Navbar -->
     <nav class="navbar">
         <div class="container navbar-container">
             <a href="/" class="navbar-brand">
                 <span class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
                 </span>
                 <span class="text-gradient-indigo">AI Interview Coach</span>
             </a>
@@ -28,53 +75,51 @@
     <div class="dashboard-page">
         <div class="container">
             {% if data %}
-            <!-- Welcome Header -->
             <div class="dashboard-header flex-between">
                 <div class="heading-block">
-                    <h1 class="text-gradient-indigo">Performance Dashboard</h1>
+                    <h1 class="text-gradient-indigo" style="font-size:2.5rem;">Performance Dashboard</h1>
                     <p class="heading-sub">Welcome back, <strong>{{ data.candidate.name }}</strong>. Here is your complete interview intelligence at a glance.</p>
                 </div>
                 <a href="/" class="btn btn-primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     New Session
-                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
             </div>
 
             <script>window.CANDIDATE_ID = {{ data.candidate.id }};</script>
 
-            <!-- Stats Grid -->
             <div class="dashboard-grid">
-                <div class="stat-card-premium card-indigo">
+                <div class="stat-card-hero card-indigo">
                     <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                    </div>
-                    <div class="stat-info">
-                        <div class="stat-value">{{ data.total_sessions }}</div>
-                        <div class="stat-label">Interviews Completed</div>
-                    </div>
-                </div>
-                <div class="stat-card-premium card-emerald">
-                    <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ data.avg_overall }}/10</div>
                         <div class="stat-label">Overall Score Average</div>
                     </div>
                 </div>
-                <div class="stat-card-premium card-cyan">
+                <div class="stat-card-premium card-emerald" style="animation-delay:0.1s">
                     <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div class="stat-info">
+                        <div class="stat-value">{{ data.total_sessions }}</div>
+                        <div class="stat-label">Interviews Completed</div>
+                    </div>
+                </div>
+                <div class="stat-card-premium card-cyan" style="animation-delay:0.2s">
+                    <div class="stat-icon-wrapper">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ data.avg_technical }}/10</div>
                         <div class="stat-label">Technical Proficiency</div>
                     </div>
                 </div>
-                <div class="stat-card-premium card-violet">
+                <div class="stat-card-premium card-violet" style="animation-delay:0.3s">
                     <div class="stat-icon-wrapper">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ data.avg_communication }}/10</div>
@@ -83,10 +128,8 @@
                 </div>
             </div>
 
-            <!-- Main Panels -->
             <div class="panels-split">
-                <!-- Score Breakdown -->
-                <div class="card panel-card card-accent-indigo card-depth">
+                <div class="card panel-card card-accent-indigo card-depth" style="animation:fadeUp 0.5s ease 0.2s both">
                     <div class="card-header">
                         <div class="card-header-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
@@ -104,7 +147,6 @@
                                     <div class="bar-fill bg-indigo" data-width="{{ data.avg_technical * 10 }}%" style="width:0%;"></div>
                                 </div>
                             </div>
-
                             <div class="bar-group">
                                 <div class="bar-info flex-between">
                                     <span class="bar-label">Communication Delivery</span>
@@ -114,7 +156,6 @@
                                     <div class="bar-fill bg-emerald" data-width="{{ data.avg_communication * 10 }}%" style="width:0%;"></div>
                                 </div>
                             </div>
-
                             <div class="bar-group">
                                 <div class="bar-info flex-between">
                                     <span class="bar-label">Confidence and Presence</span>
@@ -124,7 +165,6 @@
                                     <div class="bar-fill bg-amber" data-width="{{ data.avg_confidence * 10 }}%" style="width:0%;"></div>
                                 </div>
                             </div>
-
                             <div class="bar-group">
                                 <div class="bar-info flex-between">
                                     <span class="bar-label">Overall Score Baseline</span>
@@ -137,9 +177,7 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Progress Chart -->
-                <div class="card panel-card card-accent-emerald card-depth">
+                <div class="card panel-card card-accent-emerald card-depth" style="animation:fadeUp 0.5s ease 0.3s both">
                     <div class="card-header">
                         <div class="card-header-icon">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
@@ -154,14 +192,13 @@
                 </div>
             </div>
 
-            <!-- History and Performance Analysis Details -->
-            <div class="card card-accent-violet card-depth" style="margin-bottom: 2rem;">
+            <div class="card card-accent-violet card-depth" style="margin-bottom:2rem;animation:fadeUp 0.5s ease 0.4s both">
                 <div class="card-header flex-between">
                     <div class="card-header-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                        <h3>Session History</h3>
+                        <h3>Track Record</h3>
                     </div>
-                    <span class="pill-badge pill-badge-sm badge-indigo" style="cursor: default;">
+                    <span class="pill-badge pill-badge-sm badge-indigo" style="cursor:default;">
                         {{ data.total_answers }} answers &middot; {{ data.total_sessions }} sessions
                     </span>
                 </div>
@@ -185,11 +222,7 @@
                                 {% for session in data.sessions %}
                                 <tr>
                                     <td class="date-cell">{{ session.created_at[:10] if session.created_at else 'N/A' }}</td>
-                                    <td>
-                                        <span class="mode-badge mode-{{ session.mode }}">
-                                            {{ session.mode|capitalize if session.mode else 'N/A' }}
-                                        </span>
-                                    </td>
+                                    <td><span class="mode-badge mode-{{ session.mode }}">{{ session.mode|capitalize if session.mode else 'N/A' }}</span></td>
                                     <td class="count-cell">{{ session.completed_questions or 0 }} / {{ session.total_questions or 0 }}</td>
                                     <td>
                                         {% set ovr = session.overall_score %}
@@ -200,11 +233,7 @@
                                     <td class="score-cell">{{ '%.1f'|format(session.technical_score) if session.technical_score else '--' }}</td>
                                     <td class="score-cell">{{ '%.1f'|format(session.communication_score) if session.communication_score else '--' }}</td>
                                     <td class="score-cell">{{ '%.1f'|format(session.confidence_score) if session.confidence_score else '--' }}</td>
-                                    <td>
-                                        <a href="/report/{{ session.id }}" class="btn btn-secondary btn-sm table-btn">
-                                            Report →
-                                        </a>
-                                    </td>
+                                    <td><a href="/report/{{ session.id }}" class="btn btn-secondary btn-sm table-btn">Report &rarr;</a></td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
@@ -216,8 +245,7 @@
                 </div>
             </div>
 
-            <!-- Comparison Section (Dynamic API) -->
-            <div id="comparison-section" class="card card-accent-amber card-depth" style="margin-bottom: 2rem;">
+            <div id="comparison-section" class="card card-accent-amber card-depth" style="margin-bottom:2rem;animation:fadeUp 0.5s ease 0.5s both">
                 <div class="card-header">
                     <div class="card-header-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
@@ -227,15 +255,14 @@
                 <div class="card-body" id="comparison-content">
                     <div class="skeleton-pulse">
                         <div class="skeleton-line shadow-pulse"></div>
-                        <div class="skeleton-line shadow-pulse" style="width: 80%;"></div>
-                        <div class="skeleton-line shadow-pulse" style="width: 60%;"></div>
+                        <div class="skeleton-line shadow-pulse" style="width:80%;"></div>
+                        <div class="skeleton-line shadow-pulse" style="width:60%;"></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Recent Answers Preview -->
             {% if data.recent_answers %}
-            <div class="card card-depth">
+            <div class="card card-depth" style="animation:fadeUp 0.5s ease 0.6s both">
                 <div class="card-header">
                     <div class="card-header-icon">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
@@ -247,17 +274,11 @@
                         {% for ans in data.recent_answers[:5] %}
                         <div class="qa-recent-item">
                             <div class="qa-recent-header flex-between">
-                                <span class="qa-recent-question">
-                                    <strong>Q:</strong> {{ ans.question[:130] }}{% if ans.question|length > 130 %}...{% endif %}
-                                </span>
+                                <span class="qa-recent-question"><strong>Q:</strong> {{ ans.question[:130] }}{% if ans.question|length > 130 %}...{% endif %}</span>
                                 {% set ans_ovr = ans.overall_score %}
-                                <span class="badge-pill {% if ans_ovr >= 8 %}badge-green{% elif ans_ovr >= 6 %}badge-amber{% else %}badge-red{% endif %}">
-                                    Score: {{ ans_ovr }}
-                                </span>
+                                <span class="badge-pill {% if ans_ovr >= 8 %}badge-green{% elif ans_ovr >= 6 %}badge-amber{% else %}badge-red{% endif %}">Score: {{ ans_ovr }}</span>
                             </div>
-                            <div class="qa-recent-answer">
-                                {{ ans.answer[:180] }}{% if ans.answer|length > 180 %}...{% endif %}
-                            </div>
+                            <div class="qa-recent-answer">{{ ans.answer[:180] }}{% if ans.answer|length > 180 %}...{% endif %}</div>
                         </div>
                         {% endfor %}
                     </div>
@@ -266,16 +287,16 @@
             {% endif %}
 
             {% else %}
-            <!-- No Data State -->
             <div class="empty-state-card">
                 <div class="empty-state-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 64px; height: 64px; color: var(--text-muted);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:72px;height:72px;color:var(--text-muted);"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 </div>
-                <h1 class="text-gradient-indigo" style="font-size: 2rem;">No Data Recorded Yet</h1>
-                <p>Welcome to AI Interview Coach. Launch your first session to unlock deep analytics and track your growth over time.</p>
-                <a href="/" class="btn btn-primary btn-lg" style="margin-top: 1rem;">
+                <h1 class="text-gradient" style="font-size:2.2rem;font-family:'Space Grotesk',sans-serif;">Your Journey Starts Here</h1>
+                <p style="font-size:1.05rem;max-width:480px;margin:0.5rem auto;">No data recorded yet. Launch your first interview session and let AI coach you through every round with real-time feedback and deep analytics.</p>
+                <a href="/" class="btn btn-primary btn-lg" style="margin-top:1.5rem;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Start Your First Interview
-                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
             </div>
             {% endif %}
@@ -284,7 +305,6 @@
 
     <script src="/static/script.js"></script>
     <script>
-        // Trigger style.css progress bar animations
         document.addEventListener("DOMContentLoaded", function() {
             setTimeout(function() {
                 document.querySelectorAll(".bar-fill").forEach(function(bar) {
