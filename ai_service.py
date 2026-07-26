@@ -407,12 +407,19 @@ def generate_question(role: str, experience: str, skills: list, category: str,
             round_type_instruction = (
                 "This is a CODING round. Ask a problem-solving question that requires "
                 "writing code, discussing algorithms, data structures, time/space complexity, "
-                "and edge cases."
+                "and edge cases. "
+                "CRITICAL: Output ONLY a short question (1-2 sentences) that asks the candidate "
+                "to design, explain, or implement something. Do NOT write actual code, class "
+                "definitions, pseudocode, or any part of the solution yourself. You are the "
+                "interviewer asking the question, not the candidate answering it. If you need "
+                "to reference code, describe it in words (e.g., 'implement a function that...') "
+                "rather than writing it out."
             )
             if coding_style:
                 company_round_style = (
                     f"COMPANY-SPECIFIC CODING STYLE:\n{coding_style}\n\n"
-                    f"Generate a coding question in this company's authentic style."
+                    f"Generate a coding question in this company's authentic style. "
+                    f"Do NOT preface the question with any description or label — output ONLY the question."
                 )
                 round_type_instruction = f"{round_type_instruction}\n\n{company_round_style}"
 
@@ -441,7 +448,8 @@ def generate_question(role: str, experience: str, skills: list, category: str,
                     f"COMPANY-SPECIFIC HR STYLE - {hr_context['label']}:\n"
                     f"{style_note}\n"
                     f"Key focus areas:\n{principles_str}\n"
-                    f"Generate a question matching this company's authentic behavioral style."
+                    f"Generate a question matching this company's authentic behavioral style. "
+                    f"Do NOT preface the question with any description or label — output ONLY the question."
                 )
             elif company_lower in SIMPLE_HR_COMPANIES:
                 company_round_style = (
@@ -511,11 +519,13 @@ DIFFICULTY ENFORCEMENT (hard constraints based on difficulty='{difficulty}'):
 
 CRITICAL RULES:
 - Return ONLY the raw question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
+- NEVER preface the question with a descriptive sentence like "Here is a ... question tailored to ...", "Here is a ... question for ...", or "For a ... candidate with ... years of experience:". Return JUST the question itself, nothing before it.
 - Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.
 - Keep it highly conversational and direct, like an interviewer asking a candidate in person.
 - Ensure high TOPIC VARIETY: Do NOT repeat topics or technologies from previous questions in this session.
 - The question MUST be relevant to the candidate's target role '{role}' and their stated experience level ({experience} years).
-- NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', '[Context: ...]', or any other annotations) in the response."""
+- NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', '[Context: ...]', or any other annotations) in the response.
+- Output ONLY a question. Do NOT write any code, class definitions, pseudocode, or partial solution in your response. You are the interviewer asking — the candidate will provide the code."""
 
     response = _call_ollama(prompt, QUESTION_GENERATION_SYSTEM, temperature=0.8)
 
@@ -527,7 +537,8 @@ CRITICAL RULES:
     response = re.sub(r'\s*[\(\[][^\]\)]*?(?:maps to|relates to|principle|leadership|company|context|role|experience|difficulty|category|question|amazon|google|meta|microsoft)[^\]\)]*?[\)\]]', '', response, flags=re.IGNORECASE).strip()
     
     # Strip common conversational introductory filler phrases that leak system instructions
-    response = re.sub(r'^(Based on your resume,?\s*|Looking at your resume,?\s*|In your resume,?\s*|Here is a question:?\s*|Let\'s discuss your resume:?\s*|Could you tell me,?\s*|Sure,?\s*|Here is an? \w+ question:?\s*)', '', response, flags=re.IGNORECASE).strip()
+    # Also strips "Here is a ... question tailored to ..." type preambles the model sometimes emits
+    response = re.sub(r'^(Based on your resume,?\s*|Looking at your resume,?\s*|In your resume,?\s*|Let\'s discuss your resume:?\s*|Could you tell me,?\s*|Sure,?\s*|Here is an? .+? question[^.]*?:?\s*|For an? .+? candidate with .+? years? of experience:?\s*)', '', response, flags=re.IGNORECASE).strip()
     
     # Ensure the first letter is capitalized
     if response:
@@ -536,6 +547,14 @@ CRITICAL RULES:
     if not response or response.startswith("[OLLAMA_"):
         # Fallback questions if Ollama is unavailable
         return _get_fallback_question(role, category, difficulty, company)
+    
+    # Safety check: if response contains code (class/def/enum/struct/etc.) or is too
+    # long (>50 words for a 1-2 sentence question), fall back to a proper question.
+    word_count = len(response.split())
+    has_code_block = bool(re.search(r'\b(class|def |void |int |struct |enum |function\s*\w+\s*\()', response))
+    if has_code_block or word_count > 50:
+        fallback = _get_fallback_question(role, category, difficulty, company)
+        return fallback
     
     return response
 
