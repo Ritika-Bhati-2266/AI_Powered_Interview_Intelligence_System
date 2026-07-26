@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interview Simulator - Registration</title>
+    <title>AI Interview Coach - Real-Time Behavior Engine</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -14,20 +14,26 @@
         <div class="auth-container">
             <div class="auth-card">
                 <div class="auth-header">
+                    <div style="margin-bottom: 0.85rem;">
+                        <span class="pill-badge pill-gradient">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                            REAL-TIME BEHAVIOR ENGINE
+                        </span>
+                    </div>
                     <div class="logo">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 42px; height: 42px; color: var(--accent-indigo);">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width: 44px; height: 44px; color: var(--accent-indigo);">
                             <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                             <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <h1>AI Interview Simulator</h1>
-                    <p>Elevate your career. Practice real-world technical and behavioral interviews with local LLM coaches.</p>
+                    <h1 style="font-size: 2.2rem; margin-top: 0.25rem;">Master Every Round with <span class="text-gradient">AI That Learns You</span></h1>
+                    <p style="font-size: 1.02rem; max-width: 540px; margin: 0.5rem auto 0 auto; color: var(--text-secondary);">Simulate high-stakes technical & behavioral interviews with instant, adaptive AI feedback. Elevate your confidence before day one.</p>
                 </div>
 
-                <div id="ollama-status" class="status-indicator">
-                    <span class="pulse-dot"></span>
-                    <span class="status-text">Checking Ollama local connection...</span>
+                <div id="ollama-status" class="status-indicator-bar" style="justify-content: center;">
+                    <span class="status-dot-pulse"></span>
+                    <span class="status-bar-text">AI Personalisation Engine <span class="status-bar-desc">• Checking local connection...</span></span>
                 </div>
 
                 <div id="error-msg" class="hidden"></div>
@@ -108,30 +114,33 @@
                         <label>Interview Mode Focus</label>
                         <div class="mode-selector">
                             <div class="mode-option selected" data-mode="technical">
-                                <div class="mode-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                <span class="pill-badge badge-indigo pill-badge-sm mode-badge">POPULAR</span>
+                                <div class="mode-icon icon-box-indigo">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                                 </div>
                                 <div class="mode-info-block">
                                     <div class="mode-name">Technical</div>
-                                    <div class="mode-desc">System design, APIs & core concepts</div>
+                                    <div class="mode-desc">System design, APIs & core architecture</div>
                                 </div>
                             </div>
                             <div class="mode-option" data-mode="hr">
-                                <div class="mode-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <span class="pill-badge badge-violet pill-badge-sm mode-badge">RECOMMENDED</span>
+                                <div class="mode-icon icon-box-violet">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                 </div>
                                 <div class="mode-info-block">
                                     <div class="mode-name">HR Round</div>
-                                    <div class="mode-desc">STAR behavioral & core skills</div>
+                                    <div class="mode-desc">STAR behavioral & core leadership skills</div>
                                 </div>
                             </div>
                             <div class="mode-option" data-mode="coding">
-                                <div class="mode-icon">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 20px; height: 20px;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                <span class="pill-badge badge-cyan pill-badge-sm mode-badge">DSA FOCUS</span>
+                                <div class="mode-icon icon-box-cyan">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 22px; height: 22px;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                                 </div>
                                 <div class="mode-info-block">
                                     <div class="mode-name">Coding</div>
-                                    <div class="mode-desc">DSA & algorithm questions</div>
+                                    <div class="mode-desc">DSA algorithms & timed aptitude MCQs</div>
                                 </div>
                             </div>
                         </div>
@@ -142,18 +151,18 @@
                         <label>Resume Upload</label>
                         <div class="file-upload-card" onclick="document.getElementById('resume-file').click()">
                             <input type="file" id="resume-file" name="resume" accept=".pdf,.docx" style="display:none;">
-                            <div class="upload-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 32px; height: 32px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                            <div class="upload-icon icon-box-indigo" style="width: 48px; height: 48px; margin: 0 auto 0.75rem auto;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
                             </div>
                             <div class="upload-text">Click or drag resume here</div>
-                            <div class="upload-hint">Supports PDF and DOCX (up to 16MB)</div>
+                            <div class="upload-hint">Supports PDF and DOCX (AI parses skills automatically)</div>
                         </div>
                         <div id="file-name" class="hidden file-selected-badge"></div>
                     </div>
 
-                    <button type="submit" id="submit-btn" class="btn btn-primary btn-lg btn-block" style="width: 100%;">
-                        Start Interview Coach
-                        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; margin-left: 6px; display: inline-block; vertical-align: middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    <button type="submit" id="submit-btn" class="btn btn-primary btn-lg btn-block" style="width: 100%; padding: 0.9rem 1.5rem; font-size: 1.05rem;">
+                        <span>Launch Your Personal AI Coach</span>
+                        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; margin-left: 6px; display: inline-block; vertical-align: middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                 </form>
 
