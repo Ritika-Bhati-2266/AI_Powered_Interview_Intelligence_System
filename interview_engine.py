@@ -45,6 +45,37 @@ MAX_QUESTIONS = 20
 RESUME_PHASE_QUESTIONS = 3
 
 
+def _experience_to_difficulty(experience: str) -> int:
+    """
+    Map candidate experience string to starting difficulty level.
+    0 = easy, 1 = medium, 2 = hard
+    """
+    if not experience:
+        return 0
+    exp = experience.lower().strip()
+    if exp in ("0-1", "0-1 years", "entry level", "0"):
+        return 0
+    if exp in ("1-2", "1-2 years", "junior", "1"):
+        return 0
+    if exp in ("2-4", "2-4 years", "mid-level", "mid", "2"):
+        return 0
+    if exp in ("4-7", "4-7 years", "senior", "4", "5", "6", "7"):
+        return 1
+    if exp in ("7-10", "7-10 years", "lead", "staff", "8", "9", "10"):
+        return 1
+    if exp in ("10+", "10+ years", "principal", "architect"):
+        return 2
+    try:
+        years = float(experience)
+        if years < 4:
+            return 0
+        if years < 7:
+            return 1
+        return 2
+    except (ValueError, TypeError):
+        return 0
+
+
 # ── Session Management ────────────────────────────────────────────────────────
 
 class InterviewSession:
@@ -89,7 +120,7 @@ class InterviewSession:
         self.mode = mode
         self.company = company
         self.status = "waiting"
-        self.current_difficulty = 0  # Start at "easy"
+        self.current_difficulty = _experience_to_difficulty(candidate_experience)
         self.current_question_index = 0
         self.total_questions = max(MIN_QUESTIONS, min(total_questions, MAX_QUESTIONS))
         self.questions = []
@@ -459,6 +490,10 @@ def submit_answer(session_id: str, answer: str) -> dict:
         session.current_round_index += 1
         session.round_question_count = 0
         session.is_resume_phase = False
+
+        # Reset difficulty to experience-appropriate baseline for new round
+        session.current_difficulty = _experience_to_difficulty(session.candidate_experience)
+        session.recent_scores = []
 
         next_round = session.get_current_round()
 
@@ -1080,6 +1115,10 @@ def _handle_aptitude_answer(session, answer, current_round, current_question) ->
         # Round transition
         session.current_round_index += 1
         session.round_question_count = 0
+
+        # Reset difficulty to experience-appropriate baseline for new round
+        session.current_difficulty = _experience_to_difficulty(session.candidate_experience)
+        session.recent_scores = []
 
         next_round = session.get_current_round()
         response["round_progress"]["next_round_name"] = next_round.get("name", "")

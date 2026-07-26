@@ -501,6 +501,14 @@ Question Category: {category}
 
 {resume_instruction}
 
+DIFFICULTY ENFORCEMENT (hard constraints based on difficulty='{difficulty}'):
+{'HARD CONSTRAINT - Difficulty is EASY:' if difficulty == 'easy' else
+ 'HARD CONSTRAINT - Difficulty is MEDIUM:' if difficulty == 'medium' else
+ 'HARD CONSTRAINT - Difficulty is HARD:'}
+{'Do NOT ask about system design, scalability, distributed systems, architecture, or advanced algorithms (DP, graph algorithms, NP-complete). Focus on: basic data structures (arrays, strings, linked lists), core language features, fundamental concepts. The question should be answerable by someone with 0-2 years experience. Keep it straightforward and specific.' if difficulty == 'easy' else
+ 'You MAY ask about intermediate concepts: design patterns, common algorithms, basic system design. Avoid expert-level or specialized niche topics. The question should suit someone with 2-6 years experience.' if difficulty == 'medium' else
+ 'You MAY ask about advanced topics: system design, distributed systems, complex algorithms, trade-off analysis. The question should challenge someone with 6+ years experience.'}
+
 CRITICAL RULES:
 - Return ONLY the raw question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
 - Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.

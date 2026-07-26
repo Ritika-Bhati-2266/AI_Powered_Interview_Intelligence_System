@@ -276,9 +276,9 @@ p {
 }
 
 .badge-amber {
-    background: rgba(245, 158, 11, 0.14);
+    background: rgba(245, 158, 11, 0.15);
     border: 1px solid rgba(245, 158, 11, 0.35);
-    color: #fde047;
+    color: var(--accent-amber);
 }
 
 .badge-rose {
@@ -1072,7 +1072,6 @@ p {
 }
 
 .badge-green { background: rgba(16, 185, 129, 0.15); color: var(--accent-emerald); border: 1px solid rgba(16, 185, 129, 0.2); }
-.badge-amber { background: rgba(245, 158, 11, 0.15); color: var(--accent-amber); border: 1px solid rgba(245, 158, 11, 0.2); }
 .badge-red { background: rgba(244, 63, 94, 0.15); color: var(--accent-rose); border: 1px solid rgba(244, 63, 94, 0.2); }
 
 .score-cell {
@@ -1393,60 +1392,6 @@ p {
 
 .active-focus { color: var(--accent-indigo); }
 .completed-focus { color: var(--accent-emerald); }
-
-/* Aptitude Tally */
-.aptitude-score-section {
-    background: rgba(30, 41, 59, 0.5);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 1rem;
-}
-
-.aptitude-stats-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.aptitude-score-display {
-    display: flex;
-    align-items: baseline;
-    gap: 0.25rem;
-}
-
-.aptitude-score-value {
-    font-size: 1.5rem;
-    font-weight: 800;
-    color: var(--accent-emerald);
-}
-
-.aptitude-score-label {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-}
-
-.aptitude-timer-section {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: var(--bg-primary);
-    padding: 0.35rem 0.75rem;
-    border-radius: var(--radius-sm);
-    border: 1px solid var(--border-color);
-}
-
-.timer-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--accent-rose);
-}
-
-.aptitude-timer {
-    font-family: var(--font-mono);
-    font-weight: 700;
-    font-size: 0.85rem;
-}
 
 /* Video Feed Camera container */
 .camera-section {
@@ -3500,6 +3445,7 @@ p {
     .interview-container {
         margin: 0;
         padding: 0;
+        min-height: calc(100vh - 100px);
         height: auto;
     }
     
@@ -3507,6 +3453,23 @@ p {
         border-radius: 0;
         border: none;
         box-shadow: none;
+    }
+
+    .interview-sidebar {
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    .messages-container {
+        padding: 1.5rem 1rem;
+    }
+
+    .chat-header {
+        padding: 1rem 1.25rem;
+    }
+
+    .input-area {
+        padding: 1rem 1.25rem;
     }
 
     .dashboard-grid {
@@ -3536,7 +3499,8 @@ p {
     }
     
     .chat-area {
-        height: 550px;
+        min-height: calc(100vh - 520px);
+        height: auto;
     }
     
     .aptitude-options-grid {
