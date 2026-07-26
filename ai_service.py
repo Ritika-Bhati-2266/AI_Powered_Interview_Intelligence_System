@@ -542,6 +542,11 @@ def evaluate_answer(question: str, answer: str, role: str, difficulty: str,
     """
     skills_str = ", ".join(skills) if skills else "general"
 
+    # Get role-specific scoring rubric
+    rubric = get_role_rubric(role)
+    focus_areas = ", ".join(rubric.get("focus_areas", []))
+    scoring_guidance = rubric.get("scoring_guidance", "")
+
     system_prompt = """You are an expert interview evaluator. Evaluate answers fairly and constructively.
 You must provide specific, actionable feedback and a realistic improved answer.
 Be encouraging but honest about areas for improvement.
@@ -549,12 +554,23 @@ Return ONLY valid JSON — no markdown, no extra text."""
 
     # Detect filler words in the answer
     filler_data = detect_filler_words(answer)
+
+    rubric_section = f"""
+Role-Specific Scoring Guidance:
+Target Role: {role}
+Key Focus Areas for This Role: {focus_areas}
+Scoring Emphasis: {scoring_guidance}
+
+When scoring, prioritize the focus areas above based on the target role's requirements.
+"""
     
     prompt = f"""Evaluate this interview answer thoroughly.
 
 Role: {role}
 Difficulty Level: {difficulty}
 Skills Required: {skills_str}
+{rubric_section}
+Question: {question}
 
 Question: {question}
 
@@ -847,6 +863,56 @@ The tone should be professional, encouraging, and constructive — like a real i
     # Star rating (1-5)
     star_rating = max(1, min(5, round(overall / 2)))
 
+    # ── Rewrite data ──
+    rewritten_answers = [a for a in answers if a.get("rewrite_used")]
+    rewrite_count = len(rewritten_answers)
+    has_rewrites = rewrite_count > 0
+    rewrites = []
+    total_improvement = 0
+    for ra in rewritten_answers:
+        orig = ra.get("original_scores") or {k: ra.get(k, 0) for k in ["overall_score", "technical_score", "communication_score", "confidence_score", "problem_solving_score", "time_management_score", "conceptual_clarity_score"]}
+        rewrite_scores = ra.get("rewrite_scores", {})
+        imp = {}
+        for key in ["overall_score", "technical_score", "communication_score", "confidence_score", "problem_solving_score", "time_management_score", "conceptual_clarity_score"]:
+            old_val = orig.get(key, 0)
+            new_val = rewrite_scores.get(key, old_val)
+            imp[key] = new_val - old_val
+        total_improvement += imp.get("overall_score", 0)
+        rewrites.append({
+            "question": ra.get("question", ""),
+            "original_answer": ra.get("answer", ""),
+            "rewritten_answer": ra.get("rewrite_text", ""),
+            "original_scores": orig,
+            "rewritten_scores": rewrite_scores,
+            "improvement": imp,
+        })
+    avg_rewrite_improvement = round(total_improvement / max(rewrite_count, 1), 1)
+
+    # ── Filler word stats for report ──
+    filler_word_stats = None
+    filler_answers = [a for a in answers if a.get("filler_word_count", 0) > 0]
+    if filler_answers:
+        total_filler_count = sum(a.get("filler_word_count", 0) for a in filler_answers)
+        max_count = max(a.get("filler_word_count", 0) for a in filler_answers) if filler_answers else 0
+        filler_breakdown = {}
+        for a in filler_answers:
+            fw = a.get("filler_words", {})
+            for word, count in fw.items():
+                filler_breakdown[word] = filler_breakdown.get(word, 0) + count
+        filler_word_stats = {
+            "total": total_filler_count,
+            "max_count": max_count,
+            "breakdown": filler_breakdown,
+            "by_question": [
+                {
+                    "number": i + 1,
+                    "question": a.get("question", ""),
+                    "count": a.get("filler_word_count", 0),
+                }
+                for i, a in enumerate(answers) if a.get("filler_word_count", 0) > 0
+            ],
+        }
+
     return {
         "candidate_info": candidate_info,
         "session_data": session_data,
@@ -871,6 +937,13 @@ The tone should be professional, encouraging, and constructive — like a real i
         "recommendations": recommendations,
         "improvement_roadmap": improvement_roadmap,
         "answers": answer_details,
+        # Rewrite data for report
+        "has_rewrites": has_rewrites,
+        "rewrite_count": rewrite_count,
+        "rewrites": rewrites,
+        "avg_rewrite_improvement": avg_rewrite_improvement,
+        # Filler word stats for report
+        "filler_word_stats": filler_word_stats,
     }
 
 

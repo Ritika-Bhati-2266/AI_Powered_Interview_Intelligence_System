@@ -914,9 +914,11 @@ function initInterview() {
             for (const [key, val] of Object.entries(imp)) {
                 const cls = val > 0 ? 'delta-up' : (val < 0 ? 'delta-down' : 'delta-neutral');
                 const arrow = val > 0 ? '\u2191' : (val < 0 ? '\u2193' : '\u2192');
+                const origScores = data.original_scores || {};
+                const rewScores = data.rewrite_scores || {};
                 deltaHtml += '<div class="' + cls + '">' +
                     key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) + ': ' +
-                    '<span class="delta-value">' + (originalScores[key] || 0) + ' \u2192 ' + (rewriteScores[key] || 0) + ' (' + (val > 0 ? '+' : '') + val + ')</span>' +
+                    '<span class="delta-value">' + (origScores[key] || 0) + ' \u2192 ' + (rewScores[key] || 0) + ' (' + (val > 0 ? '+' : '') + val + ')</span>' +
                     '</div>';
             }
             deltaHtml += '</div>';
@@ -1024,6 +1026,13 @@ function initInterview() {
         if (evaluation.filler_word_count > 0) {
             html += '<div class="filler-badge" style="display:inline-flex;">Filler words: ' + evaluation.filler_word_count + '</div>';
         }
+
+        // Rewrite button (one attempt per answer)
+        html += '<div class="rewrite-action-row" style="margin-top: 0.75rem; text-align: right;">' +
+            '<button class="btn btn-secondary btn-sm" onclick="openRewriteEditor(' + answerCount + ', ' + (evaluation.overall_score || 0) + ')" ' +
+            'title="Revise your answer for a re-evaluation">' +
+            '\u270f\ufe0f Rewrite Answer</button>' +
+        '</div>';
 
         card.innerHTML = html;
         messagesContainer.appendChild(card);
