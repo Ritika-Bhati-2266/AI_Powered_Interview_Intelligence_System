@@ -19,6 +19,7 @@ from resume_parser import parse_resume
 from interview_engine import (
     start_interview,
     submit_answer,
+    rewrite_answer,
     generate_report,
     get_session_state,
     session_store,
@@ -534,63 +535,69 @@ def interview_page():
 @app.route("/api/start_interview", methods=["POST"])
 def api_start_interview():
     """API endpoint to start a new interview session."""
-    if not session.get("candidate_id"):
-        return jsonify({"error": "Please register first."}), 401
+    try:
+        if not session.get("candidate_id"):
+            return jsonify({"error": "Please register first."}), 401
 
-    data = request.get_json() or {}
-    mode = data.get("mode", "technical")
-    total_questions = data.get("total_questions", None)  # None = auto from rounds
+        data = request.get_json() or {}
+        mode = data.get("mode", "technical")
+        total_questions = data.get("total_questions", None)  # None = auto from rounds
 
-    # Get company from session or default
-    company = session.get("candidate_company", "General")
+        # Get company from session or default
+        company = session.get("candidate_company", "General")
 
-    # Generate a unique session ID
-    session_id = str(uuid.uuid4())[:8]
+        # Generate a unique session ID
+        session_id = str(uuid.uuid4())[:8]
 
-    result = start_interview(
-        session_id=session_id,
-        candidate_id=session["candidate_id"],
-        candidate_name=session.get("candidate_name", "Candidate"),
-        candidate_role=session.get("candidate_role", ""),
-        candidate_experience=session.get("candidate_experience", "0"),
-        candidate_skills=session.get("candidate_skills", []),
-        resume_text=session.get("resume_text", ""),
-        mode=mode,
-        total_questions=total_questions,
-        company=company,
-    )
+        result = start_interview(
+            session_id=session_id,
+            candidate_id=session["candidate_id"],
+            candidate_name=session.get("candidate_name", "Candidate"),
+            candidate_role=session.get("candidate_role", ""),
+            candidate_experience=session.get("candidate_experience", "0"),
+            candidate_skills=session.get("candidate_skills", []),
+            resume_text=session.get("resume_text", ""),
+            mode=mode,
+            total_questions=total_questions,
+            company=company,
+        )
 
-    if "error" in result:
-        return jsonify(result), 500
+        if "error" in result:
+            return jsonify(result), 500
 
-    # Save session_id to Flask session
-    session["current_session_id"] = session_id
+        # Save session_id to Flask session
+        session["current_session_id"] = session_id
 
-    return jsonify(result)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Start interview failed: {str(e)}"}), 500
 
 
 @app.route("/api/submit_answer", methods=["POST"])
 def api_submit_answer():
     """API endpoint to submit an answer and get evaluation + next question."""
-    if not session.get("current_session_id"):
-        return jsonify({"error": "No active interview session."}), 401
+    try:
+        if not session.get("current_session_id"):
+            return jsonify({"error": "No active interview session."}), 401
 
-    data = request.get_json() or {}
-    answer = data.get("answer", "").strip()
+        data = request.get_json() or {}
+        answer = data.get("answer", "").strip()
 
-    if not answer:
-        return jsonify({"error": "Answer cannot be empty."}), 400
+        if not answer:
+            return jsonify({"error": "Answer cannot be empty."}), 400
 
-    result = submit_answer(session["current_session_id"], answer)
+        result = submit_answer(session["current_session_id"], answer)
 
-    if "error" in result:
-        return jsonify(result), 500
+        if "error" in result:
+            return jsonify(result), 500
 
-    # If interview is complete, save all data to database
-    if result.get("is_complete"):
-        _persist_session_to_db(session["current_session_id"])
+        # If interview is complete, save all data to database
+        if result.get("is_complete"):
+            _persist_session_to_db(session["current_session_id"])
 
-    return jsonify(result)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Submit answer failed: {str(e)}"}), 500
 
 
 @app.route("/api/rewrite_answer", methods=["POST"])
@@ -600,24 +607,27 @@ def api_rewrite_answer():
     Input: {answer_index: int, rewritten_answer: str}
     Returns: original scores, rewrite scores, improvement delta, and updated evaluation.
     """
-    if not session.get("current_session_id"):
-        return jsonify({"error": "No active interview session."}), 401
+    try:
+        if not session.get("current_session_id"):
+            return jsonify({"error": "No active interview session."}), 401
 
-    data = request.get_json() or {}
-    answer_index = data.get("answer_index", -1)
-    rewritten_answer = data.get("rewritten_answer", "").strip()
+        data = request.get_json() or {}
+        answer_index = data.get("answer_index", -1)
+        rewritten_answer = data.get("rewritten_answer", "").strip()
 
-    if answer_index < 0:
-        return jsonify({"error": "Invalid answer_index."}), 400
-    if not rewritten_answer:
-        return jsonify({"error": "Rewritten answer cannot be empty."}), 400
+        if answer_index < 0:
+            return jsonify({"error": "Invalid answer_index."}), 400
+        if not rewritten_answer:
+            return jsonify({"error": "Rewritten answer cannot be empty."}), 400
 
-    result = rewrite_answer(session["current_session_id"], answer_index, rewritten_answer)
+        result = rewrite_answer(session["current_session_id"], answer_index, rewritten_answer)
 
-    if "error" in result:
-        return jsonify(result), 500
+        if "error" in result:
+            return jsonify(result), 500
 
-    return jsonify(result)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Rewrite failed: {str(e)}"}), 500
 
 
 @app.route("/api/submit_aptitude_answer", methods=["POST"])
@@ -628,30 +638,33 @@ def api_submit_aptitude_answer():
     Input: {selected_option_index: int}
     Returns: deterministic correct/incorrect + next question
     """
-    if not session.get("current_session_id"):
-        return jsonify({"error": "No active interview session."}), 401
-
-    data = request.get_json() or {}
-    selected_option = data.get("selected_option_index", -1)
-
     try:
-        selected_option = int(selected_option)
-    except (ValueError, TypeError):
-        return jsonify({"error": "Invalid option selected."}), 400
+        if not session.get("current_session_id"):
+            return jsonify({"error": "No active interview session."}), 401
 
-    result = submit_answer(
-        session["current_session_id"],
-        str(selected_option)
-    )
+        data = request.get_json() or {}
+        selected_option = data.get("selected_option_index", -1)
 
-    if "error" in result:
-        return jsonify(result), 500
+        try:
+            selected_option = int(selected_option)
+        except (ValueError, TypeError):
+            return jsonify({"error": "Invalid option selected."}), 400
 
-    # If interview is complete, save all data to database
-    if result.get("is_complete"):
-        _persist_session_to_db(session["current_session_id"])
+        result = submit_answer(
+            session["current_session_id"],
+            str(selected_option)
+        )
 
-    return jsonify(result)
+        if "error" in result:
+            return jsonify(result), 500
+
+        # If interview is complete, save all data to database
+        if result.get("is_complete"):
+            _persist_session_to_db(session["current_session_id"])
+
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": f"Submit aptitude answer failed: {str(e)}"}), 500
 
 
 @app.route("/api/session_state")
