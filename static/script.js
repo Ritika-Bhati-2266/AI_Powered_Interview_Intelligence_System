@@ -782,31 +782,41 @@ function initInterview() {
                        escapeHtml(difficulty) + '</span>';
         }
 
-        // Company context badge (Part D: "Why This Question" visible context)
+        // Extract Aptitude category header if embedded (e.g. **[Aptitude - Logical Reasoning]**)
+        let aptCategoryBadge = '';
+        const aptCatMatch = text.match(/[\*\_]*\[Aptitude\s*-\s*([^\]]+)\][\*\_]*/i);
+        if (aptCatMatch) {
+            aptCategoryBadge = '<div class="company-context-badge" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:var(--accent-indigo);">' +
+                'Aptitude &bull; ' + escapeHtml(aptCatMatch[1]) +
+                '</div>';
+            text = text.replace(/[\*\_]*\[Aptitude\s*-\s*[^\]]+\][\*\_]*/gi, '');
+        }
+
+        // Company context badge
         let companyBadgeHtml = '';
-        if (companyContext) {
+        var contextMatch = text.match(/\*\[Context:\s*([^\]]+)\]/i);
+        if (contextMatch) {
+            companyBadgeHtml = '<div class="company-context-badge">' +
+                escapeHtml(contextMatch[1]) +
+                '</div>';
+            text = text.replace(/\n?\*\[Context:[^\]]*\]/gi, '');
+        } else if (companyContext) {
             companyBadgeHtml = '<div class="company-context-badge">' +
                 escapeHtml(companyContext) +
                 '</div>';
         } else if (currentCompanyLabel && currentCompanyLabel !== 'General') {
             companyBadgeHtml = '<div class="company-context-badge">' +
-                escapeHtml(currentCompanyLabel) + ' Interview Pattern' +
+                escapeHtml(currentCompanyLabel) +
                 '</div>';
         }
 
-        // For aptitude questions with embedded [Context: ...] tag, extract and show as badge
-        var contextMatch = text.match(/\*\[Context:\s*([^\]]+)\]/);
-        if (contextMatch) {
-            companyBadgeHtml = '<div class="company-context-badge">' +
-                escapeHtml(contextMatch[1]) +
-                '</div>';
-            // Remove the context line from displayed text
-            text = text.replace(/\n?\*\[Context:[^\]]*\]/, '');
-        }
+        // Strip remaining raw markdown bolding asterisks
+        text = text.replace(/\*\*/g, '').trim();
 
         div.innerHTML =
             '<div class="message-avatar">&#x1f916;</div>' +
             '<div class="message-content">' +
+                aptCategoryBadge +
                 companyBadgeHtml +
                 '<div class="message-bubble">' +
                 escapeHtml(text) +
@@ -1152,39 +1162,44 @@ function initInterview() {
 // ═══════════════════════════════════════════════════════════════════════
 
 function parseAptitudeQuestion(text) {
-    /*
-     * Parse the formatted aptitude question text to extract clean question
-     * and options. Expected format:
-     *   **[Aptitude - Category]**
-     *
-     *   Question text here
-     *
-     *   A. Option 0
-     *   B. Option 1
-     *   C. Option 2
-     *   D. Option 3
-     */
-    const lines = text.split('\n').filter(l => l.trim().length > 0);
-    let questionText = '';
+    if (!text) return { questionText: '', options: [] };
+
+    // Clean out markdown bolding, context headers, and pattern tags
+    let cleanedText = text
+        .replace(/\*\[Context:\s*[^\]]+\]/gi, '')
+        .replace(/[\*\_]*\[Aptitude\s*-\s*[^\]]+\][\*\_]*/gi, '')
+        .replace(/^\s*\*\*|\*\*\s*$/g, '');
+
+    const lines = cleanedText.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let questionParts = [];
     const options = [];
+
     for (const line of lines) {
-        if (/^[Aa]\.\s/.test(line)) {
-            options.push(line.replace(/^[Aa]\.\s*/, ''));
-        } else if (/^[Bb]\.\s/.test(line)) {
-            options.push(line.replace(/^[Bb]\.\s*/, ''));
-        } else if (/^[Cc]\.\s/.test(line)) {
-            options.push(line.replace(/^[Cc]\.\s*/, ''));
-        } else if (/^[Dd]\.\s/.test(line)) {
-            options.push(line.replace(/^[Dd]\.\s*/, ''));
-        } else if (!/^\*\*/.test(line) && !options.length) {
-            questionText += (questionText ? ' ' : '') + line;
+        if (/^[Aa]\.\s*/.test(line)) {
+            options.push(line.replace(/^[Aa]\.\s*/, '').replace(/\*\*/g, '').trim());
+        } else if (/^[Bb]\.\s*/.test(line)) {
+            options.push(line.replace(/^[Bb]\.\s*/, '').replace(/\*\*/g, '').trim());
+        } else if (/^[Cc]\.\s*/.test(line)) {
+            options.push(line.replace(/^[Cc]\.\s*/, '').replace(/\*\*/g, '').trim());
+        } else if (/^[Dd]\.\s*/.test(line)) {
+            options.push(line.replace(/^[Dd]\.\s*/, '').replace(/\*\*/g, '').trim());
+        } else if (options.length === 0) {
+            questionParts.push(line.replace(/\*\*/g, '').trim());
         }
     }
+
+    const questionText = questionParts.join(' ').trim();
     return { questionText, options };
 }
 
 
 function switchToAptitudeMode(questionText) {
+    isAptitudeRound = true;
+
+    // Hide normal chat messages window so MCQ area displays cleanly
+    const msgsContainer = document.getElementById('messages');
+    if (msgsContainer) msgsContainer.style.display = 'none';
+
     // Hide normal input area
     const inputArea = document.getElementById('input-area');
     if (inputArea) inputArea.style.display = 'none';
@@ -1193,9 +1208,9 @@ function switchToAptitudeMode(questionText) {
     const aptArea = document.getElementById('aptitude-area');
     if (aptArea) aptArea.style.display = 'flex';
 
-    // Show aptitude score section
+    // Show aptitude score section in sidebar
     const aptScoreSection = document.getElementById('aptitude-score-section');
-    if (aptScoreSection) aptScoreSection.style.display = 'block';
+    if (aptScoreSection) aptScoreSection.style.display = 'flex';
 
     // Show camera note
     const cameraNote = document.getElementById('camera-aptitude-note');
@@ -1223,7 +1238,7 @@ function switchToAptitudeMode(questionText) {
     // Parse question and populate
     const parsed = parseAptitudeQuestion(questionText);
     const questionEl = document.getElementById('aptitude-question-text');
-    if (questionEl) questionEl.textContent = parsed.questionText || questionText;
+    if (questionEl) questionEl.textContent = parsed.questionText || questionText.replace(/\*\*/g, '');
 
     aptitudeCurrentOptions = parsed.options;
 
@@ -1245,6 +1260,10 @@ function switchToAptitudeMode(questionText) {
 
 function switchToNormalMode() {
     isAptitudeRound = false;
+
+    // Restore normal chat messages window
+    const msgsContainer = document.getElementById('messages');
+    if (msgsContainer) msgsContainer.style.display = 'flex';
 
     // Show normal input area
     const inputArea = document.getElementById('input-area');

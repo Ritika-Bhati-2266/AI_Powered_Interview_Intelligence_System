@@ -1649,6 +1649,64 @@ p {
     line-height: 1.5;
 }
 
+/* Sidebar Aptitude Score Tally */
+.aptitude-score-section {
+    background: var(--bg-card-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.aptitude-score-section h4 {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.aptitude-stats-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.aptitude-score-display {
+    display: flex;
+    align-items: baseline;
+    gap: 0.4rem;
+}
+
+.aptitude-score-value {
+    font-family: var(--font-mono);
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--accent-emerald);
+}
+
+.aptitude-score-label {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+}
+
+.aptitude-timer-section {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(244, 63, 94, 0.12);
+    border: 1px solid rgba(244, 63, 94, 0.25);
+    padding: 0.35rem 0.75rem;
+    border-radius: var(--radius-pill);
+}
+
+.aptitude-timer {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent-rose);
+    font-size: 0.9rem;
+}
+
 /* Chat Input Bar container */
 .input-area {
     border-top: 1px solid var(--border-color);
