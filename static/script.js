@@ -543,7 +543,9 @@ function initInterview() {
             if (data.round_transition) {
                 // Round is complete — show transition banner
                 currentRoundIndex = data.current_round ?
-                    (roundsData.findIndex(r => r.name === data.current_round.name) || currentRoundIndex + 1) :
+                    (roundsData.findIndex(r => r.name === data.current_round.name) !== -1 ?
+                        roundsData.findIndex(r => r.name === data.current_round.name) :
+                        currentRoundIndex + 1) :
                     currentRoundIndex + 1;
 
                 // Render stepper with updated index

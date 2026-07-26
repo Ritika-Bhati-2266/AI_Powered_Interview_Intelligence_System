@@ -8,6 +8,8 @@ difficulty adaptation, multi-round company structure, and final report generatio
 import json
 import time
 import random
+import os
+import sqlite3
 
 from ai_service import (
     generate_question,
@@ -18,7 +20,7 @@ from ai_service import (
     check_ollama_health,
 )
 from company_rounds import get_rounds_for_company
-from aptitude_bank import get_aptitude_set
+from aptitude_bank import get_aptitude_set, format_aptitude_answer_record
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -57,8 +59,8 @@ def _experience_to_difficulty(experience: str) -> int:
         return 0
     if exp in ("1-2", "1-2 years", "junior", "1"):
         return 0
-    if exp in ("2-4", "2-4 years", "mid-level", "mid", "2"):
-        return 0
+    if exp in ("2-4", "2-4 years", "mid-level", "mid", "2", "3"):
+        return 1
     if exp in ("4-7", "4-7 years", "senior", "4", "5", "6", "7"):
         return 1
     if exp in ("7-10", "7-10 years", "lead", "staff", "8", "9", "10"):
@@ -67,7 +69,7 @@ def _experience_to_difficulty(experience: str) -> int:
         return 2
     try:
         years = float(experience)
-        if years < 4:
+        if years <= 1:
             return 0
         if years < 7:
             return 1
@@ -649,10 +651,124 @@ def rewrite_answer(session_id: str, answer_index: int, rewritten_answer: str) ->
     }
 
 
+def _get_db_path():
+    """Get the SQLite database path (same convention as app.py)."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    return os.path.join(base_dir, "database.db")
+
+
+def _load_session_from_db(session_id: str) -> dict:
+    """
+    Reconstruct session data from SQLite when the in-memory session is missing
+    (e.g., after server restart). Returns a dict with all keys expected by
+    generate_report(), or None if the session doesn't exist in the database.
+    """
+    db_path = _get_db_path()
+    if not os.path.exists(db_path):
+        return None
+
+    try:
+        conn = sqlite3.connect(db_path)
+        conn.row_factory = sqlite3.Row
+
+        # Load session record
+        session_row = conn.execute(
+            "SELECT * FROM sessions WHERE id = ?", (session_id,)
+        ).fetchone()
+        if not session_row:
+            conn.close()
+            return None
+
+        session_row = dict(session_row)
+
+        # Load candidate record
+        candidate_row = conn.execute(
+            "SELECT * FROM candidates WHERE id = ?", (session_row["candidate_id"],)
+        ).fetchone()
+        candidate_row = dict(candidate_row) if candidate_row else {}
+
+        # Load answers
+        answer_rows = conn.execute(
+            "SELECT * FROM answers WHERE session_id = ? ORDER BY id ASC", (session_id,)
+        ).fetchall()
+        answers = []
+        for row in answer_rows:
+            a = dict(row)
+            # Parse JSON fields
+            for field in ("strengths", "weaknesses", "keywords_used", "keywords_missed"):
+                try:
+                    a[field] = json.loads(a.get(field, "[]"))
+                except (json.JSONDecodeError, TypeError):
+                    a[field] = []
+            answers.append(a)
+
+        # Load skill gaps
+        gap_rows = conn.execute(
+            "SELECT * FROM skill_gaps WHERE session_id = ?", (session_id,)
+        ).fetchall()
+        skill_gaps = [{
+            "skill": g["skill"],
+            "level": g["level"],
+            "gap": g["gap_description"],
+            "recommendation": g["recommendation"],
+        } for g in gap_rows]
+
+        # Load recommendations
+        rec_rows = conn.execute(
+            "SELECT * FROM recommendations WHERE session_id = ?", (session_id,)
+        ).fetchall()
+        recommendations = [{
+            "area": r["area"],
+            "resource_type": r["resource_type"],
+            "description": r["description"],
+            "priority": r["priority"],
+        } for r in rec_rows]
+
+        conn.close()
+
+        # Parse rounds_data JSON
+        rounds = []
+        try:
+            rounds = json.loads(session_row.get("rounds_data", "[]"))
+        except (json.JSONDecodeError, TypeError):
+            rounds = []
+
+        # Aptitude stats from answers
+        aptitude_answers = [a for a in answers if a.get("is_mcq")]
+        aptitude_correct = sum(1 for a in aptitude_answers if a.get("is_correct"))
+        aptitude_total = len(aptitude_answers)
+
+        return {
+            "candidate_name": candidate_row.get("name", "Candidate"),
+            "candidate_role": candidate_row.get("role", ""),
+            "candidate_experience": candidate_row.get("experience", "0"),
+            "candidate_skills": json.loads(candidate_row.get("skills", "[]")) if isinstance(candidate_row.get("skills"), str) else candidate_row.get("skills", []),
+            "candidate_company": session_row.get("company", "General"),
+            "mode": session_row.get("mode", "technical"),
+            "session_id": session_id,
+            "total_questions": session_row.get("total_questions", 0),
+            "answers": answers,
+            "rounds": rounds,
+            "start_time": session_row.get("created_at", ""),
+            "end_time": session_row.get("completed_at", ""),
+            "skill_gaps": skill_gaps,
+            "recommendations": recommendations,
+            "aptitude_answers": aptitude_answers,
+            "aptitude_correct_count": aptitude_correct,
+            "aptitude_total_count": aptitude_total,
+        }
+
+    except Exception as e:
+        return None
+
+
 def generate_report(session_id: str) -> dict:
     """
     Generate the final interview report with all scores, analysis,
     skill gaps, recommendations, and per-round breakdown.
+
+    Falls back to SQLite data when the in-memory session is absent
+    (e.g., after server restart).
 
     Args:
         session_id: Completed session ID
@@ -661,37 +777,87 @@ def generate_report(session_id: str) -> dict:
         Full report dict
     """
     session = session_store.get(session_id)
+
     if not session:
-        return {"error": "Session not found."}
+        # Fallback: try to load from SQLite
+        db_data = _load_session_from_db(session_id)
+        if db_data is None:
+            return {"error": "Session not found."}
 
-    candidate_info = {
-        "name": session.candidate_name,
-        "role": session.candidate_role,
-        "experience": session.candidate_experience,
-        "skills": session.candidate_skills,
-        "mode": session.mode,
-        "company": session.company,
-    }
+        # Build candidate_info and session_data from DB data
+        candidate_info = {
+            "name": db_data["candidate_name"],
+            "role": db_data["candidate_role"],
+            "experience": db_data["candidate_experience"],
+            "skills": db_data["candidate_skills"],
+            "mode": db_data["mode"],
+            "company": db_data.get("candidate_company", "General"),
+        }
 
-    session_data = {
-        "session_id": session.session_id,
-        "mode": session.mode,
-        "company": session.company,
-        "total_questions": session.total_questions,
-        "completed_questions": len(session.answers),
-        "rounds": [dict(r) for r in session.rounds],
-        "start_time": session.start_time,
-        "end_time": session.end_time,
-        "duration": round((session.end_time or time.time()) - (session.start_time or time.time()), 1),
-        # Aptitude data
-        "aptitude_questions": session.aptitude_questions if hasattr(session, 'aptitude_questions') else [],
-        "aptitude_correct_count": getattr(session, 'aptitude_correct_count', 0),
-        "aptitude_total_count": getattr(session, 'aptitude_total_count', 0),
-    }
+        start_raw = db_data.get("start_time", "")
+        end_raw = db_data.get("end_time", "")
+        duration = 0
+        if end_raw and start_raw:
+            try:
+                from datetime import datetime
+                fmt = "%Y-%m-%d %H:%M:%S"
+                s = datetime.strptime(str(start_raw)[:19], fmt)
+                e = datetime.strptime(str(end_raw)[:19], fmt)
+                duration = round((e - s).total_seconds(), 1)
+            except (ValueError, TypeError):
+                duration = 0
+
+        session_data = {
+            "session_id": session_id,
+            "mode": db_data["mode"],
+            "company": db_data.get("candidate_company", "General"),
+            "total_questions": db_data["total_questions"],
+            "completed_questions": len(db_data["answers"]),
+            "rounds": db_data["rounds"],
+            "start_time": start_raw,
+            "end_time": end_raw,
+            "duration": duration,
+            "aptitude_questions": [],
+            "aptitude_correct_count": db_data["aptitude_correct_count"],
+            "aptitude_total_count": db_data["aptitude_total_count"],
+        }
+
+        answers = db_data["answers"]
+        skill_gaps = db_data["skill_gaps"]
+        recommendations = db_data["recommendations"]
+    else:
+        candidate_info = {
+            "name": session.candidate_name,
+            "role": session.candidate_role,
+            "experience": session.candidate_experience,
+            "skills": session.candidate_skills,
+            "mode": session.mode,
+            "company": session.company,
+        }
+
+        session_data = {
+            "session_id": session.session_id,
+            "mode": session.mode,
+            "company": session.company,
+            "total_questions": session.total_questions,
+            "completed_questions": len(session.answers),
+            "rounds": [dict(r) for r in session.rounds],
+            "start_time": session.start_time,
+            "end_time": session.end_time,
+            "duration": round((session.end_time or time.time()) - (session.start_time or time.time()), 1),
+            # Aptitude data
+            "aptitude_questions": session.aptitude_questions if hasattr(session, 'aptitude_questions') else [],
+            "aptitude_correct_count": getattr(session, 'aptitude_correct_count', 0),
+            "aptitude_total_count": getattr(session, 'aptitude_total_count', 0),
+        }
+
+        answers = session.answers
+        skill_gaps = None
+        recommendations = None
 
     # ── Build aptitude-specific report section ──
     aptitude_data = None
-    aptitude_answers = [a for a in session.answers if a.get("is_mcq")]
+    aptitude_answers = [a for a in answers if a.get("is_mcq")]
     if aptitude_answers:
         categories = {"quantitative": [], "logical_reasoning": [], "verbal": []}
         for a in aptitude_answers:
@@ -710,10 +876,10 @@ def generate_report(session_id: str) -> dict:
                 }
 
         aptitude_data = {
-            "correct": session.aptitude_correct_count,
-            "total": session.aptitude_total_count,
-            "score": round((session.aptitude_correct_count / max(session.aptitude_total_count, 1)) * 100, 1),
-            "score_out_of_10": round((session.aptitude_correct_count / max(session.aptitude_total_count, 1)) * 10, 1),
+            "correct": session_data["aptitude_correct_count"],
+            "total": session_data["aptitude_total_count"],
+            "score": round((session_data["aptitude_correct_count"] / max(session_data["aptitude_total_count"], 1)) * 100, 1),
+            "score_out_of_10": round((session_data["aptitude_correct_count"] / max(session_data["aptitude_total_count"], 1)) * 10, 1),
             "category_breakdown": cat_breakdown,
             "questions": [{
                 "number": i + 1,
@@ -727,30 +893,32 @@ def generate_report(session_id: str) -> dict:
         }
 
     # Detect skill gaps from the answers
-    skill_gaps = detect_skill_gaps(
-        skills=session.candidate_skills,
-        questions_and_answers=session.answers,
-        role=session.candidate_role,
-    )
+    if skill_gaps is None:
+        skill_gaps = detect_skill_gaps(
+            skills=candidate_info["skills"],
+            questions_and_answers=answers,
+            role=candidate_info["role"],
+        )
 
     # Calculate overall score for recommendations
-    if session.answers:
-        overall_score = sum(a.get("overall_score", 0) for a in session.answers) / len(session.answers)
+    if answers:
+        overall_score = sum(a.get("overall_score", 0) for a in answers) / len(answers)
     else:
         overall_score = 0
 
     # Generate recommendations
-    recommendations = generate_recommendations(
-        skill_gaps=skill_gaps,
-        overall_score=int(overall_score),
-        role=session.candidate_role,
-    )
+    if recommendations is None:
+        recommendations = generate_recommendations(
+            skill_gaps=skill_gaps,
+            overall_score=int(overall_score),
+            role=candidate_info["role"],
+        )
 
     # Generate the full report
     report = generate_final_report_data(
         candidate_info=candidate_info,
         session_data=session_data,
-        answers=session.answers,
+        answers=answers,
         skill_gaps=skill_gaps,
         recommendations=recommendations,
     )
@@ -1040,7 +1208,7 @@ def _handle_aptitude_answer(session, answer, current_round, current_question) ->
     answer_record = format_aptitude_answer_record(q_data, selected_option)
     answer_record["round_name"] = current_round.get("name", "Aptitude Test")
     answer_record["round_number"] = session.current_round_index + 1
-    answer_record["selected_option"] = selected_option
+    answer_record["selected_option"] = selected_option if selected_option >= 0 else None
     answer_record["is_valid"] = is_valid_option
 
     session.answers.append(answer_record)

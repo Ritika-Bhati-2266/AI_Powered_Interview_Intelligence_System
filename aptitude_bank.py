@@ -1198,3 +1198,60 @@ def get_aptitude_set(num_quant: int = 4, num_logical: int = 4, num_verbal: int =
     combined = [_shuffle_options(q) for q in combined]
 
     return combined
+
+
+def format_aptitude_answer_record(q_data: dict, selected_option: int) -> dict:
+    """
+    Build a standardized answer record dict from aptitude question data.
+    Called by interview_engine._handle_aptitude_answer().
+
+    Args:
+        q_data: Aptitude question dict with keys: question, options, correct,
+                explanation, category, company, is_advanced, company_pattern_label
+        selected_option: Index (0-3) of the option chosen, or -1 for no selection
+
+    Returns:
+        Dict matching the answer record schema expected by save_answers_to_db()
+        with binary scoring (10/0), full feedback, and MCQ-specific fields.
+    """
+    is_correct = 0 <= selected_option < len(q_data["options"]) and selected_option == q_data["correct"]
+    correct_idx = q_data["correct"]
+    correct_text = q_data["options"][correct_idx] if 0 <= correct_idx < len(q_data["options"]) else ""
+
+    return {
+        "question": q_data["question"],
+        "answer": q_data["options"][selected_option] if 0 <= selected_option < len(q_data["options"]) else "No selection",
+        "category": q_data.get("category", "aptitude"),
+        "difficulty": "medium",
+        "overall_score": 10 if is_correct else 0,
+        "technical_score": 10 if is_correct else 0,
+        "communication_score": 5,
+        "confidence_score": 5,
+        "problem_solving_score": 10 if is_correct else 0 if selected_option >= 0 else 2,
+        "time_management_score": 5,
+        "conceptual_clarity_score": 10 if is_correct else 0,
+        "feedback": "Correct!" if is_correct else (
+            f"Incorrect. The correct answer is: {correct_text}" if selected_option >= 0
+            else "Time expired. No option selected."
+        ),
+        "improved_answer": "",
+        "ideal_answer": correct_text,
+        "improvement_tip": "Review the explanation below to understand the correct approach.",
+        "score_explanation": "Aptitude questions use binary scoring: 10 for correct, 0 for incorrect.",
+        "strengths": [],
+        "weaknesses": [] if is_correct else ["Incorrect answer"],
+        "keywords_used": [],
+        "keywords_missed": [],
+        "filler_word_count": 0,
+        "filler_words": {},
+        "rewrite_used": False,
+        "rewrite_text": "",
+        "rewrite_scores": {},
+        "is_mcq": True,
+        "selected_option": selected_option if selected_option >= 0 else None,
+        "is_correct": is_correct,
+        "time_expired": selected_option < 0 or selected_option >= len(q_data.get("options", [])),
+        "correct_option": correct_idx,
+        "correct_answer": correct_text,
+        "explanation": q_data.get("explanation", ""),
+    }
