@@ -17,7 +17,7 @@
                 <span class="brand-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 18px; height: 18px; color: var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
                 </span>
-                AI Interview Coach
+                <span class="text-gradient-indigo">AI Interview Coach</span>
             </a>
             <div class="navbar-links">
                 <a href="/" class="nav-link-btn">New Interview</a>
@@ -30,13 +30,14 @@
             {% if data %}
             <!-- Welcome Header -->
             <div class="dashboard-header flex-between">
-                <div>
-                    <h1>Dashboard</h1>
-                    <p class="welcome-text">Welcome back, <strong>{{ data.candidate.name }}</strong>. Track your progress below.</p>
+                <div class="heading-block">
+                    <h1 class="text-gradient-indigo">Performance Dashboard</h1>
+                    <p class="heading-sub">Welcome back, <strong>{{ data.candidate.name }}</strong>. Here is your complete interview intelligence at a glance.</p>
                 </div>
                 <a href="/" class="btn btn-primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px; margin-right: 6px; display: inline-block; vertical-align: middle;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     New Session
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 14px; height: 14px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
             </div>
 
@@ -44,7 +45,7 @@
 
             <!-- Stats Grid -->
             <div class="dashboard-grid">
-                <div class="stat-card card-indigo">
+                <div class="stat-card-premium card-indigo">
                     <div class="stat-icon-wrapper">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                     </div>
@@ -53,31 +54,31 @@
                         <div class="stat-label">Interviews Completed</div>
                     </div>
                 </div>
-                <div class="stat-card card-emerald">
+                <div class="stat-card-premium card-emerald">
                     <div class="stat-icon-wrapper">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ data.avg_overall }}/10</div>
-                        <div class="stat-label">Overall Avg Score</div>
+                        <div class="stat-label">Overall Score Average</div>
                     </div>
                 </div>
-                <div class="stat-card card-cyan">
+                <div class="stat-card-premium card-cyan">
                     <div class="stat-icon-wrapper">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ data.avg_technical }}/10</div>
-                        <div class="stat-label">Technical Avg</div>
+                        <div class="stat-label">Technical Proficiency</div>
                     </div>
                 </div>
-                <div class="stat-card card-violet">
+                <div class="stat-card-premium card-violet">
                     <div class="stat-icon-wrapper">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 24px; height: 24px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
                     </div>
                     <div class="stat-info">
                         <div class="stat-value">{{ data.avg_communication }}/10</div>
-                        <div class="stat-label">Communication Avg</div>
+                        <div class="stat-label">Communication Score</div>
                     </div>
                 </div>
             </div>
@@ -85,9 +86,12 @@
             <!-- Main Panels -->
             <div class="panels-split">
                 <!-- Score Breakdown -->
-                <div class="card panel-card card-accent-indigo">
+                <div class="card panel-card card-accent-indigo card-depth">
                     <div class="card-header">
-                        <h3>Core Dimension Breakdown</h3>
+                        <div class="card-header-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            <h3>Core Competency Breakdown</h3>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="score-bars">
@@ -135,9 +139,12 @@
                 </div>
 
                 <!-- Progress Chart -->
-                <div class="card panel-card card-accent-emerald">
+                <div class="card panel-card card-accent-emerald card-depth">
                     <div class="card-header">
-                        <h3>Progress Over Time</h3>
+                        <div class="card-header-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+                            <h3>Progress Over Time</h3>
+                        </div>
                     </div>
                     <div class="card-body chart-body">
                         <div class="chart-container">
@@ -148,11 +155,14 @@
             </div>
 
             <!-- History and Performance Analysis Details -->
-            <div class="card card-accent-violet" style="margin-bottom: 2rem;">
+            <div class="card card-accent-violet card-depth" style="margin-bottom: 2rem;">
                 <div class="card-header flex-between">
-                    <h3>Interview Session History</h3>
-                    <span class="card-header-badge">
-                        {{ data.total_answers }} responses across {{ data.total_sessions }} sessions
+                    <div class="card-header-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                        <h3>Session History</h3>
+                    </div>
+                    <span class="pill-badge pill-badge-sm badge-indigo" style="cursor: default;">
+                        {{ data.total_answers }} answers &middot; {{ data.total_sessions }} sessions
                     </span>
                 </div>
                 <div class="card-body">
@@ -207,9 +217,12 @@
             </div>
 
             <!-- Comparison Section (Dynamic API) -->
-            <div id="comparison-section" class="card card-accent-amber" style="margin-bottom: 2rem;">
+            <div id="comparison-section" class="card card-accent-amber card-depth" style="margin-bottom: 2rem;">
                 <div class="card-header">
-                    <h3>Performance Analytics & Benchmark</h3>
+                    <div class="card-header-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                        <h3>Performance Benchmark</h3>
+                    </div>
                 </div>
                 <div class="card-body" id="comparison-content">
                     <div class="skeleton-pulse">
@@ -222,9 +235,12 @@
 
             <!-- Recent Answers Preview -->
             {% if data.recent_answers %}
-            <div class="card">
+            <div class="card card-depth">
                 <div class="card-header">
-                    <h3>Recent Answers Review</h3>
+                    <div class="card-header-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <h3>Recent Response Review</h3>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="qa-recent-list">
@@ -255,10 +271,11 @@
                 <div class="empty-state-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width: 64px; height: 64px; color: var(--text-muted);"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
                 </div>
-                <h1>No Data Recorded Yet</h1>
-                <p>Welcome to AI Interview Coach. Start your first session to capture deep analytics and track performance.</p>
+                <h1 class="text-gradient-indigo" style="font-size: 2rem;">No Data Recorded Yet</h1>
+                <p>Welcome to AI Interview Coach. Launch your first session to unlock deep analytics and track your growth over time.</p>
                 <a href="/" class="btn btn-primary btn-lg" style="margin-top: 1rem;">
                     Start Your First Interview
+                    <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width: 16px; height: 16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
             </div>
             {% endif %}
