@@ -18,7 +18,7 @@ OLLAMA_ENDPOINT = f"{OLLAMA_BASE_URL}/api/generate"
 
 MAX_RETRIES = 2
 RETRY_DELAY = 1  # seconds
-REQUEST_TIMEOUT = 60  # seconds (generation can be slow on CPU)
+REQUEST_TIMEOUT = 120  # seconds (generation can be slow on CPU, cold-start delay)
 
 
 def _call_ollama(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
