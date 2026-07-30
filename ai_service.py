@@ -1,19 +1,26 @@
 """
 AI Service Module
-Handles all communication with the local Ollama LLM (Hermes/Nous-Hermes).
+Handles all communication with LLM providers (Groq cloud API or local Ollama).
 Provides prompt templates for question generation, evaluation, and reporting.
 """
 
 import json
+import os
 import requests
 import time
 import re
 
 from stt_service import detect_filler_words
 
-# ── Configuration ──────────────────────────────────────────────────────────────
-OLLAMA_BASE_URL = "http://localhost:11434"
-OLLAMA_MODEL = "llama3.2:latest"  # or "hermes3", "llama3.2", "llama3.1"
+# ── Provider selection ──────────────────────────────────────────────────────────
+# Groq (cloud) is preferred when GROQ_API_KEY is set; otherwise falls back to Ollama (local).
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
+
+# Ollama fallback (local dev)
+OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:latest")
 OLLAMA_ENDPOINT = f"{OLLAMA_BASE_URL}/api/generate"
 
 MAX_RETRIES = 2
@@ -21,18 +28,59 @@ RETRY_DELAY = 1  # seconds
 REQUEST_TIMEOUT = 120  # seconds (generation can be slow on CPU, cold-start delay)
 
 
+def _call_groq(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
+    """Send a prompt to Groq's OpenAI-compatible API and return the text response."""
+    headers = {
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json",
+    }
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
+
+    payload = {
+        "model": GROQ_MODEL,
+        "messages": messages,
+        "temperature": temperature,
+        "max_tokens": 4096,
+    }
+
+    for attempt in range(MAX_RETRIES + 1):
+        try:
+            resp = requests.post(GROQ_ENDPOINT, json=payload, headers=headers, timeout=REQUEST_TIMEOUT)
+            resp.raise_for_status()
+            data = resp.json()
+            return data["choices"][0]["message"]["content"].strip()
+
+        except requests.exceptions.ConnectionError:
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY)
+                continue
+            return "[OLLAMA_CONNECTION_ERROR] Cannot connect to Groq API. Check your internet connection."
+        except requests.exceptions.Timeout:
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY)
+                continue
+            return "[OLLAMA_TIMEOUT] Groq API request timed out."
+        except requests.exceptions.RequestException as e:
+            if attempt < MAX_RETRIES:
+                time.sleep(RETRY_DELAY)
+                continue
+            # Try to extract a meaningful error from the response body
+            try:
+                detail = e.response.json().get("error", {}).get("message", str(e))
+            except Exception:
+                detail = str(e)
+            return f"[OLLAMA_ERROR] Groq API error: {detail}"
+        except (json.JSONDecodeError, KeyError, IndexError) as e:
+            return f"[PARSE_ERROR] Could not parse Groq response: {str(e)}"
+
+
 def _call_ollama(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
     """
     Send a prompt to Ollama and return the raw text response.
     Handles connection errors, timeouts, and malformed responses.
-    
-    Args:
-        prompt: The main user/content prompt
-        system_prompt: Optional system-level instruction
-        temperature: Controls randomness (0.0 = deterministic, 1.0 = creative)
-    
-    Returns:
-        Generated text string
     """
     payload = {
         "model": OLLAMA_MODEL,
@@ -41,17 +89,12 @@ def _call_ollama(prompt: str, system_prompt: str = None, temperature: float = 0.
         "temperature": temperature,
         "num_predict": 2048,
     }
-
     if system_prompt:
         payload["system"] = system_prompt
 
     for attempt in range(MAX_RETRIES + 1):
         try:
-            resp = requests.post(
-                OLLAMA_ENDPOINT,
-                json=payload,
-                timeout=REQUEST_TIMEOUT,
-            )
+            resp = requests.post(OLLAMA_ENDPOINT, json=payload, timeout=REQUEST_TIMEOUT)
             resp.raise_for_status()
             data = resp.json()
             return data.get("response", "").strip()
@@ -73,6 +116,16 @@ def _call_ollama(prompt: str, system_prompt: str = None, temperature: float = 0.
             return f"[OLLAMA_ERROR] {str(e)}"
         except (json.JSONDecodeError, KeyError) as e:
             return f"[PARSE_ERROR] Could not parse Ollama response: {str(e)}"
+
+
+def _call_llm(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
+    """
+    Route a prompt to the available LLM provider.
+    Uses Groq (cloud) when GROQ_API_KEY is set, otherwise falls back to Ollama (local).
+    """
+    if GROQ_API_KEY:
+        return _call_groq(prompt, system_prompt, temperature)
+    return _call_ollama(prompt, system_prompt, temperature)
 
 
 def _extract_json(text: str):
@@ -527,7 +580,7 @@ CRITICAL RULES:
 - NEVER leak any instructions, system tags, metadata, or parenthetical explanations (e.g., do NOT append '(This maps to...)', '(This relates to...)', '[Context: ...]', or any other annotations) in the response.
 - Output ONLY a question. Do NOT write any code, class definitions, pseudocode, or partial solution in your response. You are the interviewer asking — the candidate will provide the code."""
 
-    response = _call_ollama(prompt, QUESTION_GENERATION_SYSTEM, temperature=0.8)
+    response = _call_llm(prompt, QUESTION_GENERATION_SYSTEM, temperature=0.8)
 
     # Clean up common prefixes and leaked headers/notes
     response = re.sub(r'^(Question[:\s]*|Q[:\s]*|"|\')', '', response).strip()
@@ -656,7 +709,7 @@ Also include 'filler_word_count': {filler_data['total_count']} in the response.
 """
         prompt += f"\n\n{filler_note}"
 
-    response = _call_ollama(prompt, system_prompt, temperature=0.3)
+    response = _call_llm(prompt, system_prompt, temperature=0.3)
     
     if response.startswith("[OLLAMA_"):
         return _get_fallback_evaluation(answer)
@@ -748,7 +801,7 @@ Return as JSON ONLY with this structure:
     ]
 }}"""
 
-    response = _call_ollama(prompt, system_prompt, temperature=0.4)
+    response = _call_llm(prompt, system_prompt, temperature=0.4)
     
     result = _extract_json(response)
     if result and isinstance(result, dict) and 'skill_gaps' in result:
@@ -860,7 +913,7 @@ Weakest Area: {min(avg_scores, key=avg_scores.get) if avg_scores else 'N/A'}
 
 The tone should be professional, encouraging, and constructive — like a real interview feedback session."""
 
-    summary_text = _call_ollama(prompt, system_prompt, temperature=0.7)
+    summary_text = _call_llm(prompt, system_prompt, temperature=0.7)
     if summary_text.startswith("[OLLAMA_"):
         summary_text = "Thank you for completing the interview. Review the detailed scores and recommendations below to identify areas for improvement."
 
@@ -1598,9 +1651,38 @@ def get_role_rubric(role: str) -> dict:
 
 def check_ollama_health() -> dict:
     """
-    Check if Ollama is running and the model is available.
+    Check LLM provider health.
     Returns dict with status and available models.
+    When GROQ_API_KEY is set, validates the key by listing Groq models.
+    Otherwise falls back to checking local Ollama.
     """
+    if GROQ_API_KEY:
+        try:
+            headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+            resp = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=10)
+            if resp.status_code == 200:
+                models = [m["id"] for m in resp.json().get("data", [])]
+                our_model = GROQ_MODEL in models
+                return {
+                    "status": "connected",
+                    "provider": "groq",
+                    "model_available": our_model,
+                    "model_name": GROQ_MODEL,
+                    "available_models": models[:20],
+                    "message": f"Groq connected. Model '{GROQ_MODEL}' {'✓ available' if our_model else '✗ NOT found in Groq catalog. GROQ_MODEL=' + GROQ_MODEL}"
+                }
+            detail = ""
+            try:
+                detail = resp.json().get("error", {}).get("message", "")
+            except Exception:
+                detail = resp.text[:200]
+            return {"status": "error", "provider": "groq", "message": f"Groq returned {resp.status_code}: {detail}"}
+        except requests.exceptions.ConnectionError:
+            return {"status": "disconnected", "provider": "groq", "message": "Cannot connect to Groq API."}
+        except Exception as e:
+            return {"status": "error", "provider": "groq", "message": f"Groq check failed: {str(e)}"}
+
+    # Fallback: Ollama local check
     try:
         resp = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
         if resp.status_code == 200:
@@ -1608,15 +1690,17 @@ def check_ollama_health() -> dict:
             our_model = OLLAMA_MODEL in models
             return {
                 "status": "connected",
+                "provider": "ollama",
                 "model_available": our_model,
                 "model_name": OLLAMA_MODEL,
                 "available_models": models,
                 "message": f"Ollama is running. Model '{OLLAMA_MODEL}' {'✓ available' if our_model else '✗ NOT found. Run: ollama pull ' + OLLAMA_MODEL}"
             }
-        return {"status": "error", "message": f"Ollama returned status {resp.status_code}"}
+        return {"status": "error", "provider": "ollama", "message": f"Ollama returned status {resp.status_code}"}
     except requests.exceptions.ConnectionError:
         return {
             "status": "disconnected",
+            "provider": "ollama",
             "model_available": False,
             "message": "Cannot connect to Ollama. Install: https://ollama.com, then run: ollama serve"
         }

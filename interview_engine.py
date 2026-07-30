@@ -1005,10 +1005,9 @@ def _generate_next_question(session: InterviewSession) -> dict:
 
         q_data = session.aptitude_questions[idx]
         company_label = q_data.get("company_pattern_label", "")
-        company_context_line = f"\n\n*[Context: {company_label}]" if company_label else ""
         question_text = (
             f"**[Aptitude - {q_data['category'].replace('_', ' ').title()}]**\n\n"
-            f"{q_data['question']}{company_context_line}\n\n"
+            f"{q_data['question']}\n\n"
             f"A. {q_data['options'][0]}\n"
             f"B. {q_data['options'][1]}\n"
             f"C. {q_data['options'][2]}\n"

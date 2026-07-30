@@ -11,6 +11,9 @@ import json
 import time
 from datetime import datetime
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from werkzeug.utils import secure_filename
 
@@ -30,7 +33,7 @@ from stt_service import transcribe_audio
 # ── Flask App Configuration ───────────────────────────────────────────────────
 
 app = Flask(__name__)
-app.secret_key = os.urandom(24).hex()
+app.secret_key = os.environ.get("SECRET_KEY", os.urandom(24).hex())
 
 # Upload configuration
 UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "uploads")
@@ -302,7 +305,7 @@ def save_answers_to_db(session_id: str, answers: list):
                  keywords_used, keywords_missed,
                  round_name, round_number,
                  is_mcq, selected_option, is_correct, correct_option, correct_answer, explanation)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
             session_id,
             ans.get("question", ""),

@@ -1,0 +1,10 @@
+__pycache__/
+*.pyc
+.pytest_cache/
+uploads/
+database.db
+*.db
+.env
+e2e_full_matrix_results.txt
+verification_results.txt
+.env

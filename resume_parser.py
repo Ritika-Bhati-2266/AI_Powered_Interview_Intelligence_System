@@ -227,7 +227,27 @@ def extract_name(text: str) -> str:
                         'linkedin', 'github', 'address', 'summary', 'profile']):
                 # Check it looks like a name (2-4 words, mostly alpha)
                 words = line.split()
-                if 1 < len(words) <= 4 and all(w.isalpha() for w in words if w):
+                if 1 < len(words) <= 4 and all(w.rstrip('.').isalpha() for w in words if w):
+                    # Reject lines where every word is a section heading word
+                    section_words = {
+                        'skills', 'experience', 'education', 'projects', 'summary',
+                        'profile', 'certifications', 'publications', 'patents',
+                        'awards', 'honors', 'languages', 'interests', 'volunteering',
+                        'references', 'leadership', 'technical', 'professional',
+                        'work', 'additional', 'information', 'objective',
+                        'qualifications', 'achievements', 'activities', 'research',
+                        'training', 'employment', 'history', 'background', 'contact',
+                        'details', 'personal', 'expertise', 'competencies',
+                        'capabilities', 'highlights', 'accomplishments', 'career',
+                        'affiliations', 'community', 'internships', 'courses',
+                        'extracurricular', 'data', 'related', 'tools', 'platforms',
+                        'frameworks', 'libraries', 'databases', 'operating', 'systems',
+                        'methodologies', 'concepts', 'core', 'relevant', 'key',
+                        'strengths', 'portfolio', 'seminars', 'workshops',
+                    }
+                    cleaned = [w.rstrip('.').lower() for w in words if w]
+                    if all(w in section_words for w in cleaned):
+                        continue
                     return line.strip()
 
     return ""
