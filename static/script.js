@@ -352,20 +352,11 @@ function initInterview() {
     let currentCompany = '';
     let currentCompanyLabel = '';
 
-    // Round state
-    let roundsData = [];
-    let currentRoundIndex = 0;
-    let totalRounds = 0;
+    // Round & aptitude state now lives at TOP-LEVEL scope (see the
+    // "Aptitude Round Functions" section) so both this closure and the
+    // top-level aptitude handlers read/write the same variables. Only keep
+    // the ones that are purely local to the interview flow.
     let isResumePhase = true;
-
-    // Aptitude state
-    let isAptitudeRound = false;
-    let aptitudeSelectedOption = -1;
-    let aptitudeTimerInterval = null;
-    let aptitudeTimeLeft = 45;
-    let aptitudeCorrect = 0;
-    let aptitudeTotal = 0;
-    let aptitudeCurrentOptions = [];
 
     // Voice/Speech state
     let voiceRecognition = null;
@@ -744,6 +735,13 @@ function initInterview() {
             currentRoundBadge.style.display = 'none';
         }
     }
+
+    // The aptitude handlers live at top-level scope, so expose these
+    // round-render helpers (defined inside this closure) for them to call
+    // during aptitude round transitions / completion.
+    window.renderRoundStepper = renderRoundStepper;
+    window.showRoundFocus = showRoundFocus;
+    window.updateRoundBadge = updateRoundBadge;
 
     function updateRoundProgress(count, limit, roundData) {
         if (!roundText) return;
@@ -1172,6 +1170,24 @@ function initInterview() {
 // ── Aptitude Round Functions ─────────────────────────────────────────
 // ═══════════════════════════════════════════════════════════════════════
 
+// Shared aptitude/round state. These live at top-level so that BOTH the
+// aptitude handlers above (selectAptitudeOption, submitAptitudeAnswer,
+// startAptitudeTimer, ...) and initInterview() can read & write the SAME
+// variables. Previously declared with `let` inside initInterview(), the
+// top-level handlers couldn't see them -> ReferenceError that silently
+// aborted submitAptitudeAnswer() before the fetch, so "Confirm Selection"
+// did nothing.
+let isAptitudeRound = false;
+let aptitudeSelectedOption = -1;
+let aptitudeTimerInterval = null;
+let aptitudeTimeLeft = 45;
+let aptitudeCorrect = 0;
+let aptitudeTotal = 0;
+let aptitudeCurrentOptions = [];
+let roundsData = [];
+let currentRoundIndex = 0;
+let totalRounds = 1;
+
 function parseAptitudeQuestion(text) {
     if (!text) return { questionText: '', options: [] };
 
@@ -1475,16 +1491,16 @@ function submitAptitudeAnswer() {
                     const currentIdx = roundsData.findIndex(r =>
                         r.name === (data.current_round ? data.current_round.name : '')
                     );
-                    renderRoundStepper(roundsData, currentIdx >= 0 ? currentIdx : currentRoundIndex + 1);
+                    window.renderRoundStepper(roundsData, currentIdx >= 0 ? currentIdx : currentRoundIndex + 1);
                 }
 
                 // Update round info
                 if (data.current_round) {
-                    if (typeof showRoundFocus === 'function') {
-                        showRoundFocus(data.current_round, false);
+                    if (typeof window.showRoundFocus === 'function') {
+                        window.showRoundFocus(data.current_round, false);
                     }
-                    if (typeof updateRoundBadge === 'function') {
-                        updateRoundBadge(currentRoundIndex + 1, totalRounds, data.current_round);
+                    if (typeof window.updateRoundBadge === 'function') {
+                        window.updateRoundBadge(currentRoundIndex + 1, totalRounds, data.current_round);
                     }
                 }
 

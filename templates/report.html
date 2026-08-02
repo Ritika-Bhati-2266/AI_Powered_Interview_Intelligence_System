@@ -21,6 +21,24 @@
             border: 1px solid rgba(236,72,153,0.3);
             color: #f472b6;
         }
+        @media print {
+            body { background: #fff !important; }
+            body::before { display: none !important; }
+            .navbar, .report-cta-action-row, .motivational-banner-premium { display: none !important; }
+            .card, .report-hero-card, .report-page, .qa-analysis-card, .gap-item-premium,
+            .rec-card-premium, .rewrite-item-card, .roadmap-week-card, .resource-card-premium,
+            .aptitude-audit-card, .filler-question-row { opacity: 1 !important; transform: none !important; }
+            .ring-progress { filter: none !important; }
+            * { transition: none !important; animation: none !important; }
+            .ring-score, .readiness-label, .competency-name,
+            .competency-score, .summary-paragraph { color: #1a1a2e !important; }
+            .card-header, .card-body { background: transparent !important; }
+            .score-ring { break-inside: avoid; }
+            .report-analysis-grid { break-inside: avoid; }
+            .star { font-size: 1.5rem; }
+            .star.filled { color: #f59e0b; }
+            .star:not(.filled) { color: #d1d5db; }
+        }
     </style>
 </head>
 <body class="page-report">
@@ -617,23 +635,29 @@
 
     <script src="/static/script.js"></script>
     <script>
+        function finalizeAnimations() {
+            document.querySelectorAll(".ring-progress").forEach(function(ring) {
+                var score = parseFloat(ring.getAttribute("data-score")) || 0;
+                var radius = ring.r.baseVal.value;
+                var circumference = 2 * Math.PI * radius;
+                ring.style.strokeDasharray = circumference;
+                var offset = circumference - (score / 10) * circumference;
+                ring.style.strokeDashoffset = offset;
+            });
+            document.querySelectorAll(".bar-fill, .dist-fill, .dist-bar-fill, .readiness-fill, .filler-progress-bar").forEach(function(bar) {
+                var width = bar.getAttribute("data-width") || "0%";
+                if (!width.endsWith("%") && !isNaN(width)) { width = width + "%"; }
+                bar.style.width = width;
+            });
+            document.querySelectorAll(".card, .report-hero-card, .qa-analysis-card, .gap-item-premium, .rec-card-premium, .rewrite-item-card, .roadmap-week-card, .resource-card-premium, .aptitude-audit-card, .filler-question-row").forEach(function(el) {
+                el.style.opacity = "1";
+                el.style.transform = "none";
+            });
+        }
         document.addEventListener("DOMContentLoaded", function() {
-            setTimeout(function() {
-                document.querySelectorAll(".ring-progress").forEach(function(ring) {
-                    var score = parseFloat(ring.getAttribute("data-score")) || 0;
-                    var radius = ring.r.baseVal.value;
-                    var circumference = 2 * Math.PI * radius;
-                    ring.style.strokeDasharray = circumference;
-                    var offset = circumference - (score / 10) * circumference;
-                    ring.style.strokeDashoffset = offset;
-                });
-                document.querySelectorAll(".bar-fill, .dist-fill, .dist-bar-fill, .readiness-fill, .filler-progress-bar").forEach(function(bar) {
-                    var width = bar.getAttribute("data-width") || "0%";
-                    if (!width.endsWith("%") && !isNaN(width)) { width = width + "%"; }
-                    bar.style.width = width;
-                });
-            }, 200);
+            setTimeout(finalizeAnimations, 200);
         });
+        window.addEventListener("beforeprint", finalizeAnimations);
     </script>
 </body>
 </html>
