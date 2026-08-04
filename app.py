@@ -10,6 +10,7 @@ import uuid
 import json
 import time
 from datetime import datetime
+from contextlib import contextmanager
 
 from dotenv import load_dotenv
 load_dotenv()
@@ -47,6 +48,36 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 # Database configuration
 DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
 
+# Full sessions table DDL (includes all migrated columns). The mode CHECK allows
+# 'hr', 'technical' and 'coding' (coding sessions previously failed to persist).
+SESSIONS_DDL = """
+    CREATE TABLE IF NOT EXISTS sessions (
+        id TEXT PRIMARY KEY,
+        candidate_id INTEGER NOT NULL,
+        mode TEXT NOT NULL CHECK(mode IN ('hr', 'technical', 'coding')),
+        status TEXT DEFAULT 'in_progress' CHECK(status IN ('waiting', 'in_progress', 'completed')),
+        overall_score REAL DEFAULT 0,
+        technical_score REAL DEFAULT 0,
+        communication_score REAL DEFAULT 0,
+        confidence_score REAL DEFAULT 0,
+        problem_solving_score REAL DEFAULT 0,
+        time_management_score REAL DEFAULT 0,
+        conceptual_clarity_score REAL DEFAULT 0,
+        readiness_score INTEGER DEFAULT 0,
+        grade TEXT DEFAULT '',
+        star_rating INTEGER DEFAULT 0,
+        total_questions INTEGER DEFAULT 0,
+        completed_questions INTEGER DEFAULT 0,
+        duration_seconds REAL DEFAULT 0,
+        rounds_data TEXT DEFAULT '[]',
+        current_round INTEGER DEFAULT 0,
+        total_rounds INTEGER DEFAULT 1,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        completed_at TIMESTAMP,
+        FOREIGN KEY (candidate_id) REFERENCES candidates(id)
+    )
+"""
+
 
 # ── Database Setup ────────────────────────────────────────────────────────────
 
@@ -57,6 +88,28 @@ def get_db():
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
     return conn
+
+
+@contextmanager
+def _db_conn():
+    """
+    Yield a (conn, cursor) pair for a write transaction.
+
+    Commits on success, rolls back on error, and ALWAYS closes the connection.
+    Without this, an exception (e.g. an IntegrityError) skipped commit/close and
+    leaked a connection holding an open write transaction, which then blocked every
+    subsequent write in the same process with 'database is locked'.
+    """
+    conn = get_db()
+    try:
+        cursor = conn.cursor()
+        yield conn, cursor
+        conn.commit()
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 def init_db():
@@ -83,24 +136,7 @@ def init_db():
     """)
 
     # Interview sessions table: tracks each interview session
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS sessions (
-            id TEXT PRIMARY KEY,
-            candidate_id INTEGER NOT NULL,
-            mode TEXT NOT NULL CHECK(mode IN ('hr', 'technical')),
-            status TEXT DEFAULT 'in_progress' CHECK(status IN ('waiting', 'in_progress', 'completed')),
-            overall_score REAL DEFAULT 0,
-            technical_score REAL DEFAULT 0,
-            communication_score REAL DEFAULT 0,
-            confidence_score REAL DEFAULT 0,
-            total_questions INTEGER DEFAULT 0,
-            completed_questions INTEGER DEFAULT 0,
-            duration_seconds REAL DEFAULT 0,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            completed_at TIMESTAMP,
-            FOREIGN KEY (candidate_id) REFERENCES candidates(id)
-        )
-    """)
+    cursor.execute(SESSIONS_DDL)
 
     # Answers table: stores each Q&A pair with evaluation
     cursor.execute("""
@@ -152,6 +188,32 @@ def init_db():
     """)
 
     conn.commit()
+
+    # ── Migrate old sessions.mode CHECK to allow 'coding' mode ──────────────
+    # SQLite can't alter a CHECK constraint, so rebuild the table in place if the
+    # existing database still has the restrictive CHECK(mode IN ('hr','technical')).
+    # The table name is kept as `sessions` throughout (we create sessions_new,
+    # drop the old table with FK enforcement off, then rename) so child tables'
+    # FOREIGN KEY references to `sessions` remain valid.
+    cursor.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='sessions'")
+    row = cursor.fetchone()
+    if row is not None and "CHECK(mode IN ('hr', 'technical'))" in (row["sql"] or ""):
+        conn.commit()
+        cursor.execute("PRAGMA foreign_keys=OFF")
+        conn.commit()
+        cursor.execute(SESSIONS_DDL.replace("CREATE TABLE IF NOT EXISTS sessions", "CREATE TABLE sessions_new"))
+        cursor.execute("PRAGMA table_info(sessions)")
+        old_cols = [r["name"] for r in cursor.fetchall()]
+        cursor.execute("PRAGMA table_info(sessions_new)")
+        new_cols = [r["name"] for r in cursor.fetchall()]
+        common = [c for c in old_cols if c in new_cols]
+        cols_sql = ", ".join('"' + c + '"' for c in common)
+        cursor.execute(f"INSERT INTO sessions_new ({cols_sql}) SELECT {cols_sql} FROM sessions")
+        cursor.execute("DROP TABLE sessions")
+        cursor.execute("ALTER TABLE sessions_new RENAME TO sessions")
+        conn.commit()
+        cursor.execute("PRAGMA foreign_keys=ON")
+        conn.commit()
 
     # ── Safe column migrations ────────────────────────────────────────────
     _add_column_if_not_exists(cursor, "answers", "problem_solving_score", "INTEGER DEFAULT 5")
@@ -211,78 +273,70 @@ def save_candidate_to_db(name: str, email: str, role: str, experience: str,
     Insert or update a candidate record in the database.
     Returns the candidate ID.
     """
-    conn = get_db()
-    cursor = conn.cursor()
-    skills_json = json.dumps(skills or [])
+    with _db_conn() as (conn, cursor):
+        skills_json = json.dumps(skills or [])
 
-    # Check if candidate already exists by email
-    existing = cursor.execute(
-        "SELECT id FROM candidates WHERE email = ?", (email,)
-    ).fetchone()
+        # Check if candidate already exists by email
+        existing = cursor.execute(
+            "SELECT id FROM candidates WHERE email = ?", (email,)
+        ).fetchone()
 
-    if existing:
-        # Update existing record
-        cursor.execute("""
-            UPDATE candidates
-            SET name = ?, role = ?, experience = ?, resume_filename = ?,
-                resume_text = ?, skills = ?
-            WHERE id = ?
-        """, (name, role, experience, resume_filename, resume_text, skills_json, existing["id"]))
-        candidate_id = existing["id"]
-    else:
-        # Insert new candidate
-        cursor.execute("""
-            INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-        """, (name, email, role, experience, resume_filename, resume_text, skills_json))
-        candidate_id = cursor.lastrowid
+        if existing:
+            # Update existing record
+            cursor.execute("""
+                UPDATE candidates
+                SET name = ?, role = ?, experience = ?, resume_filename = ?,
+                    resume_text = ?, skills = ?
+                WHERE id = ?
+            """, (name, role, experience, resume_filename, resume_text, skills_json, existing["id"]))
+            candidate_id = existing["id"]
+        else:
+            # Insert new candidate
+            cursor.execute("""
+                INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """, (name, email, role, experience, resume_filename, resume_text, skills_json))
+            candidate_id = cursor.lastrowid
 
-    conn.commit()
-    conn.close()
-    return candidate_id
+        return candidate_id
 
 
 def save_session_to_db(session_data: dict):
     """Save or update interview session data to database."""
-    conn = get_db()
-    cursor = conn.cursor()
-
-    # Upsert session record
-    cursor.execute("""
-        INSERT OR REPLACE INTO sessions
-            (id, candidate_id, mode, status, overall_score, technical_score,
-             communication_score, confidence_score, problem_solving_score,
-             time_management_score, conceptual_clarity_score,
-             readiness_score, grade, star_rating,
-             total_questions, completed_questions, duration_seconds, completed_at,
-             rounds_data, current_round, total_rounds)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        session_data.get("session_id"),
-        session_data.get("candidate_id"),
-        session_data.get("mode"),
-        session_data.get("status"),
-        session_data.get("overall_score", 0),
-        session_data.get("technical_score", 0),
-        session_data.get("communication_score", 0),
-        session_data.get("confidence_score", 0),
-        session_data.get("problem_solving_score", 0),
-        session_data.get("time_management_score", 0),
-        session_data.get("conceptual_clarity_score", 0),
-        session_data.get("readiness_score", 0),
-        session_data.get("grade", ""),
-        session_data.get("star_rating", 0),
-        session_data.get("total_questions", 0),
-        session_data.get("completed_questions", 0),
-        session_data.get("duration_seconds", 0),
-        datetime.now().isoformat() if session_data.get("status") == "completed" else None,
-        json.dumps(session_data.get("rounds", [])),
-        session_data.get("current_round", 0),
-        session_data.get("total_rounds", 1),
-    ))
-
-    conn.commit()
-    conn.close()
+    with _db_conn() as (conn, cursor):
+        # Upsert session record
+        cursor.execute("""
+            INSERT OR REPLACE INTO sessions
+                (id, candidate_id, mode, status, overall_score, technical_score,
+                 communication_score, confidence_score, problem_solving_score,
+                 time_management_score, conceptual_clarity_score,
+                 readiness_score, grade, star_rating,
+                 total_questions, completed_questions, duration_seconds, completed_at,
+                 rounds_data, current_round, total_rounds)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (
+            session_data.get("session_id"),
+            session_data.get("candidate_id"),
+            session_data.get("mode"),
+            session_data.get("status"),
+            session_data.get("overall_score", 0),
+            session_data.get("technical_score", 0),
+            session_data.get("communication_score", 0),
+            session_data.get("confidence_score", 0),
+            session_data.get("problem_solving_score", 0),
+            session_data.get("time_management_score", 0),
+            session_data.get("conceptual_clarity_score", 0),
+            session_data.get("readiness_score", 0),
+            session_data.get("grade", ""),
+            session_data.get("star_rating", 0),
+            session_data.get("total_questions", 0),
+            session_data.get("completed_questions", 0),
+            session_data.get("duration_seconds", 0),
+            datetime.now().isoformat() if session_data.get("status") == "completed" else None,
+            json.dumps(session_data.get("rounds", [])),
+            session_data.get("current_round", 0),
+            session_data.get("total_rounds", 1),
+        ))
 
 
 def save_answers_to_db(session_id: str, answers: list):
@@ -290,57 +344,52 @@ def save_answers_to_db(session_id: str, answers: list):
     if not answers:
         return
 
-    conn = get_db()
-    cursor = conn.cursor()
-
-    for ans in answers:
-        cursor.execute("""
-            INSERT INTO answers
-                (session_id, question, answer, category, difficulty,
-                 overall_score, technical_score, communication_score,
-                 confidence_score, problem_solving_score,
-                 time_management_score, conceptual_clarity_score,
-                 feedback, improved_answer, ideal_answer, improvement_tip,
-                 score_explanation, strengths, weaknesses,
-                 keywords_used, keywords_missed,
-                 round_name, round_number,
-                 is_mcq, selected_option, is_correct, correct_option, correct_answer, explanation)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (
-            session_id,
-            ans.get("question", ""),
-            ans.get("answer", ""),
-            ans.get("category", "general"),
-            ans.get("difficulty", "medium"),
-            ans.get("overall_score", 5),
-            ans.get("technical_score", 5),
-            ans.get("communication_score", 5),
-            ans.get("confidence_score", 5),
-            ans.get("problem_solving_score", 5),
-            ans.get("time_management_score", 5),
-            ans.get("conceptual_clarity_score", 5),
-            ans.get("feedback", ""),
-            ans.get("improved_answer", ""),
-            ans.get("ideal_answer", ""),
-            ans.get("improvement_tip", ""),
-            ans.get("score_explanation", ""),
-            json.dumps(ans.get("strengths", [])),
-            json.dumps(ans.get("weaknesses", [])),
-            json.dumps(ans.get("keywords_used", [])),
-            json.dumps(ans.get("keywords_missed", [])),
-            ans.get("round_name", ""),
-            ans.get("round_number", 0),
-            # MCQ fields
-            1 if ans.get("is_mcq") else 0,
-            ans.get("selected_option"),
-            1 if ans.get("is_correct") else 0,
-            ans.get("correct_option"),
-            ans.get("correct_answer", ""),
-            ans.get("explanation", ""),
-        ))
-
-    conn.commit()
-    conn.close()
+    with _db_conn() as (conn, cursor):
+        for ans in answers:
+            cursor.execute("""
+                INSERT INTO answers
+                    (session_id, question, answer, category, difficulty,
+                     overall_score, technical_score, communication_score,
+                     confidence_score, problem_solving_score,
+                     time_management_score, conceptual_clarity_score,
+                     feedback, improved_answer, ideal_answer, improvement_tip,
+                     score_explanation, strengths, weaknesses,
+                     keywords_used, keywords_missed,
+                     round_name, round_number,
+                     is_mcq, selected_option, is_correct, correct_option, correct_answer, explanation)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                session_id,
+                ans.get("question", ""),
+                ans.get("answer", ""),
+                ans.get("category", "general"),
+                ans.get("difficulty", "medium"),
+                ans.get("overall_score", 5),
+                ans.get("technical_score", 5),
+                ans.get("communication_score", 5),
+                ans.get("confidence_score", 5),
+                ans.get("problem_solving_score", 5),
+                ans.get("time_management_score", 5),
+                ans.get("conceptual_clarity_score", 5),
+                ans.get("feedback", ""),
+                ans.get("improved_answer", ""),
+                ans.get("ideal_answer", ""),
+                ans.get("improvement_tip", ""),
+                ans.get("score_explanation", ""),
+                json.dumps(ans.get("strengths", [])),
+                json.dumps(ans.get("weaknesses", [])),
+                json.dumps(ans.get("keywords_used", [])),
+                json.dumps(ans.get("keywords_missed", [])),
+                ans.get("round_name", ""),
+                ans.get("round_number", 0),
+                # MCQ fields
+                1 if ans.get("is_mcq") else 0,
+                ans.get("selected_option"),
+                1 if ans.get("is_correct") else 0,
+                ans.get("correct_option"),
+                ans.get("correct_answer", ""),
+                ans.get("explanation", ""),
+            ))
 
 
 def save_skill_gaps_to_db(session_id: str, skill_gaps: list):
@@ -348,23 +397,18 @@ def save_skill_gaps_to_db(session_id: str, skill_gaps: list):
     if not skill_gaps:
         return
 
-    conn = get_db()
-    cursor = conn.cursor()
-
-    for gap in skill_gaps:
-        cursor.execute("""
-            INSERT INTO skill_gaps (session_id, skill, level, gap_description, recommendation)
-            VALUES (?, ?, ?, ?, ?)
-        """, (
-            session_id,
-            gap.get("skill", ""),
-            gap.get("level", "intermediate"),
-            gap.get("gap", ""),
-            gap.get("recommendation", ""),
-        ))
-
-    conn.commit()
-    conn.close()
+    with _db_conn() as (conn, cursor):
+        for gap in skill_gaps:
+            cursor.execute("""
+                INSERT INTO skill_gaps (session_id, skill, level, gap_description, recommendation)
+                VALUES (?, ?, ?, ?, ?)
+            """, (
+                session_id,
+                gap.get("skill", ""),
+                gap.get("level", "intermediate"),
+                gap.get("gap", ""),
+                gap.get("recommendation", ""),
+            ))
 
 
 def get_candidate_history(candidate_id: int) -> dict:
@@ -949,21 +993,18 @@ def _persist_session_to_db(session_id: str, report: dict = None):
         save_skill_gaps_to_db(session_id, report.get("skill_gaps", []))
 
         # Save recommendations
-        conn = get_db()
-        cursor = conn.cursor()
-        for rec in report.get("recommendations", []):
-            cursor.execute("""
-                INSERT INTO recommendations (session_id, area, resource_type, description, priority)
-                VALUES (?, ?, ?, ?, ?)
-            """, (
-                session_id,
-                rec.get("area", ""),
-                rec.get("resource_type", "Learning Path"),
-                rec.get("description", ""),
-                rec.get("priority", "medium"),
-            ))
-        conn.commit()
-        conn.close()
+        with _db_conn() as (conn, cursor):
+            for rec in report.get("recommendations", []):
+                cursor.execute("""
+                    INSERT INTO recommendations (session_id, area, resource_type, description, priority)
+                    VALUES (?, ?, ?, ?, ?)
+                """, (
+                    session_id,
+                    rec.get("area", ""),
+                    rec.get("resource_type", "Learning Path"),
+                    rec.get("description", ""),
+                    rec.get("priority", "medium"),
+                ))
 
     except Exception as e:
         print(f"Warning: Failed to persist session data: {e}")

@@ -122,7 +122,7 @@ TCS_QUESTIONS = {
         _q(
             "Two numbers are in ratio 5:7. If their LCM is 140, what is the sum of the numbers?",
             ["48", "60", "72", "84"],
-            1,
+            0,
             "Numbers = 5k and 7k. LCM = 35k = 140 → k = 4. Numbers are 20 and 28. Sum = 48",
             "quantitative", "tcs"
         ),
@@ -151,7 +151,7 @@ TCS_QUESTIONS = {
         _q(
             "How many numbers between 200 and 600 are divisible by 3, 5, and 7?",
             ["2", "3", "4", "1"],
-            0,
+            2,
             "LCM of 3, 5, 7 = 105. Multiples of 105 between 200 and 600: 210, 315, 420, 525. That is 4 numbers.",
             "quantitative", "tcs", is_advanced=True
         ),
@@ -166,14 +166,14 @@ TCS_QUESTIONS = {
     "logical_reasoning": [
         _q(
             "In a certain code, 'COUNTRY' is written as 'DPVOUSZ'. How is 'VILLAGE' written?",
-            ["WJMBHF", "WJMBBH", "WJMBH", "WJMBHF"],
+            ["WKMBHF", "WJMBBH", "WJMBH", "WJMBHF"],
             3,
             "Each letter is replaced by the next letter in the alphabet (C→D, O→P, U→V...). V→W, I→J, L→M, L→M, A→B, G→H, E→F → WJMBHF",
             "logical_reasoning", "tcs"
         ),
         _q(
             "If 'SELECTION' is coded as 'SFMDUJPO', what is the code for 'POSITION'?",
-            ["QQTJTJPO", "QPTJUUJPO", "QQTJUJPO", "PQTJUJPOU"],
+            ["QQTJTJPO", "QPTJUUJPO", "QPTJUJPO", "PQTJUJPOU"],
             2,
             "Each letter is replaced by the next letter (S→T, E→F, L→M, E→F...). P→Q, O→P, S→T, I→J, T→U, I→J, O→P, N→O → QPTJUJPO",
             "logical_reasoning", "tcs"
@@ -209,7 +209,7 @@ TCS_QUESTIONS = {
         _q(
             "How many 6s are there in the sequence that are immediately followed by an even number? 4 6 7 6 8 6 2 6 9 6 3 6 4 6 6 2",
             ["4", "3", "5", "6"],
-            1,
+            2,
             "Sequence: 4 6 7 6 8 6 2 6 9 6 3 6 4 6 6 2. Checking each 6: (6,7)→odd no, (6,8)→even yes, (6,2)→even yes, (6,9)→odd no, (6,3)→odd no, (6,4)→even yes, (6,6)→even yes, (6,2)→even yes. Total = 5 occurrences.",
             "logical_reasoning", "tcs"
         ),
@@ -223,7 +223,7 @@ TCS_QUESTIONS = {
         _q(
             "If 4 × 3 = 14, 5 × 4 = 21, then 6 × 5 = ?",
             ["30", "31", "29", "32"],
-            1,
+            0,
             "Pattern: (a × b) + (a − 2) = answer. For 4×3: 12 + 2 = 14. For 5×4: 20 + 1 = 21. For 6×5: 30 + 0 = 30.",
             "logical_reasoning", "tcs"
         ),
@@ -237,7 +237,7 @@ TCS_QUESTIONS = {
         _q(
             "Seven persons A, B, C, D, E, F, G sit in a row. A sits at one extreme. B sits two places away from A. C sits between B and E. D sits immediately left of C. F is at the other extreme. Who sits in the middle?",
             ["C", "D", "E", "B"],
-            0,
+            1,
             "Seven persons in a row. A at one end (position 1). B at position 3 (two places from A). F at the other end (position 7). D sits immediately left of C. C sits between B and E. Arranging: A, _, B, D, C, E, F. Position 2 must be G. The middle position (4th of 7) is occupied by D.",
             "logical_reasoning", "tcs"
         ),
@@ -576,7 +576,7 @@ WIPRO_QUESTIONS = {
         _q(
             "The difference between a two-digit number and the number formed by reversing its digits is 36. If the ratio of the digits is 2:1, what is the number?",
             ["63", "84", "72", "48"],
-            0,
+            1,
             "Let digits be 2x (tens) and x (units). Number = 20x + x = 21x. Reversed = 10x + 2x = 12x. Difference = 21x − 12x = 9x = 36 → x = 4. Digits: 2x=8, x=4. Number = 84. Reversed = 48. 84 − 48 = 36 ✓. Answer: 84.",
             "quantitative", "wipro"
         ),
@@ -882,7 +882,7 @@ HCL_QUESTIONS = {
         _q(
             "If 'RAT' is coded as '41' (R=18, A=1, T=20 → 18+1+20=39, then 39+2=41), what is 'DOG'?",
             ["30", "28", "26", "32"],
-            0,
+            1,
             "R=18, A=1, T=20. Sum = 39. Code given = 41 (sum + 2). For DOG: D=4, O=15, G=7. Sum = 26 + 2 = 28.",
             "logical_reasoning", "hcl"
         ),
