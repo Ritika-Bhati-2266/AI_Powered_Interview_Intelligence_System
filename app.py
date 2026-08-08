@@ -1010,10 +1010,18 @@ def _persist_session_to_db(session_id: str, report: dict = None):
         print(f"Warning: Failed to persist session data: {e}")
 
 
+# ── Initialize Database at Import Time ────────────────────────────────────────
+# gunicorn starts the app via `app:app` (module import), so the schema must be
+# created here rather than only under `__main__`. Idempotent by design:
+# CREATE TABLE IF NOT EXISTS + safe column migrations, so it is safe to run on
+# every worker start.
+init_db()
+
+
 # ── Application Entry Point ───────────────────────────────────────────────────
 
 if __name__ == "__main__":
-    # Initialize database on startup
+    # Idempotent; kept for local `python app.py` runs.
     init_db()
     print("=" * 60)
     print("  AI Interview Intelligence System")
