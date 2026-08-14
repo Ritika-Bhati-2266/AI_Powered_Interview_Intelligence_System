@@ -1023,10 +1023,6 @@ function initInterview() {
             html += '<div class="ideal-answer-box"><div class="ideal-answer-header">Ideal Answer</div><p>' + escapeHtml(evaluation.ideal_answer) + '</p></div>';
         }
 
-        if (evaluation.filler_word_count > 0) {
-            html += '<div class="filler-badge" style="display:inline-flex;">Filler words: ' + evaluation.filler_word_count + '</div>';
-        }
-
         // Rewrite button (one attempt per answer)
         html += '<div class="rewrite-action-row" style="margin-top: 0.75rem; text-align: right;">' +
             '<button class="btn btn-secondary btn-sm" onclick="openRewriteEditor(' + answerCount + ', ' + (evaluation.overall_score || 0) + ')" ' +
@@ -1037,25 +1033,6 @@ function initInterview() {
         card.innerHTML = html;
         messagesContainer.appendChild(card);
         scrollToBottom();
-    }
-
-    // ── Helper: Add filler-word to sidebar after eval ──
-    function addFillerWordToSidebar(evaluation) {
-        if (!sidebarScores || !evaluation) return;
-        const fillerCount = evaluation.filler_word_count || 0;
-        if (fillerCount > 0) {
-            const existingBadge = document.querySelector('.filler-badge');
-            if (existingBadge) {
-                existingBadge.textContent = '\u26a0\ufe0f ' + fillerCount + ' fillers';
-            } else {
-                const badge = document.createElement('div');
-                badge.className = 'filler-badge';
-                badge.innerHTML = '\u26a0\ufe0f ' + fillerCount + ' filler words';
-                if (sidebarScores.parentNode) {
-                    sidebarScores.parentNode.appendChild(badge);
-                }
-            }
-        }
     }
 
     // ── Helper: Typing indicator ──
