@@ -503,10 +503,17 @@ function initInterview() {
                 return;
             }
 
-            // Show evaluation
-            addEvaluationCard(data.evaluation);
+            // Brief confirmation + minimal score (no full evaluation card).
+            // The answer_count (0-based) is the answer_index used by the rewrite API.
+            const answerIndex = answerCount;
+            addAIMessage(
+                'Answer recorded \u2713 ' + (data.evaluation ? data.evaluation.overall_score + '/10' : '') +
+                ' \u2014 moving to next question...', '');
             updateSidebarScores(data.evaluation);
             answerCount++;
+
+            // Attach a rewrite button to this answer's user bubble.
+            attachRewriteButton(answerIndex);
 
             if (data.is_complete) {
                 interviewComplete = true;
@@ -848,11 +855,30 @@ function initInterview() {
         scrollToBottom();
     }
 
-    // ── Global Rewrite Editor ──────────────────────────────────────────
-    window.openRewriteEditor = function(answerIndex, currentScore) {
-        // Find the last user message for this answer index
+    // ── Helper: Attach a rewrite button to the latest user answer bubble ──
+    function attachRewriteButton(answerIndex) {
+        if (!messagesContainer) return;
+
         const userMsgs = document.querySelectorAll('.message.user');
-        const targetMsg = userMsgs[userMsgs.length - 1]; // Last user message
+        const targetMsg = userMsgs[userMsgs.length - 1]; // Latest user answer
+        if (!targetMsg) return;
+
+        const bubble = targetMsg.querySelector('.message-content');
+        const row = document.createElement('div');
+        row.className = 'rewrite-action-row';
+        row.style.cssText = 'margin-top: 0.5rem; text-align: right;';
+        row.innerHTML =
+            '<button class="btn btn-secondary btn-sm" onclick="openRewriteEditor(' + answerIndex + ', this)" ' +
+            'title="Revise your answer for a re-evaluation">' +
+            '\u270f\ufe0f Rewrite Answer</button>';
+
+        (bubble || targetMsg).appendChild(row);
+    }
+
+    // ── Global Rewrite Editor ──────────────────────────────────────────
+    window.openRewriteEditor = function(answerIndex, btnEl) {
+        // Locate the user message that owns this rewrite button
+        const targetMsg = btnEl ? btnEl.closest('.message.user') : null;
         if (!targetMsg) return;
 
         // Create rewrite editor
@@ -861,7 +887,7 @@ function initInterview() {
         editor.innerHTML =
             '<div class="rewrite-header">' +
                 '<span class="rewrite-icon">\u270f\ufe0f</span>' +
-                '<span class="rewrite-title">Rewrite Answer #' + (answerCount + 1) + '</span>' +
+                '<span class="rewrite-title">Rewrite Answer #' + (answerIndex + 1) + '</span>' +
             '</div>' +
             '<div class="rewrite-original">' +
                 '<strong>Original:</strong> Your answer above' +
@@ -873,7 +899,7 @@ function initInterview() {
                 '<button class="btn btn-secondary btn-sm" onclick="closeRewriteEditor(this)">Cancel</button>' +
             '</div>';
 
-        messagesContainer.appendChild(editor);
+        targetMsg.parentNode.insertBefore(editor, targetMsg.nextSibling);
         scrollToBottom();
         editor.querySelector('.rewrite-textarea').focus();
     };
@@ -883,6 +909,8 @@ function initInterview() {
         const textarea = editor.querySelector('.rewrite-textarea');
         const rewritten = textarea.value.trim();
         if (!rewritten) return;
+        // Remember where the editor sits so the result can be placed there
+        const insertRef = editor.previousSibling || editor;
 
         // Show loading
         btnEl.disabled = true;
@@ -931,7 +959,7 @@ function initInterview() {
                 '</div>' +
             '</div>';
 
-            messagesContainer.insertBefore(resultDiv, messagesContainer.lastChild);
+            messagesContainer.insertBefore(resultDiv, insertRef.nextSibling);
             scrollToBottom();
         })
         .catch(err => {
@@ -945,95 +973,6 @@ function initInterview() {
         const editor = btnEl.closest('.rewrite-editor');
         if (editor) editor.remove();
     };
-
-    // ── Helper: Add evaluation card after answer ──
-    function addEvaluationCard(evaluation) {
-        if (!evaluation || !messagesContainer) return;
-
-        const card = document.createElement('div');
-        card.className = 'evaluation-card';
-
-        const scores = [
-            { label: 'Overall', key: 'overall_score', cls: 'value-indigo' },
-            { label: 'Technical', key: 'technical_score', cls: 'value-emerald' },
-            { label: 'Communication', key: 'communication_score', cls: 'value-amber' },
-            { label: 'Confidence', key: 'confidence_score', cls: 'value-violet' },
-            { label: 'Problem Solving', key: 'problem_solving_score', cls: 'value-indigo' },
-            { label: 'Time Management', key: 'time_management_score', cls: 'value-emerald' },
-            { label: 'Conceptual Clarity', key: 'conceptual_clarity_score', cls: 'value-amber' },
-        ];
-
-        let html = '<div class="eval-header"><span class="eval-title">Evaluation</span></div>';
-
-        html += '<div class="score-bars">';
-        scores.forEach(function(s) {
-            var val = evaluation[s.key] || 0;
-            var label = s.label;
-            var colorClass = val >= 7 ? 'bg-emerald' : (val >= 5 ? 'bg-amber' : 'bg-violet');
-            html += '<div class="bar-group">' +
-                '<div class="bar-info"><span class="bar-label">' + label + '</span> <span class="bar-value ' + s.cls + '">' + val + '/10</span></div>' +
-                '<div class="bar"><div class="bar-fill ' + colorClass + '" style="width:' + (val * 10) + '%;"></div></div>' +
-            '</div>';
-        });
-        html += '</div>';
-
-        if (evaluation.feedback) {
-            html += '<div class="feedback-summary-box">' + escapeHtml(evaluation.feedback) + '</div>';
-        }
-
-        if (evaluation.improvement_tip) {
-            html += '<div class="actionable-tip-box"><span class="tip-tag">Tip:</span> <p>' + escapeHtml(evaluation.improvement_tip) + '</p></div>';
-        }
-
-        var strengths = evaluation.strengths || [];
-        var weaknesses = evaluation.weaknesses || [];
-        if (strengths.length > 0 || weaknesses.length > 0) {
-            html += '<div class="qa-critique-grid">';
-            if (strengths.length > 0) {
-                html += '<div class="critique-column strengths-col"><div class="critique-header">Strengths</div><ul class="critique-list">';
-                strengths.forEach(function(s) { html += '<li>' + escapeHtml(s) + '</li>'; });
-                html += '</ul></div>';
-            }
-            if (weaknesses.length > 0) {
-                html += '<div class="critique-column weaknesses-col"><div class="critique-header">Areas to Improve</div><ul class="critique-list">';
-                weaknesses.forEach(function(w) { html += '<li>' + escapeHtml(w) + '</li>'; });
-                html += '</ul></div>';
-            }
-            html += '</div>';
-        }
-
-        var keywordsUsed = evaluation.keywords_used || [];
-        var keywordsMissed = evaluation.keywords_missed || [];
-        if (keywordsUsed.length > 0 || keywordsMissed.length > 0) {
-            html += '<div class="keywords-analysis-block">';
-            if (keywordsUsed.length > 0) {
-                html += '<div class="keywords-list">';
-                keywordsUsed.forEach(function(k) { html += '<span class="keyword-pill keyword-used">' + escapeHtml(k) + '</span>'; });
-                html += '</div>';
-            }
-            if (keywordsMissed.length > 0) {
-                html += '<div class="keywords-list" style="margin-top: 0.3rem;">';
-                keywordsMissed.forEach(function(k) { html += '<span class="keyword-pill keyword-missed">' + escapeHtml(k) + '</span>'; });
-                html += '</div>';
-            }
-            html += '</div>';
-        }
-
-        if (evaluation.ideal_answer) {
-            html += '<div class="ideal-answer-box"><div class="ideal-answer-header">Ideal Answer</div><p>' + escapeHtml(evaluation.ideal_answer) + '</p></div>';
-        }
-
-        // Rewrite button (one attempt per answer)
-        html += '<div class="rewrite-action-row" style="margin-top: 0.75rem; text-align: right;">' +
-            '<button class="btn btn-secondary btn-sm" onclick="openRewriteEditor(' + answerCount + ', ' + (evaluation.overall_score || 0) + ')" ' +
-            'title="Revise your answer for a re-evaluation">' +
-            '\u270f\ufe0f Rewrite Answer</button>' +
-        '</div>';
-
-        card.innerHTML = html;
-        messagesContainer.appendChild(card);
-        scrollToBottom();
-    }
 
     // ── Helper: Typing indicator ──
     function showTypingIndicator() {
