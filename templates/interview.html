@@ -28,6 +28,11 @@
     <div class="interview-container">
         <div class="interview-page">
         <aside class="interview-sidebar">
+            <button id="sidebar-toggle" class="sidebar-toggle" aria-expanded="false" aria-controls="sidebar-body" onclick="toggleSidebar()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+                Session Details
+            </button>
+            <div class="sidebar-body" id="sidebar-body">
             <div class="candidate-info-card">
                 <div class="profile-avatar">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;color:var(--accent-indigo);"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
@@ -105,11 +110,12 @@
             <div class="score-summary">
                 <h4>Session Analytics</h4>
                 <div id="sidebar-scores" class="sidebar-scores-grid">
-                    <div class="score-item"><span class="score-label">Overall</span><span class="score-value">--</span></div>
-                    <div class="score-item"><span class="score-label">Technical</span><span class="score-value">--</span></div>
-                    <div class="score-item"><span class="score-label">Communication</span><span class="score-value">--</span></div>
-                    <div class="score-item"><span class="score-label">Confidence</span><span class="score-value">--</span></div>
+                    <div class="score-item"><span class="score-label">Overall</span><span class="score-value">--</span><span class="score-micro-bar"><span class="score-micro-fill"></span></span></div>
+                    <div class="score-item"><span class="score-label">Technical</span><span class="score-value">--</span><span class="score-micro-bar"><span class="score-micro-fill"></span></span></div>
+                    <div class="score-item"><span class="score-label">Communication</span><span class="score-value">--</span><span class="score-micro-bar"><span class="score-micro-fill"></span></span></div>
+                    <div class="score-item"><span class="score-label">Confidence</span><span class="score-value">--</span><span class="score-micro-bar"><span class="score-micro-fill"></span></span></div>
                 </div>
+            </div>
             </div>
         </aside>
 
@@ -122,10 +128,17 @@
                     </span>
                     <span id="current-round-badge" class="badge-round" style="display:none;">Round 1</span>
                 </div>
-                <span class="chat-status-premium">
-                    <span class="status-dot"></span>
-                    AI Coach Online
-                </span>
+                <div class="chat-header-actions">
+                    <label id="tts-always-show-wrap" class="tts-show-toggle" style="display:none;" title="Persist your preference for showing question text">
+                        <input type="checkbox" id="tts-always-show-toggle">
+                        <span class="tts-toggle-switch" aria-hidden="true"></span>
+                        <span class="tts-toggle-label">Always show text</span>
+                    </label>
+                    <span class="chat-status-premium">
+                        <span class="status-dot"></span>
+                        AI Coach Online
+                    </span>
+                </div>
             </div>
 
             <div id="round-focus-banner" class="round-focus-banner" style="display:none;">
@@ -167,12 +180,12 @@
             <div id="input-area" class="input-area">
                 <div id="voice-section" class="voice-section">
                     <div class="voice-btn-container">
-                        <button id="voice-btn" class="voice-btn-premium" onclick="toggleVoiceRecording()">
+                        <button id="voice-btn" class="voice-btn-premium" onclick="toggleVoiceRecording()" aria-label="Start voice recording">
                             <span id="voice-btn-icon" class="voice-mic-icon">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
                             </span>
-                            <span id="voice-btn-text" class="voice-btn-label">Speak Your Response</span>
                         </button>
+                        <span id="voice-btn-text" class="voice-btn-label">Speak Your Response</span>
                     </div>
                     <div id="voice-transcript-container" class="voice-transcript-container" style="display:none;">
                         <div id="voice-transcript" class="voice-transcript-bubble">

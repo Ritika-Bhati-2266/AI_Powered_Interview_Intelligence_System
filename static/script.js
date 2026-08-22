@@ -56,6 +56,429 @@ function getDifficultyClass(difficulty) {
 }
 
 
+// ── Text-to-Speech (Voice-First Questions) ─────────────────────────────────
+//
+// The interviewer reads each question aloud using the browser's native
+// speechSynthesis. Question text is hidden behind a "Show question text"
+// toggle by default and is revealed automatically when the candidate switches
+// to keyboard/typing mode. "Always show text" is persisted via localStorage
+// as an accessibility preference.
+
+var TTS = {
+    alwaysShowText: (function() {
+        try { return localStorage.getItem('interview_tts_always_show') === '1'; }
+        catch (e) { return false; }
+    })(),
+    hasVoices: 'speechSynthesis' in window
+};
+
+var typingModeActive = false;   // true when the candidate is answering by typing
+var lastAIQuestionEl = null;    // chat bubble holding the current question
+
+
+function hasSpeechApi() {
+    return 'speechSynthesis' in window;
+}
+
+function ttsSupported() {
+    return TTS.hasVoices;
+}
+
+function cleanSpeechText(text) {
+    return String(text || '')
+        .replace(/[\*\_]*\[Aptitude\s*-\s*[^\]]+\][\*\_]*/gi, ' ')
+        .replace(/\*\[Context:\s*[^\]]+\]/gi, ' ')
+        .replace(/[#*_>`]+/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+}
+
+function cleanDisplayText(text) {
+    return String(text || '')
+        .replace(/[\*\_]*\[Aptitude\s*-\s*[^\]]+\][\*\_]*/gi, '')
+        .replace(/\*\[Context:\s*[^\]]+\]/gi, '')
+        .replace(/\*\*/g, '')
+        .trim();
+}
+
+function ttsPreferredVoice() {
+    if (!hasSpeechApi()) return null;
+    var voices = window.speechSynthesis.getVoices();
+    if (!voices || !voices.length) return null;
+    var preferredNames = [
+        'google us english', 'microsoft aria online', 'microsoft aria',
+        'microsoft jenny', 'microsoft zira', 'microsoft guy',
+        'google uk english female', 'google hindi', 'samantha native',
+        'samantha', 'natural', 'daniel'
+    ];
+    for (var i = 0; i < preferredNames.length; i++) {
+        for (var j = 0; j < voices.length; j++) {
+            if ((voices[j].name || '').toLowerCase().indexOf(preferredNames[i]) !== -1) {
+                return voices[j];
+            }
+        }
+    }
+    return voices[0];
+}
+
+// Element currently being "spoken" (voice-first bubble) — drives .speaking UI state.
+var TTS_ACTIVE_BUBBLE = null;
+
+function setBubbleSpeaking(el, on) {
+    if (!el) return;
+    if (on) el.classList.add('speaking');
+    else el.classList.remove('speaking');
+}
+
+function speakText(text, onEnd, speakingEl) {
+    if (!hasSpeechApi() || !ttsSupported()) {
+        if (onEnd) onEnd();
+        return;
+    }
+    var clean = cleanSpeechText(text);
+    if (!clean) {
+        if (onEnd) onEnd();
+        return;
+    }
+    try {
+        var synth = window.speechSynthesis;
+        synth.cancel();
+        var utter = new SpeechSynthesisUtterance(clean);
+        var voice = ttsPreferredVoice();
+        if (voice) utter.voice = voice;
+        utter.rate = 1.0;
+        utter.pitch = 1.0;
+        var handleEnd = function() {
+            setBubbleSpeaking(speakingEl, false);
+            if (TTS_ACTIVE_BUBBLE === speakingEl) TTS_ACTIVE_BUBBLE = null;
+            if (onEnd) onEnd();
+        };
+        utter.onend = handleEnd;
+        utter.onerror = handleEnd;
+        if (speakingEl) {
+            setBubbleSpeaking(speakingEl, true);
+            TTS_ACTIVE_BUBBLE = speakingEl;
+        }
+        synth.speak(utter);
+        // Chrome sometimes starts paused; nudge it after dispatch
+        window.setTimeout(function() { try { synth.resume(); } catch (e) {} }, 50);
+    } catch (e) {
+        setBubbleSpeaking(speakingEl, false);
+        if (TTS_ACTIVE_BUBBLE === speakingEl) TTS_ACTIVE_BUBBLE = null;
+        if (onEnd) onEnd();
+    }
+}
+
+function stopSpeaking() {
+    if (hasSpeechApi()) {
+        try { window.speechSynthesis.cancel(); } catch (e) {}
+    }
+    setBubbleSpeaking(TTS_ACTIVE_BUBBLE, false);
+    TTS_ACTIVE_BUBBLE = null;
+}
+
+// ── Show / reveal / replay question text ──
+
+function revealChatQuestion(msgEl) {
+    if (!msgEl) return;
+    var textEl = msgEl.querySelector('.voice-first-text');
+    if (textEl && textEl.hasAttribute('hidden')) {
+        textEl.removeAttribute('hidden');
+        var bubble = msgEl.querySelector('.message-bubble');
+        if (bubble) bubble.classList.add('voice-first-revealed');
+    }
+    var actions = msgEl.querySelector('.voice-first-actions');
+    if (actions) actions.style.display = 'none';
+}
+
+function revealAptitudeQuestion() {
+    var qEl = document.getElementById('aptitude-question-text');
+    if (!qEl) return;
+    var textEl = qEl.querySelector('.voice-first-text');
+    if (textEl) {
+        textEl.removeAttribute('hidden');
+        var actions = qEl.querySelector('.voice-first-actions');
+        if (actions) actions.style.display = 'none';
+        var head = qEl.querySelector('.voice-first-head');
+        if (head) head.style.display = 'none';
+    }
+}
+
+function revealCurrentQuestion() {
+    if (lastAIQuestionEl) revealChatQuestion(lastAIQuestionEl);
+    revealAptitudeQuestion();
+}
+
+function revealAllQuestionTexts() {
+    document.querySelectorAll('.voice-first-text').forEach(function(el) {
+        el.removeAttribute('hidden');
+    });
+    document.querySelectorAll('.voice-first-actions, .voice-first-head').forEach(function(el) {
+        el.style.display = 'none';
+    });
+    document.querySelectorAll('.message-bubble.voice-first-bubble').forEach(function(el) {
+        el.classList.add('voice-first-revealed');
+    });
+}
+
+// When a new question arrives, reveal any previously collapsed question bubbles
+// so history stays readable — only the current question is voice-first.
+function revealPreviousQuestions(exceptEl) {
+    document.querySelectorAll('#messages .message.ai .voice-first-bubble').forEach(function(bubble) {
+        if (exceptEl && bubble.closest('.message') === exceptEl) return;
+        var textEl = bubble.querySelector('.voice-first-text');
+        if (textEl && textEl.hasAttribute('hidden')) {
+            textEl.removeAttribute('hidden');
+            bubble.classList.add('voice-first-revealed');
+        }
+        var actions = bubble.querySelector('.voice-first-actions');
+        if (actions) actions.style.display = 'none';
+        var head = bubble.querySelector('.voice-first-head');
+        if (head) head.style.display = 'none';
+    });
+}
+
+// Called from "Show question text" buttons inside chat bubbles.
+window.revealQuestionText = function(btnEl) {
+    var msgEl = btnEl ? btnEl.closest('.message') : null;
+    if (msgEl) { revealChatQuestion(msgEl); return; }
+    // Aptitude block context
+    var aptBlock = btnEl ? btnEl.closest('.voice-first-apt-block') : null;
+    if (!aptBlock) aptBlock = document.getElementById('aptitude-question-text');
+    if (!aptBlock) return;
+    var textEl = aptBlock.querySelector('.voice-first-text');
+    if (textEl && textEl.hasAttribute('hidden')) textEl.removeAttribute('hidden');
+    var actions = aptBlock.querySelector('.voice-first-actions');
+    if (actions) actions.style.display = 'none';
+    var head = aptBlock.querySelector('.voice-first-head');
+    if (head) head.style.display = 'none';
+};
+
+// Called from "Replay audio" buttons (chat bubble or aptitude block).
+window.replayQuestion = function(btnEl) {
+    var root = btnEl ? btnEl.closest('.message, .voice-first-apt-block') : null;
+    var textEl = root ? root.querySelector('.voice-first-text') : null;
+    var speakingEl = root ? root.querySelector('.voice-first-bubble, .voice-first-apt-block') : null;
+    if (!textEl) {
+        var qEl = document.getElementById('aptitude-question-text');
+        if (qEl) textEl = qEl.querySelector('.voice-first-text');
+    }
+    stopSpeaking();
+    speakText(textEl ? textEl.textContent : '', null, speakingEl);
+};
+
+// Mobile-only: collapse/expand the interview sidebar details.
+window.toggleSidebar = function() {
+    var body = document.getElementById('sidebar-body');
+    var toggle = document.getElementById('sidebar-toggle');
+    if (!body || !toggle) return;
+    var collapsed = body.classList.toggle('collapsed');
+    toggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+};
+
+function onVoiceStateChanged() {
+    if (!hasSpeechApi()) { TTS.hasVoices = false; return; }
+    var count = 0;
+    try { count = window.speechSynthesis.getVoices().length; } catch (e) {}
+    TTS.hasVoices = count > 0;
+    var toggleWrap = document.getElementById('tts-always-show-wrap');
+    if (toggleWrap) toggleWrap.style.display = hasSpeechApi() ? '' : 'none';
+    // When a platform reports no voices, fall back to showing question text
+    if (!TTS.hasVoices) {
+        window.setTimeout(function() {
+            if (!ttsSupported()) revealAllQuestionTexts();
+        }, 0);
+    }
+}
+
+window.updateAlwaysShowToggleVisibility = onVoiceStateChanged;
+
+function initTTS() {
+    if (!hasSpeechApi()) {
+        TTS.hasVoices = false;
+        return;
+    }
+    try {
+        window.speechSynthesis.getVoices();
+        window.speechSynthesis.addEventListener('voiceschanged', onVoiceStateChanged, false);
+    } catch (e) {}
+    onVoiceStateChanged();
+    // Some browsers load voices lazily — sample until resolved.
+    window.setInterval(function() {
+        if (!hasSpeechApi()) return;
+        var prev = TTS.hasVoices;
+        var count = 0;
+        try { count = window.speechSynthesis.getVoices().length; } catch (e) {}
+        TTS.hasVoices = count > 0;
+        if (TTS.hasVoices !== prev) onVoiceStateChanged();
+    }, 2000);
+}
+
+// Unlock speech on first user gesture (browser autoplay policy).
+function initTTSUnlock() {
+    if (!hasSpeechApi()) return;
+    var unlock = function() {
+        try { window.speechSynthesis.resume(); } catch (e) {}
+        ['pointerdown', 'keydown', 'click', 'touchstart'].forEach(function(evt) {
+            document.removeEventListener(evt, unlock);
+        });
+    };
+    ['pointerdown', 'keydown', 'click', 'touchstart'].forEach(function(evt) {
+        document.addEventListener(evt, unlock);
+    });
+}
+
+// Persistent "Always show text" accessibility toggle in the header.
+function initAlwaysShowToggle() {
+    var wrap = document.getElementById('tts-always-show-wrap');
+    if (wrap) wrap.style.display = hasSpeechApi() ? '' : 'none';
+    var toggle = document.getElementById('tts-always-show-toggle');
+    if (!toggle) return;
+    toggle.checked = TTS.alwaysShowText;
+    toggle.addEventListener('change', function() {
+        TTS.alwaysShowText = toggle.checked;
+        try {
+            localStorage.setItem('interview_tts_always_show', toggle.checked ? '1' : '0');
+        } catch (e) {}
+        if (toggle.checked) {
+            stopSpeaking();
+            revealAllQuestionTexts();
+        }
+    });
+}
+
+// Shared voice-first block markup (SVG icon system, equalizer, ghost buttons).
+var VF_SPEAKER_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>';
+var VF_EYE_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>';
+var VF_PLAY_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+
+function buildVoiceFirstBlock(textForDisplay) {
+    return '<div class="voice-first-head">' +
+                '<span class="voice-first-icon" aria-hidden="true">' + VF_SPEAKER_SVG + '</span>' +
+                '<span class="voice-first-label">Question read aloud</span>' +
+                '<span class="vf-eq" aria-hidden="true"><span></span><span></span><span></span><span></span></span>' +
+            '</div>' +
+            '<div class="voice-first-actions">' +
+                '<button type="button" class="vf-btn" onclick="revealQuestionText(this)" title="Show this question as text">' + VF_EYE_SVG + 'Show question text</button>' +
+                '<button type="button" class="vf-btn" onclick="replayQuestion(this)" title="Hear this question again">' + VF_PLAY_SVG + 'Replay audio</button>' +
+            '</div>' +
+            '<div class="voice-first-text" hidden>' + escapeHtml(textForDisplay) + '</div>';
+}
+
+// The aptitude area shows its own question (the chat is hidden during MCQs).
+function renderAptitudeQuestionText(questionText) {
+    var qEl = document.getElementById('aptitude-question-text');
+    if (!qEl) return;
+    lastAIQuestionEl = null;
+    var showText = typingModeActive || !ttsSupported() || TTS.alwaysShowText;
+    if (showText) {
+        qEl.innerHTML = escapeHtml(questionText);
+        return;
+    }
+    qEl.innerHTML =
+        '<div class="voice-first-apt-block">' +
+            buildVoiceFirstBlock(questionText) +
+        '</div>';
+}
+
+window.revealAptitudeQuestion = revealAptitudeQuestion;
+
+// Voice-first chat bubble for a question. Speaks it when in voice mode;
+// otherwise (or on no-Voices / always-show-text) renders the full text.
+function addAIQuestionMessage(text, difficulty, companyContext) {
+    var messagesEl = document.getElementById('messages');
+    if (!messagesEl || !text) return null;
+
+    var div = document.createElement('div');
+    div.className = 'message ai fade-through';
+
+    var metaHtml = '';
+    if (difficulty) {
+        metaHtml = '<span class="' + getDifficultyClass(difficulty) + '">' +
+                   escapeHtml(difficulty) + '</span>';
+    }
+
+    // Aptitude category badge (mirrors addAIMessage)
+    var aptCategoryBadge = '';
+    var aptCatMatch = String(text).match(/[\*\_]*\[Aptitude\s*-\s*([^\]]+)\][\*\_]*/i);
+    if (aptCatMatch) {
+        aptCategoryBadge = '<div class="company-context-badge" style="background:rgba(99,102,241,0.15);border-color:rgba(99,102,241,0.3);color:var(--accent-indigo);">Aptitude &bull; ' +
+            escapeHtml(aptCatMatch[1]) + '</div>';
+    }
+
+    // Company context badge (mirrors addAIMessage)
+    var companyBadgeHtml = '';
+    var contextMatch = String(text).match(/\*\[Context:\s*([^\]]+)\]/i);
+    if (contextMatch) {
+        companyBadgeHtml = '<div class="company-context-badge">' + escapeHtml(contextMatch[1]) + '</div>';
+    } else if (companyContext) {
+        companyBadgeHtml = '<div class="company-context-badge">' + escapeHtml(companyContext) + '</div>';
+    }
+
+    var displayText = cleanDisplayText(text);
+    var voiceFirst = !typingModeActive && ttsSupported() && !TTS.alwaysShowText;
+
+    var bubbleHtml;
+    if (voiceFirst) {
+        bubbleHtml =
+            '<div class="message-bubble voice-first-bubble">' +
+                buildVoiceFirstBlock(displayText) +
+            '</div>';
+    } else {
+        bubbleHtml = '<div class="message-bubble">' + escapeHtml(displayText) + '</div>';
+    }
+
+    div.innerHTML =
+        '<div class="message-avatar">&#x1f916;</div>' +
+        '<div class="message-content">' +
+            aptCategoryBadge + companyBadgeHtml +
+            bubbleHtml +
+            '<div class="message-meta">AI Interviewer' +
+            (metaHtml ? ' &#x00B7; ' + metaHtml : '') +
+            '</div>' +
+        '</div>';
+
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    lastAIQuestionEl = div;
+    revealPreviousQuestions(div);
+
+    if (voiceFirst) {
+        speakText(displayText, null, div.querySelector('.voice-first-bubble'));
+    }
+    return div;
+}
+
+
+// Compact confirmation bubble with a color-coded score chip (I3).
+function addAnswerRecordedMessage(evaluation) {
+    var messagesEl = document.getElementById('messages');
+    if (!messagesEl) return;
+
+    var score = evaluation && typeof evaluation.overall_score === 'number' ? evaluation.overall_score : null;
+    var chipHtml = '';
+    if (score !== null) {
+        var tier = score >= 8 ? 'chip-emerald' : (score >= 6 ? 'chip-amber' : 'chip-rose');
+        chipHtml = '<span class="score-chip-msg ' + tier + '">' + score + '/10</span>';
+    }
+
+    var div = document.createElement('div');
+    div.className = 'message ai fade-through';
+    div.innerHTML =
+        '<div class="message-avatar">&#x1f916;</div>' +
+        '<div class="message-content">' +
+            '<div class="message-bubble msg-confirm">' +
+                chipHtml +
+                '<span>Answer recorded &mdash; moving to the next question...</span>' +
+            '</div>' +
+        '</div>';
+
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+}
+
+
 // ── Registration Page ────────────────────────────────────────────────────────
 
 function initRegistrationForm() {
@@ -79,24 +502,69 @@ function initRegistrationForm() {
         });
     });
 
-    // File upload display
+    // File upload display + drag & drop
+    const uploadCard = document.getElementById('file-upload-card');
+    function showSelectedFile(file) {
+        if (!fileNameDisplay) return;
+        if (file) {
+            fileNameDisplay.innerHTML =
+                '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' +
+                escapeHtml(file.name);
+            fileNameDisplay.classList.remove('hidden');
+        } else {
+            fileNameDisplay.classList.add('hidden');
+        }
+    }
     if (fileInput) {
         fileInput.addEventListener('change', function() {
-            if (this.files && this.files[0]) {
-                fileNameDisplay.textContent = this.files[0].name;
-                fileNameDisplay.classList.remove('hidden');
-            } else {
-                fileNameDisplay.classList.add('hidden');
+            showSelectedFile(this.files && this.files[0]);
+        });
+    }
+    if (uploadCard && fileInput) {
+        uploadCard.addEventListener('click', function() { fileInput.click(); });
+        uploadCard.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); fileInput.click(); }
+        });
+        ['dragenter', 'dragover'].forEach(function(evt) {
+            uploadCard.addEventListener(evt, function(e) {
+                e.preventDefault(); e.stopPropagation();
+                uploadCard.classList.add('dragover');
+            });
+        });
+        ['dragleave', 'dragend'].forEach(function(evt) {
+            uploadCard.addEventListener(evt, function(e) {
+                e.preventDefault(); e.stopPropagation();
+                uploadCard.classList.remove('dragover');
+            });
+        });
+        uploadCard.addEventListener('drop', function(e) {
+            e.preventDefault(); e.stopPropagation();
+            uploadCard.classList.remove('dragover');
+            const dropped = e.dataTransfer && e.dataTransfer.files;
+            if (dropped && dropped.length) {
+                try { fileInput.files = dropped; } catch (err) {}
+                showSelectedFile(dropped[0]);
             }
         });
     }
 
     // Form submission
+    const submitBtnOriginalHtml = submitBtn ? submitBtn.innerHTML : '';
+    function setSubmitLoading(loading) {
+        if (!submitBtn) return;
+        if (loading) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="btn-spinner" aria-hidden="true"></span><span>Preparing your session...</span>';
+        } else {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = submitBtnOriginalHtml;
+        }
+    }
+
     form.addEventListener('submit', async function(e) {
         e.preventDefault();
         hideElement(errorContainer);
-        submitBtn.disabled = true;
-        submitBtn.textContent = 'Registering...';
+        setSubmitLoading(true);
 
         const formData = new FormData(form);
         formData.append('mode', selectedMode);
@@ -111,8 +579,7 @@ function initRegistrationForm() {
 
             if (!resp.ok) {
                 showError(data.error || 'Registration failed', errorContainer);
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Start Interview';
+                setSubmitLoading(false);
                 return;
             }
 
@@ -136,8 +603,7 @@ function initRegistrationForm() {
 
         } catch (err) {
             showError('Network error: ' + err.message, errorContainer);
-            submitBtn.disabled = false;
-            submitBtn.textContent = 'Start Interview';
+            setSubmitLoading(false);
         }
     });
 
@@ -149,23 +615,44 @@ async function checkOllamaStatus() {
     const statusEl = $('#ollama-status');
     if (!statusEl) return;
 
+    const footerEl = document.getElementById('provider-footer');
+    const iconSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;color:var(--accent-indigo);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>';
+
+    function renderStatus(color, label, sub) {
+        statusEl.innerHTML =
+            '<span class="status-dot-pulse" style="background:' + color + ';box-shadow:0 0 10px ' + color + ';"></span>' +
+            iconSvg +
+            '<span style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">' + label +
+            ' <span style="font-size:0.8rem;color:var(--text-muted);font-weight:400;">&bull; ' + escapeHtml(sub) + '</span></span>';
+    }
+
     try {
         const resp = await fetch('/api/ollama_status');
         const data = await resp.json();
+        const isGroq = data.provider === 'groq';
 
         if (data.status === 'connected' && data.model_available) {
-            statusEl.innerHTML = '<span style="color:var(--accent-emerald);">&#x25CF;</span> ' +
-                escapeHtml(data.model_name) + ' ready';
+            renderStatus('var(--accent-emerald)',
+                isGroq ? 'Groq Cloud Engine' : 'Local AI Engine',
+                (data.model_name || '') + ' ready');
+            if (footerEl) {
+                footerEl.textContent = isGroq
+                    ? 'Powered by Groq cloud LLMs \u2014 real-time adaptive feedback.'
+                    : 'Powered by local Ollama LLMs \u2014 100% private, fully offline processing.';
+            }
         } else if (data.status === 'connected') {
-            statusEl.innerHTML = '<span style="color:var(--accent-amber);">&#x25CF;</span> ' +
-                'Model not found. Run: ollama pull llama3.2:latest';
+            renderStatus('var(--accent-amber)', 'AI Engine Warning',
+                isGroq
+                    ? 'Model "' + data.model_name + '" not found in Groq catalog. Check GROQ_MODEL.'
+                    : 'Model not found. Run: ollama pull llama3.2:latest');
         } else {
-            statusEl.innerHTML = '<span style="color:var(--accent-rose);">&#x25CF;</span> ' +
-                'Ollama not connected. Ensure ollama serve is running.';
+            renderStatus('var(--accent-rose)', 'AI Engine Offline',
+                isGroq
+                    ? 'Cannot reach Groq API. Check GROQ_API_KEY and your connection.'
+                    : 'Ollama not connected. Ensure ollama serve is running.');
         }
     } catch {
-        statusEl.innerHTML = '<span style="color:var(--accent-rose);">&#x25CF;</span> ' +
-            'Cannot reach server';
+        renderStatus('var(--accent-rose)', 'Connection Error', 'Cannot reach the server.');
     }
 }
 
@@ -368,6 +855,16 @@ function initInterview() {
     // Initialize camera (if available)
     initCamera();
 
+    // Collapse the sidebar details by default on mobile (chat comes first)
+    (function() {
+        var sideBody = document.getElementById('sidebar-body');
+        var sideToggle = document.getElementById('sidebar-toggle');
+        if (sideBody && window.innerWidth <= 768) {
+            sideBody.classList.add('collapsed');
+            if (sideToggle) sideToggle.setAttribute('aria-expanded', 'false');
+        }
+    })();
+
     // Initialize voice (if available) — wire voice button
     const voiceBtn = document.getElementById('voice-btn');
     if (voiceBtn) {
@@ -393,6 +890,11 @@ function initInterview() {
             voiceModeActive = false;
         }
     }
+
+    typingModeActive = !voiceModeActive;
+
+    // Always-show-text accessibility toggle (voice-first by default)
+    initAlwaysShowToggle();
 
     // Start the interview
     startInterviewSession();
@@ -449,12 +951,12 @@ function initInterview() {
                     aptitudeTotal = data.aptitude_total || 10;
                     aptitudeCorrect = 0;
                     aptitudeSelectedOption = -1;
-                    addAIMessage(data.question, 'medium');
+                    addAIQuestionMessage(data.question, 'medium');
                     updateProgress(1, data.total_questions);
                     updateRoundProgress(0, 0, data.current_round);
                     switchToAptitudeMode(data.question);
                 } else {
-                    addAIMessage(data.question, data.difficulty || 'medium');
+                    addAIQuestionMessage(data.question, data.difficulty || 'medium');
                     updateProgress(1, data.total_questions);
                     setDifficulty(data.difficulty || 'medium');
                     updateRoundProgress(0, 0, data.current_round);
@@ -506,9 +1008,7 @@ function initInterview() {
             // Brief confirmation + minimal score (no full evaluation card).
             // The answer_count (0-based) is the answer_index used by the rewrite API.
             const answerIndex = answerCount;
-            addAIMessage(
-                'Answer recorded \u2713 ' + (data.evaluation ? data.evaluation.overall_score + '/10' : '') +
-                ' \u2014 moving to next question...', '');
+            addAnswerRecordedMessage(data.evaluation);
             updateSidebarScores(data.evaluation);
             answerCount++;
 
@@ -517,6 +1017,7 @@ function initInterview() {
 
             if (data.is_complete) {
                 interviewComplete = true;
+                stopSpeaking();
                 updateProgress(data.progress.total, data.progress.total);
 
                 setTimeout(() => {
@@ -572,7 +1073,7 @@ function initInterview() {
                     // Show next question as MCQ after delay
                     setTimeout(() => {
                         if (data.next_question) {
-                            addAIMessage(data.next_question, 'medium');
+                            addAIQuestionMessage(data.next_question, 'medium');
                             switchToAptitudeMode(data.next_question);
                         }
                         isProcessing = false;
@@ -597,7 +1098,7 @@ function initInterview() {
             // Show next question after a brief pause
             setTimeout(() => {
                 if (data.next_question) {
-                    addAIMessage(data.next_question, data.difficulty || 'medium');
+                    addAIQuestionMessage(data.next_question, data.difficulty || 'medium');
                 }
                 isProcessing = false;
                 enableInput(true);
@@ -1012,6 +1513,14 @@ function initInterview() {
     }
 
     // ── Helper: Sidebar scores ──
+    function scoreTierClass(value) {
+        return value >= 8 ? 'sv-emerald' : (value >= 6 ? 'sv-amber' : 'sv-rose');
+    }
+
+    function scoreTierHex(value) {
+        return value >= 8 ? '#10b981' : (value >= 6 ? '#f59e0b' : '#f43f5e');
+    }
+
     function updateSidebarScores(eval) {
         if (!eval || !sidebarScores) return;
 
@@ -1025,22 +1534,23 @@ function initInterview() {
         const count = evaluatedAnswersCount;
         if (count <= 0) return;
 
-        const avgOverall = (totalScores.overall / count).toFixed(1);
-        const avgTech = (totalScores.technical / count).toFixed(1);
-        const avgComm = (totalScores.communication / count).toFixed(1);
-        const avgConf = (totalScores.confidence / count).toFixed(1);
+        const avgOverall = parseFloat((totalScores.overall / count).toFixed(1));
+        const avgTech = parseFloat((totalScores.technical / count).toFixed(1));
+        const avgComm = parseFloat((totalScores.communication / count).toFixed(1));
+        const avgConf = parseFloat((totalScores.confidence / count).toFixed(1));
 
-        const overallColor = parseFloat(avgOverall) >= 7.0 ? 'var(--accent-emerald)' : (parseFloat(avgOverall) >= 5.0 ? 'var(--accent-amber)' : 'var(--accent-rose)');
+        function scoreItem(label, value) {
+            return '<div class="score-item"><span class="score-label">' + label + '</span>' +
+                '<span class="score-value ' + scoreTierClass(value) + '">' + value.toFixed(1) + '</span>' +
+                '<span class="score-micro-bar"><span class="score-micro-fill" style="width:' +
+                Math.round(Math.min(10, Math.max(0, value)) * 10) + '%;background:' + scoreTierHex(value) + ';"></span></span></div>';
+        }
 
         sidebarScores.innerHTML =
-            '<div class="score-item"><span class="score-label">Overall</span>' +
-            '<span class="score-value" style="color:' + overallColor + '">' + avgOverall + '</span></div>' +
-            '<div class="score-item"><span class="score-label">Technical</span>' +
-            '<span class="score-value">' + avgTech + '</span></div>' +
-            '<div class="score-item"><span class="score-label">Communication</span>' +
-            '<span class="score-value">' + avgComm + '</span></div>' +
-            '<div class="score-item"><span class="score-label">Confidence</span>' +
-            '<span class="score-value">' + avgConf + '</span></div>';
+            scoreItem('Overall', avgOverall) +
+            scoreItem('Technical', avgTech) +
+            scoreItem('Communication', avgComm) +
+            scoreItem('Confidence', avgConf);
     }
 
     // ── Helper: Input ──
@@ -1178,10 +1688,9 @@ function switchToAptitudeMode(questionText) {
     const feedbackEl = document.getElementById('aptitude-feedback');
     if (feedbackEl) feedbackEl.style.display = 'none';
 
-    // Parse question and populate
+    // Parse question and populate (voice-first / collapsible question area)
     const parsed = parseAptitudeQuestion(questionText);
-    const questionEl = document.getElementById('aptitude-question-text');
-    if (questionEl) questionEl.textContent = parsed.questionText || questionText.replace(/\*\*/g, '');
+    renderAptitudeQuestionText(parsed.questionText ? parsed.questionText : cleanDisplayText(questionText));
 
     aptitudeCurrentOptions = parsed.options;
 
@@ -1347,6 +1856,7 @@ function submitAptitudeAnswer() {
         // Handle round transition or completion
         if (data.is_complete) {
             // Interview complete
+            stopSpeaking();
             setTimeout(() => {
                 const aptArea = document.getElementById('aptitude-area');
                 if (aptArea) aptArea.style.display = 'none';
@@ -1431,20 +1941,8 @@ function submitAptitudeAnswer() {
 
                 // Show next question
                 if (data.next_question) {
-                    const messagesContainer = document.getElementById('messages');
-                    if (messagesContainer) {
-                        const div = document.createElement('div');
-                        div.className = 'message ai';
-                        div.innerHTML =
-                            '<div class="message-avatar">&#x1f916;</div>' +
-                            '<div class="message-content">' +
-                                '<div class="message-bubble">' +
-                                escapeHtml(data.next_question) +
-                                '</div><div class="message-meta">AI Interviewer</div>' +
-                            '</div>';
-                        messagesContainer.appendChild(div);
-                        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                    }
+                    // Adds a voice-first chat bubble, then switches the aptitude area if needed
+                    addAIQuestionMessage(data.next_question, data.difficulty || 'medium');
 
                     // If next round is again aptitude, switch back to aptitude mode
                     if (data.current_round && data.current_round.type === 'aptitude') {
@@ -1458,22 +1956,9 @@ function submitAptitudeAnswer() {
 
         // Same round continues — load next question after delay
         setTimeout(function() {
-            // Show next question in chat
+            // Show next question in chat (voice-first)
             if (data.next_question) {
-                const messagesContainer = document.getElementById('messages');
-                if (messagesContainer) {
-                    const div = document.createElement('div');
-                    div.className = 'message ai';
-                    div.innerHTML =
-                        '<div class="message-avatar">&#x1f916;</div>' +
-                        '<div class="message-content">' +
-                            '<div class="message-bubble">' +
-                            escapeHtml(data.next_question) +
-                            '</div><div class="message-meta">AI Interviewer</div>' +
-                        '</div>';
-                    messagesContainer.appendChild(div);
-                    messagesContainer.scrollTop = messagesContainer.scrollHeight;
-                }
+                addAIQuestionMessage(data.next_question, 'medium');
 
                 // Switch to aptitude mode with new question
                 switchToAptitudeMode(data.next_question);
@@ -1647,7 +2132,7 @@ function startVoiceRecording() {
     const btn = document.getElementById('voice-btn');
     const icon = document.getElementById('voice-btn-icon');
     const text = document.getElementById('voice-btn-text');
-    if (icon) icon.innerHTML = '\u23f9'; // ⏹
+    if (icon) icon.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
     if (text) text.textContent = 'Stop Recording';
     if (btn) {
         btn.classList.add('recording');
@@ -1758,7 +2243,7 @@ function stopVoiceRecording() {
     const btn = document.getElementById('voice-btn');
     const icon = document.getElementById('voice-btn-icon');
     const text = document.getElementById('voice-btn-text');
-    if (icon) icon.innerHTML = '\uD83C\uDF99'; // 🎙
+    if (icon) icon.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
     if (text) text.textContent = 'Speak Your Answer';
     if (btn) {
         btn.classList.remove('recording');
@@ -1808,6 +2293,10 @@ function stopVoiceRecording() {
 }
 
 function switchToTypeMode() {
+    typingModeActive = true;
+    stopSpeaking();
+    revealCurrentQuestion();
+
     // Stop any active recording
     if (globalVoiceIsRecording) {
         stopVoiceRecording();
@@ -1839,6 +2328,8 @@ function switchToTypeMode() {
 }
 
 function switchToVoiceMode() {
+    typingModeActive = false;
+
     const voiceSection = document.getElementById('voice-section');
     const typeSection = document.getElementById('type-section');
     const unsupported = document.getElementById('voice-unsupported');
@@ -1886,13 +2377,84 @@ function initDashboard() {
     const barFills = $$('.bar-fill');
     setTimeout(() => {
         barFills.forEach(bar => {
-            const target = bar.dataset.height || 0;
-            bar.style.height = target + '%';
+            const target = bar.dataset.width || '0%';
+            const pct = String(target).endsWith('%') ? target : target + '%';
+            bar.style.width = pct;
         });
     }, 200);
 
     // Load Chart.js from CDN and initialize progress chart
     initProgressChart();
+
+    // Performance Benchmark panel (was a dead skeleton before this)
+    loadComparison();
+}
+
+// ── Dashboard: Performance Benchmark (/api/compare) ──
+function showComparisonMessage(className, text) {
+    const content = document.getElementById('comparison-content');
+    if (content) content.innerHTML = '<div class="' + className + '">' + escapeHtml(text) + '</div>';
+}
+
+async function loadComparison() {
+    const content = document.getElementById('comparison-content');
+    if (!content || !window.CANDIDATE_ID) return;
+
+    try {
+        const resp = await fetch('/api/compare/' + window.CANDIDATE_ID);
+        if (resp.status === 404) {
+            showComparisonMessage('comparison-empty',
+                'Complete your first interview to unlock performance benchmarking.');
+            return;
+        }
+        if (!resp.ok) throw new Error('HTTP ' + resp.status);
+        const data = await resp.json();
+        if (!data || !data.total_sessions) {
+            showComparisonMessage('comparison-empty',
+                'Complete your first interview to unlock performance benchmarking.');
+            return;
+        }
+
+        const trendCls = data.trend === 'improving' ? 'up' : (data.trend === 'declining' ? 'down' : 'stable');
+        const trendArrow = data.trend === 'improving' ? '\u2191' : (data.trend === 'declining' ? '\u2193' : '\u2192');
+        const latest = data.sessions && data.sessions[0] ? data.sessions[0] : null;
+        const fmt1 = function(v) { return (Math.round(v * 10) / 10).toFixed(1); };
+
+        function stat(value, label, trendText, trendClass) {
+            return '<div class="compare-stat">' +
+                '<span class="cmp-value">' + value + '</span>' +
+                '<span class="cmp-label">' + label + '</span>' +
+                (trendText ? '<span class="cmp-trend ' + trendClass + '">' + trendArrow + ' ' + trendText + '</span>' : '') +
+                '</div>';
+        }
+
+        let html = '<div class="comparison-grid">';
+        html += stat(data.best_session && data.best_session.score != null ? fmt1(data.best_session.score) : '--',
+            'Best Overall Score',
+            data.best_session && data.best_session.date ? escapeHtml(String(data.best_session.date)) : '',
+            '');
+        html += stat(latest && latest.overall_score != null ? fmt1(latest.overall_score) : '--', 'Latest Score', '', '');
+        html += stat((data.improvement > 0 ? '+' : '') + fmt1(data.improvement || 0), 'Recent Change', String(data.trend || 'stable'), trendCls);
+        html += stat(fmt1(data.consistency || 0) + '/10', 'Consistency', '', '');
+        html += stat((data.percentile != null ? data.percentile : 50) + 'th', 'Percentile', 'across all candidates', '');
+        html += stat(data.total_sessions, 'Completed Sessions', '', '');
+        html += '</div>';
+
+        content.innerHTML = html;
+    } catch (err) {
+        showComparisonMessage('comparison-error',
+            'Benchmark data is unavailable right now. Refresh the page to retry.');
+    }
+}
+
+function showChartEmptyState(canvas, message) {
+    const container = canvas && canvas.parentElement;
+    if (!container) return;
+    container.innerHTML =
+        '<div class="chart-empty-state">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>' +
+            '<span>' + escapeHtml(message) + '</span>' +
+        '</div>';
 }
 
 async function initProgressChart() {
@@ -1901,13 +2463,19 @@ async function initProgressChart() {
 
     try {
         const resp = await fetch('/api/progress/' + (window.CANDIDATE_ID || 0));
-        if (!resp.ok) return;
+        if (!resp.ok) { showChartEmptyState(canvas, 'Complete an interview to see your progress over time.'); return; }
         const data = await resp.json();
-        if (!data.labels || data.labels.length < 1) return;
+        if (!data.labels || data.labels.length < 1) {
+            showChartEmptyState(canvas, 'Complete an interview to see your progress over time.');
+            return;
+        }
 
         // Dynamically load Chart.js
         const script = document.createElement('script');
         script.src = 'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js';
+        script.onerror = function() {
+            showChartEmptyState(canvas, 'Chart library could not be loaded (offline?).');
+        };
         script.onload = function() {
             const ctx = canvas.getContext('2d');
 
@@ -1950,7 +2518,7 @@ async function initProgressChart() {
         };
         document.head.appendChild(script);
     } catch (e) {
-        // Chart.js failed to load, silently skip
+        showChartEmptyState(canvas, 'Progress chart is unavailable right now.');
     }
 }
 
@@ -2029,6 +2597,10 @@ function animateScoreRing() {
 // ── Initialize on Page Load ──────────────────────────────────────────────────
 
 document.addEventListener('DOMContentLoaded', function() {
+    // TTS voice-tree detection (harmless on pages without speech support)
+    initTTS();
+    initTTSUnlock();
+
     // Detect page type from body class
     const body = document.body;
 

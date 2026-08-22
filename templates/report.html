@@ -100,7 +100,7 @@
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ report.candidate_info.role }}</span>
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg> {{ report.session_data.mode|capitalize if report.session_data.mode else 'Technical' }}</span>
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{ report.total_questions }} Questions</span>
-                            <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{ report.session_data.duration }}s duration</span>
+                            <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span id="session-duration">{{ report.session_data.duration }}s duration</span></span>
                         </div>
                         <div class="star-rating">
                             {% for i in range(1,6) %}
@@ -363,7 +363,7 @@
                                 <p class="side-text">"{{ rewrite.original_answer }}"</p>
                                 <div class="side-scores-chips">
                                     {% for key, val in rewrite.original_scores.items() %}
-                                    <span class="score-chip">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
+                                    <span class="score-chip {{ 'score-chip-overall' if key == 'overall_score' else '' }}">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -372,7 +372,7 @@
                                 <p class="side-text">"{{ rewrite.rewritten_answer }}"</p>
                                 <div class="side-scores-chips">
                                     {% for key, val in rewrite.rewritten_scores.items() %}
-                                    <span class="score-chip score-chip-active">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
+                                    <span class="score-chip score-chip-active {{ 'score-chip-overall' if key == 'overall_score' else '' }}">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
                                     {% endfor %}
                                 </div>
                             </div>
@@ -635,6 +635,20 @@
 
     <script src="/static/script.js"></script>
     <script>
+        // Human-format the session duration (e.g. "184s" -> "3m 04s")
+        (function() {
+            var el = document.getElementById('session-duration');
+            if (!el) return;
+            var match = el.textContent.match(/(\d+)/);
+            if (!match) return;
+            var total = parseInt(match[1], 10);
+            if (isNaN(total)) return;
+            var mins = Math.floor(total / 60);
+            var secs = total % 60;
+            var label = (mins > 0 ? mins + 'm ' + String(secs).padStart(2, '0') + 's' : secs + 's') + ' duration';
+            el.textContent = label;
+        })();
+
         function finalizeAnimations() {
             document.querySelectorAll(".ring-progress").forEach(function(ring) {
                 var score = parseFloat(ring.getAttribute("data-score")) || 0;

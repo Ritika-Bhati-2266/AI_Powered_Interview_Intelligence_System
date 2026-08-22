@@ -34,7 +34,7 @@
                 <div id="ollama-status" class="status-bar-premium" style="justify-content:center;">
                     <span class="status-dot-pulse"></span>
                     <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;color:var(--accent-indigo);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
-                    <span style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">AI Personalisation Engine <span style="font-size:0.8rem;color:var(--text-muted);font-weight:400;">&bull; Checking local connection...</span></span>
+                    <span id="provider-status-text" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">AI Personalisation Engine <span style="font-size:0.8rem;color:var(--text-muted);font-weight:400;">&bull; Connecting to AI engine...</span></span>
                 </div>
 
                 <div id="error-msg" class="hidden"></div>
@@ -110,31 +110,31 @@
                         <label>Interview Mode Focus</label>
                         <div class="mode-selector">
                             <div class="mode-option selected" data-mode="technical">
-                                <span class="pill-badge badge-indigo pill-badge-sm mode-badge">POPULAR</span>
                                 <div class="mode-icon icon-box-indigo">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
                                 </div>
                                 <div class="mode-info-block">
+                                    <span class="pill-badge badge-indigo pill-badge-sm mode-badge">POPULAR</span>
                                     <div class="mode-name">Technical</div>
                                     <div class="mode-desc">System design, APIs & core architecture</div>
                                 </div>
                             </div>
                             <div class="mode-option" data-mode="hr">
-                                <span class="pill-badge badge-violet pill-badge-sm mode-badge">RECOMMENDED</span>
                                 <div class="mode-icon icon-box-violet">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                                 </div>
                                 <div class="mode-info-block">
+                                    <span class="pill-badge badge-violet pill-badge-sm mode-badge">RECOMMENDED</span>
                                     <div class="mode-name">HR Round</div>
                                     <div class="mode-desc">STAR behavioral & core leadership skills</div>
                                 </div>
                             </div>
                             <div class="mode-option" data-mode="coding">
-                                <span class="pill-badge badge-cyan pill-badge-sm mode-badge">DSA FOCUS</span>
                                 <div class="mode-icon icon-box-cyan">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
                                 </div>
                                 <div class="mode-info-block">
+                                    <span class="pill-badge badge-cyan pill-badge-sm mode-badge">DSA FOCUS</span>
                                     <div class="mode-name">Coding</div>
                                     <div class="mode-desc">DSA algorithms & timed aptitude MCQs</div>
                                 </div>
@@ -144,7 +144,7 @@
                     </div>
                     <div class="form-group">
                         <label>Resume Upload</label>
-                        <div class="file-upload-card" onclick="document.getElementById('resume-file').click()">
+                        <div class="file-upload-card" id="file-upload-card" tabindex="0" role="button" aria-label="Upload your resume">
                             <input type="file" id="resume-file" name="resume" accept=".pdf,.docx" style="display:none;">
                             <div class="upload-icon icon-box-indigo" style="width:48px;height:48px;margin:0 auto 0.75rem auto;">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
@@ -159,29 +159,13 @@
                         <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                 </form>
-                <div class="auth-footer">
-                    Powered by local LLMs &mdash; 100% private, fully offline processing.
+                <div class="auth-footer" id="provider-footer">
+                    AI-powered mock interviews with real-time adaptive feedback.
                 </div>
             </div>
         </div>
     </div>
 
-    <script>
-        document.querySelectorAll('.mode-option').forEach(function(opt) {
-            opt.addEventListener('click', function() {
-                document.querySelectorAll('.mode-option').forEach(function(o) { o.classList.remove('selected'); });
-                this.classList.add('selected');
-                document.getElementById('interview-mode').value = this.dataset.mode;
-            });
-        });
-        document.getElementById('resume-file').addEventListener('change', function() {
-            var fn = document.getElementById('file-name');
-            if (this.files[0]) {
-                fn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:4px;display:inline-block;vertical-align:middle;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> ' + this.files[0].name;
-                fn.classList.remove('hidden');
-            } else { fn.classList.add('hidden'); }
-        });
-    </script>
     <script src="/static/script.js"></script>
 </body>
 </html>

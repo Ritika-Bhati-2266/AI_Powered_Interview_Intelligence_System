@@ -31,18 +31,21 @@
     const sendBtn = document.getElementById('send-btn');
 
     // ── Helper: Update UI for recording state ─────────────────────────────
+    const MIC_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>';
+    const STOP_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>';
+
     function setRecordingUI(recording) {
         isRecording = recording;
         if (voiceBtn) {
             if (recording) {
                 voiceBtn.classList.add('recording');
                 voiceBtn.classList.remove('idle');
-                if (voiceBtnIcon) voiceBtnIcon.textContent = '⏹';
+                if (voiceBtnIcon) voiceBtnIcon.innerHTML = STOP_SVG;
                 if (voiceBtnText) voiceBtnText.textContent = 'Stop Recording';
             } else {
                 voiceBtn.classList.remove('recording');
                 voiceBtn.classList.add('idle');
-                if (voiceBtnIcon) voiceBtnIcon.textContent = '🎙';
+                if (voiceBtnIcon) voiceBtnIcon.innerHTML = MIC_SVG;
                 if (voiceBtnText) voiceBtnText.textContent = 'Speak Your Answer';
             }
         }
@@ -80,6 +83,12 @@
     // ── Start Recording ────────────────────────────────────────────────────
     async function startRecording() {
         if (isRecording) return;
+
+        // Critical: stop any question narration before opening the mic so the
+        // recorder doesn't capture the TTS audio into the transcript.
+        if (typeof window.stopSpeaking === 'function') {
+            window.stopSpeaking();
+        }
 
         try {
             // Request microphone access
@@ -224,16 +233,20 @@
             // Enable send button
             if (sendBtn) sendBtn.disabled = false;
 
-            // Auto-hide transcript after delay and switch to type mode for review
+            // Auto-hide transcript and switch to type mode for review
+            // (reveals the question text for accessibility while editing)
             setTimeout(() => {
                 if (voiceTranscriptContainer) voiceTranscriptContainer.style.display = 'none';
-                // Show type section with transcript ready
-                const voiceSection = document.getElementById('voice-section');
-                const typeSection = document.getElementById('type-section');
-                if (voiceSection) voiceSection.style.display = 'none';
-                if (typeSection) {
-                    typeSection.style.display = 'block';
-                    if (mainInput) mainInput.focus();
+                if (typeof window.switchToTypeMode === 'function') {
+                    window.switchToTypeMode();
+                } else {
+                    const voiceSection = document.getElementById('voice-section');
+                    const typeSection = document.getElementById('type-section');
+                    if (voiceSection) voiceSection.style.display = 'none';
+                    if (typeSection) {
+                        typeSection.style.display = 'block';
+                        if (mainInput) mainInput.focus();
+                    }
                 }
             }, 2000);
 
@@ -303,12 +316,16 @@
 
             setTimeout(() => {
                 if (voiceTranscriptContainer) voiceTranscriptContainer.style.display = 'none';
-                const voiceSection = document.getElementById('voice-section');
-                const typeSection = document.getElementById('type-section');
-                if (voiceSection) voiceSection.style.display = 'none';
-                if (typeSection) {
-                    typeSection.style.display = 'block';
-                    if (mainInput) mainInput.focus();
+                if (typeof window.switchToTypeMode === 'function') {
+                    window.switchToTypeMode();
+                } else {
+                    const voiceSection = document.getElementById('voice-section');
+                    const typeSection = document.getElementById('type-section');
+                    if (voiceSection) voiceSection.style.display = 'none';
+                    if (typeSection) {
+                        typeSection.style.display = 'block';
+                        if (mainInput) mainInput.focus();
+                    }
                 }
             }, 2000);
 
