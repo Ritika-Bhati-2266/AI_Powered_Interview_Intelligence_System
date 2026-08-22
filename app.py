@@ -13,7 +13,11 @@ from datetime import datetime
 from contextlib import contextmanager
 
 from dotenv import load_dotenv
-load_dotenv()
+# Load .env relative to this file so it works regardless of the launch CWD.
+# Without this, GROQ_API_KEY is missed (falls back to Ollama) when the app
+# is started from another directory.
+_BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from werkzeug.utils import secure_filename

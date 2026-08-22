@@ -68,7 +68,7 @@ Create a `.env` file (copy from `.env.example`) with these optional overrides:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `GROQ_API_KEY` | — | Groq API key (set this on Render; omit for local Ollama) |
-| `GROQ_MODEL` | `llama-3.3-70b-versatile` | Groq model ID |
+| `GROQ_MODEL` | `openai/gpt-oss-120b` | Groq model ID |
 | `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL (fallback when no `GROQ_API_KEY`) |
 | `OLLAMA_MODEL` | `llama3.2:latest` | Ollama model name |
 | `WHISPER_MODEL` | `base` | Whisper model size: `tiny`, `base`, `small`, `medium`, `large` |
@@ -99,7 +99,7 @@ services:
       - key: GROQ_API_KEY
         sync: false          # Enter manually in Render dashboard (never committed)
       - key: GROQ_MODEL
-        value: llama-3.3-70b-versatile
+        value: openai/gpt-oss-120b
       - key: WHISPER_MODEL
         value: tiny
       - key: SECRET_KEY

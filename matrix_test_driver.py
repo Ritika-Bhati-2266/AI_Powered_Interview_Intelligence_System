@@ -74,7 +74,7 @@ CODING_DEEP_CAP = 50       # how many coding-mode candidates get the deep (1 rea
 FULL_APT_EXPS = {"0-1", "7-10"}   # experience levels that run the FULL 10-MCQ aptitude round
 
 WORKERS = 24
-LAUNCH_BUDGET_SEC = 18.5 * 60     # stop launching new interviews after this
+LAUNCH_BUDGET_SEC = 45 * 60     # stop launching new interviews after this
 REAL_REPORT_SAMPLE = 30           # candidates that get real (non-stubbed) report generation
 
 RESUME_DIR = os.path.join(PROJ, "test_resumes")
@@ -506,6 +506,7 @@ def run_candidate(seq, role_idx, exp_idx, company_idx, role_resumes, rewrite_key
     skills_mentioned = set()
 
     try:
+        report_real()   # reset leaked thread-local stub from prior candidate on this worker
         res = start_interview(
             session_id=sid,
             candidate_id=100000 + seq,

@@ -15,7 +15,7 @@ from stt_service import detect_filler_words
 # ── Provider selection ──────────────────────────────────────────────────────────
 # Groq (cloud) is preferred when GROQ_API_KEY is set; otherwise falls back to Ollama (local).
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-GROQ_MODEL = os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")
+GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
 
 # Ollama fallback (local dev)
