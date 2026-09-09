@@ -17,6 +17,11 @@ from ai_service import (
     detect_skill_gaps,
     generate_recommendations,
     generate_final_report_data,
+    GD_ENABLED,
+    GD_ALLOWED_COMPANIES,
+    generate_gd_topic_and_personas,
+    generate_gd_turn,
+    evaluate_gd,
 )
 from company_rounds import get_rounds_for_company
 from aptitude_bank import get_aptitude_set, format_aptitude_answer_record
@@ -187,6 +192,19 @@ class InterviewSession:
         self.aptitude_correct_count = 0    # Correct answers so far
         self.aptitude_total_count = 0      # Total aptitude questions answered
 
+        # ── GD round state ──
+        self.gd_topic = ""
+        self.gd_personas = []
+        self.gd_transcript = []  # [{speaker, name, text}]
+        self.gd_candidate_turns = 0
+        self.gd_max_candidate_turns = 4
+        self.gd_ai_index = 0
+        self.gd_scores = None
+
+        # Filter GD rounds if disabled or company not allowed
+        if not GD_ENABLED or self.company.lower() not in GD_ALLOWED_COMPANIES:
+            self.rounds = [r for r in self.rounds if r.get("type") != "gd"]
+
         # Recalculate total questions as sum of all rounds
         self.total_questions = sum(r.get("questions", 3) for r in self.rounds)
 
@@ -343,6 +361,10 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
         "aptitude_total": len(session.aptitude_questions) if session.aptitude_questions else 0,
         "aptitude_score": 0,
         "aptitude_correct": 0,
+        "is_gd": current_round.get("type") == "gd",
+        "gd_topic": getattr(session, 'gd_topic', ''),
+        "gd_personas": getattr(session, 'gd_personas', []),
+        "gd_transcript": getattr(session, 'gd_transcript', []),
     }
 
 
@@ -374,6 +396,10 @@ def submit_answer(session_id: str, answer: str) -> dict:
     # Get current round info
     current_round = session.get_current_round()
     is_resume = session.is_resume_phase and session.current_round_index == 0
+
+    # ── GD Round Handling ───────────────────────────────────────────────
+    if current_round.get("type") == "gd":
+        return _handle_gd_answer(session, answer, current_round)
 
     # ── Aptitude Round Handling ───────────────────────────────────────────
     if current_round.get("type") == "aptitude":
@@ -533,6 +559,7 @@ def submit_answer(session_id: str, answer: str) -> dict:
             "questions": next_round.get("questions", 3),
         }
         response["is_aptitude"] = (next_round.get("type") == "aptitude")
+        response["is_gd"] = (next_round.get("type") == "gd")
 
         # Generate next question for the new round
         next_q_result = _generate_next_question(session)
@@ -541,7 +568,11 @@ def submit_answer(session_id: str, answer: str) -> dict:
             response["error"] = next_q_result["error"]
         else:
             response["next_question"] = next_q_result.get("question", "")
-            response["difficulty"] = DIFFICULTY_LEVELS[session.current_difficulty]
+            response["difficulty"] = next_q_result.get("difficulty", DIFFICULTY_LEVELS[session.current_difficulty])
+            if next_q_result.get("is_gd"):
+                response["gd_topic"] = next_q_result.get("gd_topic","")
+                response["gd_personas"] = next_q_result.get("gd_personas",[])
+                response["gd_transcript"] = next_q_result.get("gd_transcript",[])
     else:
         # Same round continues — generate next question
         next_q_result = _generate_next_question(session)
@@ -550,7 +581,11 @@ def submit_answer(session_id: str, answer: str) -> dict:
             response["error"] = next_q_result["error"]
         else:
             response["next_question"] = next_q_result.get("question", "")
-            response["difficulty"] = DIFFICULTY_LEVELS[session.current_difficulty]
+            response["difficulty"] = next_q_result.get("difficulty", DIFFICULTY_LEVELS[session.current_difficulty])
+            if next_q_result.get("is_gd"):
+                response["gd_topic"] = next_q_result.get("gd_topic","")
+                response["gd_personas"] = next_q_result.get("gd_personas",[])
+                response["gd_transcript"] = next_q_result.get("gd_transcript",[])
 
     return response
 
@@ -859,6 +894,12 @@ def generate_report(session_id: str) -> dict:
             "aptitude_questions": session.aptitude_questions if hasattr(session, 'aptitude_questions') else [],
             "aptitude_correct_count": getattr(session, 'aptitude_correct_count', 0),
             "aptitude_total_count": getattr(session, 'aptitude_total_count', 0),
+            # GD data
+            "gd_topic": getattr(session, 'gd_topic', ''),
+            "gd_personas": getattr(session, 'gd_personas', []),
+            "gd_transcript": getattr(session, 'gd_transcript', []),
+            "gd_scores": getattr(session, 'gd_scores', None),
+            "gd_enabled": GD_ENABLED,
         }
 
         answers = session.answers
@@ -977,13 +1018,123 @@ def get_session_state(session_id: str) -> dict:
 
 # ── Internal Helpers ──────────────────────────────────────────────────────────
 
+def _init_gd_round(session: InterviewSession):
+    """Initialize GD topic/personas and first AI turns."""
+    if session.gd_topic:
+        return
+    data = generate_gd_topic_and_personas(company=session.company, role=session.candidate_role)
+    session.gd_topic = data["topic"]
+    session.gd_personas = data["personas"]
+    session.gd_transcript = []
+    session.gd_candidate_turns = 0
+    session.gd_ai_index = 0
+    # Seed first 2 AI turns for context
+    for i in range(2):
+        persona = session.gd_personas[i % len(session.gd_personas)]
+        text = generate_gd_turn(persona, session.gd_topic, session.gd_transcript, session.candidate_name)
+        session.gd_transcript.append({"speaker": "ai", "name": persona["name"], "text": text, "persona_idx": i % len(session.gd_personas)})
+
+
+def _gd_next_ai_turns(session: InterviewSession, count: int = 2) -> list:
+    """Generate next AI turns and append to transcript. Returns list of new turns."""
+    new_turns = []
+    for _ in range(count):
+        # limit total AI turns to avoid infinite
+        if len(session.gd_transcript) >= 20:
+            break
+        persona = session.gd_personas[session.gd_ai_index % len(session.gd_personas)]
+        text = generate_gd_turn(persona, session.gd_topic, session.gd_transcript, session.candidate_name)
+        turn = {"speaker": "ai", "name": persona["name"], "text": text, "persona_idx": session.gd_ai_index % len(session.gd_personas)}
+        session.gd_transcript.append(turn)
+        new_turns.append(turn)
+        session.gd_ai_index += 1
+    return new_turns
+
+
+def _handle_gd_answer(session: InterviewSession, answer: str, current_round: dict) -> dict:
+    """Process candidate GD turn, generate AI responses, check completion."""
+    # Record candidate turn
+    session.gd_transcript.append({"speaker": "candidate", "name": session.candidate_name, "text": answer})
+    session.gd_candidate_turns += 1
+    session.answers.append({
+        "question": f"GD: {session.gd_topic}",
+        "answer": answer,
+        "category": "gd",
+        "is_gd": True,
+        "gd_turn": session.gd_candidate_turns,
+    })
+    # Generate next AI turns if GD not complete
+    is_complete = session.gd_candidate_turns >= session.gd_max_candidate_turns
+    next_turns = []
+    if not is_complete:
+        next_turns = _gd_next_ai_turns(session, count=2)
+    else:
+        # Evaluate GD at round end
+        session.gd_scores = evaluate_gd(session.gd_transcript, session.gd_topic)
+        # push aggregated GD answer for report
+        # Update round counts to mark GD round complete
+        session.round_question_count = current_round.get("questions", 1)
+        session.current_question_index += 1
+        # Check overall completion
+        is_last_round = session.current_round_index >= len(session.rounds) - 1
+        is_session_complete = is_last_round
+        if not is_session_complete:
+            session.current_round_index += 1
+            session.round_question_count = 0
+            # need to generate next round's first question if next round is not GD/aptitude
+            # but GD next round may be aptitude — handled by caller
+        else:
+            session.status = "completed"
+            session.end_time = time.time()
+        return {
+            "session_id": session.session_id,
+            "evaluation": {"gd_scores": session.gd_scores, "is_gd": True},
+            "gd_transcript": session.gd_transcript,
+            "gd_personas": session.gd_personas,
+            "gd_topic": session.gd_topic,
+            "gd_scores": session.gd_scores,
+            "is_gd": True,
+            "gd_complete": True,
+            "is_complete": is_session_complete,
+            "next_turns": [],
+            "progress": {"current": session.current_question_index, "total": session.total_questions},
+            "round_progress": {"round_question_count": session.round_question_count, "round_question_limit": current_round.get("questions",1)},
+        }
+
+    # Not complete — return next AI turns for frontend to render
+    return {
+        "session_id": session.session_id,
+        "evaluation": {"is_gd": True, "ack": True},
+        "gd_transcript": session.gd_transcript,
+        "gd_personas": session.gd_personas,
+        "gd_topic": session.gd_topic,
+        "is_gd": True,
+        "gd_complete": False,
+        "is_complete": False,
+        "next_turns": next_turns,
+        "progress": {"current": session.current_question_index, "total": session.total_questions},
+        "round_progress": {"round_question_count": session.gd_candidate_turns, "round_question_limit": session.gd_max_candidate_turns},
+    }
+
+
 def _generate_next_question(session: InterviewSession) -> dict:
     """
     Generate the next question for the session, considering round info,
     resume phase, difficulty, mode, and conversation context.
-    For aptitude rounds, serves the next pre-loaded MCQ instead of calling Groq.
+    For aptitude/GD rounds, serves from pre-loaded or persona generation instead of calling Groq.
     """
     current_round = session.get_current_round()
+
+    # ── GD round: init topic/personas ──
+    if current_round.get("type") == "gd":
+        _init_gd_round(session)
+        gd_intro = f"🗣️ Group Discussion Topic: \"{session.gd_topic}\"\n\nPersonas: " + ", ".join([p['name'] for p in session.gd_personas])
+        # store a placeholder question for indexing
+        if not session.questions or session.questions[-1] != gd_intro:
+            session.questions.append(gd_intro)
+            session.questions_meta.append({"category":"gd","difficulty":"medium","round_index":session.current_round_index,"round_name":current_round.get("name","GD")})
+        return {"question": gd_intro, "category": "gd", "difficulty": "medium", "round_info": dict(current_round), "is_resume_phase": False, "is_gd": True,
+                "gd_topic": session.gd_topic, "gd_personas": session.gd_personas, "gd_transcript": session.gd_transcript}
 
     # ── Aptitude round: serve from pre-loaded question bank ──
     if current_round.get("type") == "aptitude":

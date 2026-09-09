@@ -1146,6 +1146,23 @@ body.page-register .btn-primary:disabled {
 .check-item.warn { border-color: rgba(245,158,11,0.3); background: rgba(245,158,11,0.06); }
 .waiting-rules { text-align: left; font-size: 0.78rem; color: var(--text-secondary); margin: 0.8rem 0 0 1.1rem; line-height: 1.6; }
 .waiting-room-overlay.hidden { display: none !important; }
+.gd-topic-banner {
+    padding: 0.85rem 1.1rem; background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(236,72,153,0.06));
+    border-bottom: 1px solid rgba(99,102,241,0.15); font-size: 0.85rem; color: var(--text-primary);
+}
+.gd-topic-label { font-weight: 800; color: var(--accent-indigo); margin-right: 0.5rem; }
+.gd-personas-bar { display: flex; gap: 0.5rem; margin-top: 0.6rem; flex-wrap: wrap; }
+.gd-persona-pill {
+    padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;
+    border: 1px solid transparent;
+}
+.gd-persona-0 { background: rgba(99,102,241,0.12); border-color: rgba(99,102,241,0.25); color: #a5b4fc; }
+.gd-persona-1 { background: rgba(236,72,153,0.10); border-color: rgba(236,72,153,0.22); color: #f9a8d4; }
+.gd-persona-2 { background: rgba(16,185,129,0.10); border-color: rgba(16,185,129,0.22); color: #6ee7b7; }
+.gd-turn-candidate { border-left: 3px solid var(--accent-amber); }
+.gd-turn-ai-0 { border-left: 3px solid #6366f1; }
+.gd-turn-ai-1 { border-left: 3px solid #ec4899; }
+.gd-turn-ai-2 { border-left: 3px solid #10b981; }
 .live-meter {
     display: flex; align-items: center; gap: 0.6rem;
     padding: 0.45rem 0.7rem; background: rgba(255,255,255,0.03);

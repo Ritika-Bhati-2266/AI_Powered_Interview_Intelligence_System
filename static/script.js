@@ -1012,7 +1012,24 @@ function initInterview() {
 
             // Display the first question
             setTimeout(() => {
-                if (data.is_aptitude) {
+                if (data.is_gd) {
+                    isGDRound = true;
+                    gdTopic = data.gd_topic || data.question;
+                    gdPersonas = data.gd_personas || [];
+                    gdTranscript = data.gd_transcript || [];
+                    showGDTopic(gdTopic, gdPersonas);
+                    // render initial AI turns
+                    if (gdTranscript.length) {
+                        gdTranscript.forEach(t => {
+                            if (t.speaker === 'ai') addGDMessage(t.name, t.text, t.persona_idx);
+                        });
+                    }
+                    updateProgress(1, data.total_questions);
+                    updateRoundProgress(0, data.gd_max_turns || 4, data.current_round);
+                    enableInput(true);
+                    startQuestionTimer(60); // per-turn timer for GD
+                    addAIMessage('Your turn — share your view or build on others!', '');
+                } else if (data.is_aptitude) {
                     isAptitudeRound = true;
                     aptitudeTotal = data.aptitude_total || 10;
                     aptitudeCorrect = 0;
@@ -1071,6 +1088,71 @@ function initInterview() {
                 addAIMessage('Error: ' + data.error, '');
                 isProcessing = false;
                 enableInput(true);
+                return;
+            }
+
+            // ── GD Round Handling ──────────────────────────────────────
+            if (data.is_gd) {
+                gdTranscript = data.gd_transcript || gdTranscript;
+                // render new AI turns with staggered delay
+                const turns = data.next_turns || [];
+                let delay = 300;
+                turns.forEach(t => {
+                    setTimeout(() => addGDMessage(t.name, t.text, t.persona_idx), delay);
+                    delay += 900;
+                });
+                // progress for GD: candidate turns
+                if (data.round_progress) {
+                    updateRoundProgress(data.round_progress.round_question_count || 0, data.round_progress.round_question_limit || 4, data.current_round);
+                }
+                if (data.gd_complete) {
+                    isGDRound = false;
+                    // show GD scores
+                    const sc = data.gd_scores || {};
+                    setTimeout(() => {
+                        addAIMessage(`GD Complete! Scores — Initiative:${sc.initiative} Listening:${sc.listening} Clarity:${sc.clarity} Collaboration:${sc.collaboration} Balance:${sc.balance} (${sc.dominance_label}) — ${sc.feedback||''}`, 'medium');
+                    }, delay+200);
+                    // handle session complete vs next round
+                    if (data.is_complete) {
+                        interviewComplete = true;
+                        stopQuestionTimer();
+                        setTimeout(() => {
+                            addAIMessage(data.completion?.message || 'Interview complete! Redirecting to report...','');
+                            setTimeout(()=> window.location.href = data.completion?.report_url || '/report/'+sessionId, 2000);
+                        }, delay+600);
+                        return;
+                    }
+                    // round transition to next round
+                    if (data.round_transition) {
+                        currentRoundIndex = roundsData.findIndex(r=> r.name===data.current_round?.name);
+                        if (currentRoundIndex<0) currentRoundIndex++;
+                        renderRoundStepper(roundsData, currentRoundIndex);
+                        addTransitionBanner(data.round_transition.message||'Starting next round...');
+                        showRoundFocus(data.current_round, false);
+                        updateRoundBadge(currentRoundIndex, totalRounds, data.current_round);
+                    }
+                    // hide GD banner
+                    const gdBanner = document.getElementById('gd-topic-banner');
+                    if (gdBanner) gdBanner.style.display='none';
+                    // next question if any
+                    setTimeout(() => {
+                        if (data.next_question) {
+                            if (data.is_aptitude) {
+                                isAptitudeRound=true; aptitudeTotal=data.aptitude_total||10;
+                                addAIQuestionMessage(data.next_question,'medium');
+                                switchToAptitudeMode(data.next_question);
+                            } else {
+                                addAIQuestionMessage(data.next_question, data.difficulty||'medium');
+                                setDifficulty(data.difficulty||'medium');
+                                startQuestionTimer(120);
+                            }
+                        }
+                        isProcessing=false; enableInput(true);
+                    }, delay+800);
+                    return;
+                }
+                // GD not complete — re-enable for next candidate turn
+                setTimeout(() => { isProcessing=false; enableInput(true); startQuestionTimer(60); }, delay+200);
                 return;
             }
 
@@ -1232,6 +1314,7 @@ function initInterview() {
     function getRoundIcon(roundName, roundType) {
         var name = (roundName || '').toLowerCase();
         var type = (roundType || '').toLowerCase();
+        if (name.includes('group') || type === 'gd') return '&#x1f465;';
         if (name.includes('resume') || name.includes('hr')) return '&#x1f4cb;';
         if (name.includes('aptitude') || type === 'aptitude') return '&#x1f4ca;';
         if (name.includes('technical') || type === 'technical') return '&#x1f4bb;';
@@ -1685,6 +1768,38 @@ let aptitudeCurrentOptions = [];
 let roundsData = [];
 let currentRoundIndex = 0;
 let totalRounds = 1;
+let isGDRound = false;
+let gdTopic = '';
+let gdPersonas = [];
+let gdTranscript = [];
+function showGDTopic(topic, personas){
+    const banner = document.getElementById('gd-topic-banner');
+    const txt = document.getElementById('gd-topic-text');
+    const bar = document.getElementById('gd-personas-bar');
+    if (!banner || !txt) return;
+    txt.textContent = topic || '';
+    if (bar){
+        bar.innerHTML = '';
+        (personas||[]).forEach((p,i)=>{
+            const pill = document.createElement('span');
+            pill.className = 'gd-persona-pill gd-persona-'+(i%3);
+            pill.textContent = p.name || 'Persona '+(i+1);
+            pill.title = p.stance||'';
+            bar.appendChild(pill);
+        });
+    }
+    banner.style.display = 'block';
+}
+function addGDMessage(name, text, idx){
+    const container = document.getElementById('messages');
+    if (!container) return;
+    const div = document.createElement('div');
+    const personaIdx = (typeof idx==='number'? idx%3 : 0);
+    div.className = 'message ai gd-turn-ai-'+personaIdx;
+    div.innerHTML = '<div class=\"message-avatar\" style=\"background:rgba(99,102,241,0.12);\">💬</div><div class=\"message-content\"><div style=\"font-size:0.72rem;font-weight:700;color:var(--text-muted);margin-bottom:0.25rem;\">'+escapeHtml(name||'Participant')+'</div><div class=\"message-bubble gd-bubble\">'+escapeHtml(text||'')+'</div></div>';
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+}
 
 function parseAptitudeQuestion(text) {
     if (!text) return { questionText: '', options: [] };

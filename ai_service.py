@@ -1638,3 +1638,132 @@ def check_groq_health() -> dict:
 def check_ollama_health() -> dict:
     """Deprecated alias for check_groq_health — kept for backward compat."""
     return check_groq_health()
+
+
+# ── Group Discussion (GD) — 3 persona simulation ────────────────────────────
+
+GD_ENABLED = os.environ.get("GD_ENABLED", "1") not in ("0", "false", "False")
+GD_ALLOWED_COMPANIES = {"tcs", "infosys", "wipro"}
+
+GD_FALLBACK_TOPIC = "Should AI replace human teachers in classrooms?"
+GD_FALLBACK_PERSONAS = [
+    {"name": "Aarav (Pragmatist)", "stance": "Pro-AI: efficiency, scale, data-driven", "style": "concise, fact-citing"},
+    {"name": "Neha (Humanist)", "stance": "Pro-human: empathy, creativity, mentorship", "style": "storytelling, acknowledges others"},
+    {"name": "Rohan (Moderator)", "stance": "Balanced, asks probing questions", "style": "turn-enforcer, summarises"},
+]
+
+
+def generate_gd_topic_and_personas(company: str = "General", role: str = "") -> dict:
+    """Generate a GD topic + 3 personas. Falls back deterministically if LLM offline."""
+    prompt = f"""Generate a Group Discussion topic + 3 diverse participant personas.
+
+Company: {company} | Role: {role}
+Topic should be debatable, not factual. Suit mass-recruiter GDs (abstract/social/tech ethics).
+Return JSON ONLY:
+{{
+  "topic": "Debatable statement (1 sentence)",
+  "personas": [
+    {{"name": "Name (Archetype)", "stance": "1-line viewpoint", "style": "speaking style"}},
+    {{"name": "Name (Archetype)", "stance": "...", "style": "..."}},
+    {{"name": "Name (Archetype)", "stance": "...", "style": "..."}}
+  ]
+}}
+Personas must be diverse: one pro, one con, one balanced/moderator. Names Indian, short."""
+
+    resp = _call_llm(prompt, "You are a GD topic designer. Output JSON only.", temperature=0.8)
+    if resp.startswith("[GROQ_") or resp.startswith("[OLLAMA_") or resp.startswith("[PARSE_"):
+        return {"topic": GD_FALLBACK_TOPIC, "personas": GD_FALLBACK_PERSONAS}
+    data = _extract_json(resp)
+    if data and data.get("topic") and isinstance(data.get("personas"), list) and len(data["personas"]) >= 3:
+        # normalise to 3
+        personas = []
+        for p in data["personas"][:3]:
+            personas.append({"name": str(p.get("name","Persona")), "stance": str(p.get("stance","")), "style": str(p.get("style",""))})
+        return {"topic": str(data["topic"]).strip(), "personas": personas}
+    return {"topic": GD_FALLBACK_TOPIC, "personas": GD_FALLBACK_PERSONAS}
+
+
+def generate_gd_turn(persona: dict, topic: str, transcript: list, candidate_name: str = "Candidate") -> str:
+    """Generate one AI persona's GD utterance (1-3 sentences)."""
+    hist = "\n".join([f"{t.get('speaker','')}: {t.get('text','')[:180]}" for t in transcript[-6:]])
+    prompt = f"""Group Discussion — Topic: "{topic}"
+You are {persona.get('name')} ({persona.get('stance')}) — style: {persona.get('style')}.
+Conversation so far:
+{hist if hist else '(start — you speak first after topic intro)'}
+
+Speak as {persona['name']} in 1-3 sentences: make ONE point, optionally acknowledge previous speaker. Do NOT be candidate. Output ONLY your spoken text."""
+    resp = _call_llm(prompt, f"You are {persona['name']}. Speak naturally in a GD.", temperature=0.85)
+    if resp.startswith("[GROQ_") or resp.startswith("[OLLAMA_") or resp.startswith("[PARSE_"):
+        # deterministic fallback
+        fallbacks = {
+            "Aarav": "I think technology at scale can solve access and personalisation that humans alone can't match.",
+            "Neha": "But learning is human — empathy and mentorship can't be replaced by models.",
+            "Rohan": f"What do you think, {candidate_name}? How would you balance both views?",
+        }
+        for k in fallbacks:
+            if k.lower() in persona.get("name","").lower():
+                return fallbacks[k]
+        return "I agree partially, but we should consider long-term impact on equity."
+    # strip any persona prefix the model adds
+    resp = re.sub(r"^\s*[^:]{0,24}:\s*", "", resp).strip().strip('"')
+    return resp[:400]
+
+
+def evaluate_gd(transcript: list, topic: str) -> dict:
+    """Score GD on 5 dimensions. transcript: [{speaker, text}] including candidate turns."""
+    candidate_texts = [t["text"] for t in transcript if t.get("speaker")=="candidate"]
+    candidate_joined = " ".join(candidate_texts)
+    total_turns = len(transcript)
+    cand_turns = len(candidate_texts)
+    ratio = cand_turns / max(total_turns, 1)
+    # talk-time proxy via word count
+    all_words = sum(len(t.get("text","").split()) for t in transcript)
+    cand_words = sum(len(t.split()) for t in candidate_texts)
+    word_ratio = cand_words / max(all_words, 1)
+
+    # fallback rubric (deterministic)
+    def fallback_scores():
+        mentions = sum(1 for txt in candidate_texts if any(n.lower() in txt.lower() for n in ["aarav","neha","rohan","you mentioned","as said"]))
+        init = 6 + min(2, len(candidate_texts)) + (1 if len(candidate_joined.split())>40 else 0)
+        listening = 5 + min(3, mentions*1.5) + (1 if "agree" in candidate_joined.lower() or "build" in candidate_joined.lower() else 0)
+        clarity = 6 + (1 if len(candidate_joined.split())>30 else -1) + (1 if "." in candidate_joined else 0)
+        collab = 5 + min(3, mentions) 
+        balance = 8 - abs(ratio - 0.25)*20  # 25% ideal, penalise passive/dominating
+        # clamp
+        def cl(v): return max(1, min(10, int(round(v))))
+        return {"initiative": cl(init), "listening": cl(listening), "clarity": cl(clarity), "collaboration": cl(collab), "balance": cl(balance)}
+
+    if not candidate_texts:
+        fb = fallback_scores()
+        fb["feedback"] = "No participation detected — try to interject and build on others' points."
+        fb["dominance_label"] = "passive"
+        fb["word_ratio"] = round(word_ratio,2); fb["turn_ratio"] = round(ratio,2)
+        return fb
+
+    prompt = f"""Score this GD participation on 5 dims 0-10. Topic: "{topic}"
+Transcript:
+{chr(10).join([f"{t['speaker']}: {t['text'][:280]}" for t in transcript])}
+
+Candidate turns: {cand_turns}/{total_turns} (ratio {ratio:.2f}), word ratio {word_ratio:.2f}
+Score:
+- initiative: started/new points
+- listening: referenced others by name/idea
+- clarity: structured, example-driven
+- collaboration: encouraged/built
+- balance: 20-30% talk ideal — penalise dominating or passive
+Return JSON ONLY: {{"initiative":int,"listening":int,"clarity":int,"collaboration":int,"balance":int,"feedback":"1-2 lines","dominance_label":"balanced/passive/dominating"}}
+"""
+    resp = _call_llm(prompt, "You are a GD evaluator. Output JSON only.", temperature=0.3)
+    data = _extract_json(resp)
+    if data and all(k in data for k in ("initiative","listening","clarity","collaboration","balance")):
+        def cl(v): return max(1, min(10, int(round(float(v)))))
+        out = {k: cl(data[k]) for k in ("initiative","listening","clarity","collaboration","balance")}
+        out["feedback"] = str(data.get("feedback",""))[:300]
+        out["dominance_label"] = str(data.get("dominance_label","balanced")).lower()
+        out["word_ratio"] = round(word_ratio,2); out["turn_ratio"] = round(ratio,2)
+        return out
+    fb = fallback_scores()
+    fb["feedback"] = "Scored via fallback rubric (LLM offline)."
+    fb["dominance_label"] = "passive" if ratio<0.15 else "dominating" if ratio>0.45 else "balanced"
+    fb["word_ratio"] = round(word_ratio,2); fb["turn_ratio"] = round(ratio,2)
+    return fb

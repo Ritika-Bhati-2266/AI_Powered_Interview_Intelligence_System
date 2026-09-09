@@ -43,17 +43,20 @@ COMPANY_ROUNDS = {
         {"name": "HR Round", "type": "hr", "questions": 5, "duration_min": 30, "focus": "Culture fit, career goals"},
     ],
     "TCS": [
+        {"name": "Group Discussion", "type": "gd", "questions": 1, "duration_min": 10, "focus": "Abstract GD - structure, listening, initiative"},
         {"name": "Aptitude Test", "type": "aptitude", "questions": 10, "duration_min": 30, "focus": "Quantitative, Logical Reasoning, Verbal Ability"},
         {"name": "Technical Round", "type": "coding", "questions": 3, "duration_min": 45, "focus": "Basic DSA, OOP, SQL"},
         {"name": "Managerial Round", "type": "technical", "questions": 3, "duration_min": 30, "focus": "Project discussion, basic concepts"},
         {"name": "HR Round", "type": "hr", "questions": 5, "duration_min": 20, "focus": "Communication, willingness to relocate"},
     ],
     "Infosys": [
+        {"name": "Group Discussion", "type": "gd", "questions": 1, "duration_min": 10, "focus": "Group Discussion - collaboration, clarity, balanced participation"},
         {"name": "Aptitude Test", "type": "aptitude", "questions": 10, "duration_min": 30, "focus": "Quantitative, Logical Reasoning, Verbal Ability"},
         {"name": "Technical Round", "type": "coding", "questions": 3, "duration_min": 45, "focus": "Basic DSA, OOP, SQL, Java/Python basics"},
         {"name": "HR Round", "type": "hr", "questions": 5, "duration_min": 20, "focus": "Communication, background, motivation"},
     ],
     "Wipro": [
+        {"name": "Group Discussion", "type": "gd", "questions": 1, "duration_min": 10, "focus": "Group Discussion - initiative, listening, structure"},
         {"name": "Aptitude Test", "type": "aptitude", "questions": 10, "duration_min": 30, "focus": "Quantitative, Logical Reasoning, Verbal Ability"},
         {"name": "Technical Round", "type": "coding", "questions": 3, "duration_min": 45, "focus": "Basic DSA, programming fundamentals"},
         {"name": "HR Round", "type": "hr", "questions": 5, "duration_min": 20, "focus": "Communication, culture fit"},
