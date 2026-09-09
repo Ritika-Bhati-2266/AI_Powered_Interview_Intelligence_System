@@ -43,12 +43,12 @@
         <div class="container navbar-container">
             <a href="/" class="navbar-brand">
                 <span class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;color:#fff;"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
                 </span>
                 <span class="text-gradient-indigo">AI Interview Coach</span>
             </a>
             <div class="navbar-links">
-                <a href="/" class="nav-link-btn">New Interview</a>
+                <a href="/" class="nav-link-btn">New Session</a>
             </div>
         </div>
     </nav>
@@ -203,11 +203,11 @@
                                 {% for session in data.sessions %}
                                 <tr>
                                     <td class="date-cell">{{ session.created_at[:10] if session.created_at else 'N/A' }}</td>
-                                    <td><span class="mode-badge mode-{{ session.mode }}">{{ session.mode|capitalize if session.mode else 'N/A' }}</span></td>
+                                    <td><span class="pill-badge pill-badge-sm badge-indigo">{{ session.mode|capitalize if session.mode else 'N/A' }}</span></td>
                                     <td class="count-cell">{{ session.completed_questions or 0 }} / {{ session.total_questions or 0 }}</td>
                                     <td>
                                         {% set ovr = session.overall_score %}
-                                        <span class="badge-pill {% if ovr >= 8 %}badge-green{% elif ovr >= 6 %}badge-amber{% else %}badge-red{% endif %}">
+                                        <span class="pill-badge pill-badge-sm {% if ovr >= 8 %}badge-emerald{% elif ovr >= 6 %}badge-amber{% else %}badge-rose{% endif %}">
                                             {{ '%.1f'|format(ovr) if ovr else '--' }}
                                         </span>
                                     </td>
@@ -221,7 +221,7 @@
                         </table>
                     </div>
                     {% else %}
-                    <div class="empty-state-sub">No interview sessions found.</div>
+                    <div class="empty-state-sub" style="text-align:center;padding:2rem;color:var(--text-muted);">No interview sessions found.</div>
                     {% endif %}
                 </div>
             </div>
@@ -234,10 +234,10 @@
                     </div>
                 </div>
                 <div class="card-body" id="comparison-content">
-                    <div class="skeleton-pulse">
-                        <div class="skeleton-line"></div>
-                        <div class="skeleton-line" style="width:80%;"></div>
-                        <div class="skeleton-line" style="width:60%;"></div>
+                    <div class="skeleton-pulse" style="padding:1rem;">
+                        <div class="skeleton-line" style="height:12px;background:var(--bg-input);margin-bottom:0.5rem;border-radius:4px;"></div>
+                        <div class="skeleton-line" style="height:12px;background:var(--bg-input);width:80%;margin-bottom:0.5rem;border-radius:4px;"></div>
+                        <div class="skeleton-line" style="height:12px;background:var(--bg-input);width:60%;border-radius:4px;"></div>
                     </div>
                 </div>
             </div>
@@ -251,15 +251,15 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="qa-recent-list">
+                    <div class="qa-recent-list" style="display:flex;flex-direction:column;gap:1rem;">
                         {% for ans in data.recent_answers[:5] %}
-                        <div class="qa-recent-item">
-                            <div class="qa-recent-header flex-between">
-                                <span class="qa-recent-question"><strong>Q:</strong> {{ ans.question[:130] }}{% if ans.question|length > 130 %}...{% endif %}</span>
+                        <div class="qa-recent-item" style="padding:1rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                            <div class="qa-recent-header flex-between" style="margin-bottom:0.5rem;">
+                                <span class="qa-recent-question" style="font-weight:600;color:var(--text-primary);"><strong>Q:</strong> {{ ans.question[:130] }}{% if ans.question|length > 130 %}...{% endif %}</span>
                                 {% set ans_ovr = ans.overall_score %}
-                                <span class="badge-pill {% if ans_ovr >= 8 %}badge-green{% elif ans_ovr >= 6 %}badge-amber{% else %}badge-red{% endif %}">Score: {{ ans_ovr }}</span>
+                                <span class="pill-badge pill-badge-sm {% if ans_ovr >= 8 %}badge-emerald{% elif ans_ovr >= 6 %}badge-amber{% else %}badge-rose{% endif %}">Score: {{ ans_ovr }}</span>
                             </div>
-                            <div class="qa-recent-answer">{{ ans.answer[:180] }}{% if ans.answer|length > 180 %}...{% endif %}</div>
+                            <div class="qa-recent-answer" style="font-size:0.88rem;color:var(--text-secondary);">{{ ans.answer[:180] }}{% if ans.answer|length > 180 %}...{% endif %}</div>
                         </div>
                         {% endfor %}
                     </div>
@@ -268,13 +268,13 @@
             {% endif %}
 
             {% else %}
-            <div class="empty-state-card">
-                <div class="empty-state-icon">
+            <div class="empty-state-card" style="text-align:center;padding:4rem 2rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-xl);margin-top:2rem;">
+                <div class="empty-state-icon" style="margin-bottom:1.5rem;">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="width:72px;height:72px;color:var(--text-muted);"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                 </div>
-                <h1 class="text-gradient" style="font-size:2.2rem;font-family:'Space Grotesk',sans-serif;">Your Journey Starts Here</h1>
-                <p style="font-size:1.05rem;max-width:480px;margin:0.5rem auto;">No data recorded yet. Launch your first interview session and let AI coach you through every round with real-time feedback and deep analytics.</p>
-                <a href="/" class="btn btn-primary btn-lg" style="margin-top:1.5rem;">
+                <h1 class="text-gradient" style="font-size:2.5rem;font-family:'Space Grotesk',sans-serif;">Your Journey Starts Here</h1>
+                <p style="font-size:1.05rem;max-width:520px;margin:0.75rem auto 1.5rem auto;color:var(--text-secondary);">No data recorded yet. Launch your first interview session and let AI coach you through every round with real-time feedback and deep analytics.</p>
+                <a href="/" class="btn btn-primary btn-lg">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Start Your First Interview
                     <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>

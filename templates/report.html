@@ -46,7 +46,7 @@
         <div class="container navbar-container">
             <a href="/" class="navbar-brand">
                 <span class="brand-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;color:var(--text-primary);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;color:#fff;"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
                 </span>
                 <span class="text-gradient-indigo">AI Interview Coach</span>
             </a>
@@ -84,52 +84,54 @@
                                 <span class="ring-score {% if report.overall_score >= 8 %}color-emerald{% elif report.overall_score >= 6 %}color-amber{% else %}color-rose{% endif %}">
                                     {{ report.overall_score }}
                                 </span>
-                                <span class="ring-label">out of 10</span>
+                                <span class="ring-label" style="font-size:0.85rem;color:var(--text-muted);">out of 10</span>
                             </div>
                         </div>
                     </div>
                     <div class="hero-details">
-                        <div class="profile-header-row">
+                        <div class="profile-header-row" style="display:flex;align-items:center;gap:1rem;margin-bottom:0.75rem;">
                             <h1 class="text-gradient-indigo" style="font-family:'Space Grotesk',sans-serif;font-size:2.5rem;">{{ report.candidate_info.name }}</h1>
                             <span class="pill-badge pill-badge-lg {% if report.grade == 'A+' %}pill-gradient{% elif report.grade == 'A' %}badge-emerald{% elif report.grade == 'B+' %}badge-indigo{% elif report.grade == 'B' %}badge-violet{% elif report.grade == 'C' %}badge-amber{% else %}badge-rose{% endif %}">
                                 {% if report.grade == 'A+' %}&#x1f3c6;{% elif report.grade == 'A' %}&#x2605;{% elif report.grade == 'B+' %}&#x25b2;{% elif report.grade == 'B' %}&#x25c6;{% elif report.grade == 'C' %}&#x25cf;{% else %}&#x25bc;{% endif %}
-                                {{ report.grade }}
+                                Grade {{ report.grade }}
                             </span>
                         </div>
-                        <div class="candidate-meta-badges">
+                        <div class="candidate-meta-badges" style="display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1rem;">
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> {{ report.candidate_info.role }}</span>
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg> {{ report.session_data.mode|capitalize if report.session_data.mode else 'Technical' }}</span>
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> {{ report.total_questions }} Questions</span>
                             <span class="pill-badge pill-badge-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> <span id="session-duration">{{ report.session_data.duration }}s duration</span></span>
                         </div>
-                        <div class="star-rating">
+                        <div class="star-rating" style="display:flex;align-items:center;gap:0.25rem;">
                             {% for i in range(1,6) %}
-                            <span class="star {% if i <= report.star_rating %}filled{% endif %}">&#x2605;</span>
+                            <span class="star {% if i <= report.star_rating %}filled{% endif %}" style="font-size:1.25rem;color:{% if i <= report.star_rating %}#f59e0b{% else %}var(--border-color){% endif %};">&#x2605;</span>
                             {% endfor %}
-                            <span class="star-text-value">{{ report.overall_score }}/10 baseline</span>
+                            <span class="star-text-value" style="font-size:0.85rem;color:var(--text-secondary);margin-left:0.5rem;">{{ report.overall_score }}/10 baseline</span>
                         </div>
                     </div>
                 </div>
 
                 {% if report.summary %}
-                <div class="summary-box">
-                    <p class="summary-paragraph">{{ report.summary }}</p>
+                <div class="summary-box" style="margin-top:1.5rem;padding:1.25rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                    <p class="summary-paragraph" style="margin:0;font-size:0.95rem;line-height:1.6;color:var(--text-secondary);">{{ report.summary }}</p>
                 </div>
                 {% endif %}
 
-                <div class="readiness-meter-wrapper">
+                <div class="readiness-meter-wrapper" style="margin-top:1.5rem;">
                     <div class="readiness-container">
-                        <span class="readiness-title">Interview Readiness Score</span>
+                        <div class="flex-between" style="margin-bottom:0.4rem;">
+                            <span class="readiness-title" style="font-weight:700;font-size:0.9rem;">Interview Readiness Score</span>
+                            <span class="readiness-label" style="font-weight:800;font-family:var(--font-mono);color:var(--accent-indigo);">{{ report.readiness_score }}%</span>
+                        </div>
                         <div class="readiness-bar">
                             <div class="readiness-fill" data-width="{{ report.readiness_score }}%" style="width:0%;"></div>
                         </div>
-                        <span class="readiness-label">{{ report.readiness_score }}%</span>
                     </div>
                 </div>
             </div>
 
-            <div class="motivational-banner-premium {% if report.overall_score >= 8 %}banner-excellent{% elif report.overall_score >= 6 %}banner-good{% elif report.overall_score >= 4 %}banner-average{% else %}banner-needs-work{% endif %}">
-                <div class="motivational-icon-wrapper">
+            <div class="motivational-banner-premium {% if report.overall_score >= 8 %}banner-excellent{% elif report.overall_score >= 6 %}banner-good{% elif report.overall_score >= 4 %}banner-average{% else %}banner-needs-work{% endif %}" style="margin-bottom:2rem;padding:1.25rem 1.5rem;background:var(--bg-card);border:1px solid var(--border-color);border-radius:var(--radius-lg);display:flex;align-items:center;gap:1rem;">
+                <div class="motivational-icon-wrapper" style="color:var(--accent-indigo);">
                     {% if report.overall_score >= 8 %}
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5C7 4 7 7 10 7V4.5a2.5 2.5 0 0 1 5 0V7c3 0 3-3 4.5-3a2.5 2.5 0 0 1 0 5H18"/><path d="M6 15h1.5a2.5 2.5 0 0 1 0 5C7 20 7 17 10 17v2.5a2.5 2.5 0 0 0 5 0V17c3 0 3 3 4.5 3a2.5 2.5 0 0 0 0-5H18"/></svg>
                     {% elif report.overall_score >= 6 %}
@@ -140,10 +142,10 @@
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="12" x2="12" y2="16"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                     {% endif %}
                 </div>
-                <div class="motivational-message">{{ report.motivational }}</div>
+                <div class="motivational-message" style="font-weight:600;font-size:0.95rem;color:var(--text-primary);">{{ report.motivational }}</div>
             </div>
 
-            <div class="report-analysis-grid">
+            <div class="report-analysis-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
                 <div class="card card-accent-indigo card-depth" style="animation:fadeUp 0.5s ease 0.1s both">
                     <div class="card-header">
                         <div class="card-header-icon">
@@ -160,16 +162,16 @@
                             ('Time Management', 'time_management_score'),
                             ('Conceptual Clarity', 'conceptual_clarity_score'),
                         ] %}
-                        <div class="competency-bars-container">
+                        <div class="competency-bars-container" style="display:flex;flex-direction:column;gap:1.25rem;">
                             {% for label, field in score_fields %}
                             {% set val = report.get(field, 0) %}
                             <div class="competency-bar-item">
-                                <div class="competency-bar-meta flex-between">
-                                    <span class="competency-name">{{ label }}</span>
-                                    <span class="competency-score" style="color:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">{{ val }} / 10</span>
+                                <div class="competency-bar-meta flex-between" style="margin-bottom:0.35rem;">
+                                    <span class="competency-name" style="font-weight:600;font-size:0.88rem;color:var(--text-primary);">{{ label }}</span>
+                                    <span class="competency-score" style="font-family:var(--font-mono);font-weight:700;font-size:0.88rem;color:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};">{{ val }} / 10</span>
                                 </div>
-                                <div class="bar-track">
-                                    <div class="bar-fill" data-width="{{ val * 10 }}%" style="width:0%; background:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};"></div>
+                                <div class="bar-track" style="height:8px;background:var(--bg-input);border-radius:4px;overflow:hidden;">
+                                    <div class="bar-fill" data-width="{{ val * 10 }}%" style="height:100%;width:0%; transition:width 1s ease; background:{% if val >= 8 %}var(--accent-emerald){% elif val >= 6 %}var(--accent-amber){% else %}var(--accent-rose){% endif %};"></div>
                                 </div>
                             </div>
                             {% endfor %}
@@ -193,21 +195,21 @@
                             ('Average (4-5)', dist['average (4-5)'], 'var(--accent-amber)'),
                             ('Needs Improvement (0-3)', dist['needs improvement (0-3)'], 'var(--accent-rose)'),
                         ] %}
-                        <div class="distribution-bars">
+                        <div class="distribution-bars" style="display:flex;flex-direction:column;gap:1.25rem;">
                             {% for label, count, color in dist_items %}
                             <div class="dist-bar-row">
-                                <div class="dist-meta flex-between">
-                                    <span class="dist-label-text">{{ label }}</span>
+                                <div class="dist-meta flex-between" style="margin-bottom:0.35rem;">
+                                    <span class="dist-label-text" style="font-weight:600;font-size:0.88rem;color:var(--text-primary);">{{ label }}</span>
                                     <span class="pill-badge pill-badge-sm {% if 'Excellent' in label %}badge-emerald{% elif 'Good' in label %}badge-indigo{% elif 'Average' in label %}badge-amber{% else %}badge-rose{% endif %}">{{ count }} question{% if count != 1 %}s{% endif %}</span>
                                 </div>
-                                <div class="dist-bar-track">
-                                    <div class="dist-bar-fill" data-width="{{ (count / max_count) * 100 }}" style="width:0%; background:{{ color }};"></div>
+                                <div class="dist-bar-track" style="height:8px;background:var(--bg-input);border-radius:4px;overflow:hidden;">
+                                    <div class="dist-bar-fill" data-width="{{ (count / max_count) * 100 }}" style="height:100%;width:0%; transition:width 1s ease; background:{{ color }};"></div>
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
                         {% else %}
-                        <div class="empty-analytics-msg">No distribution data available.</div>
+                        <div class="empty-analytics-msg" style="text-align:center;padding:2rem;color:var(--text-muted);">No distribution data available.</div>
                         {% endif %}
                     </div>
                 </div>
@@ -222,7 +224,7 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <div class="weak-tags-grid">
+                    <div class="weak-tags-grid" style="display:flex;gap:0.75rem;flex-wrap:wrap;margin-bottom:1rem;">
                         {% for wa in report.weak_areas[:4] %}
                         <span class="pill-badge edge-builder-pill badge-pink">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
@@ -231,7 +233,7 @@
                         </span>
                         {% endfor %}
                     </div>
-                    <p class="weak-tip-text">
+                    <p class="weak-tip-text" style="font-size:0.88rem;color:var(--text-secondary);margin:0;">
                         Targeted preparation in these areas will maximize your improvement and deliver the strongest return on effort for your overall interview readiness.
                     </p>
                 </div>
@@ -247,32 +249,32 @@
                 </div>
                 <div class="card-body">
                     {% if report.answers %}
-                    <div class="qa-analysis-list">
+                    <div class="qa-analysis-list" style="display:flex;flex-direction:column;gap:1.5rem;">
                         {% for qa in report.answers %}
-                        <div class="qa-analysis-card">
-                            <div class="qa-analysis-header flex-between">
-                                <div class="qa-title-block">
-                                    <span class="qa-num-badge">Q{{ qa.number }}</span>
-                                    <span class="qa-question-content">{{ qa.question }}</span>
+                        <div class="qa-analysis-card" style="padding:1.5rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                            <div class="qa-analysis-header flex-between" style="margin-bottom:1rem;">
+                                <div class="qa-title-block" style="display:flex;align-items:center;gap:0.75rem;">
+                                    <span class="pill-badge badge-indigo pill-badge-sm">Q{{ qa.number }}</span>
+                                    <span class="qa-question-content" style="font-weight:700;font-size:1rem;color:var(--text-primary);">{{ qa.question }}</span>
                                 </div>
-                                <div class="qa-meta-badges">
-                                    <span class="badge-difficulty diff-{{ qa.difficulty }}">{{ qa.difficulty }}</span>
+                                <div class="qa-meta-badges" style="display:flex;gap:0.5rem;">
+                                    <span class="pill-badge pill-badge-sm">{{ qa.difficulty }}</span>
                                     {% set qa_score = qa.overall_score %}
-                                    <span class="badge-pill {% if qa_score >= 8 %}badge-green{% elif qa_score >= 6 %}badge-amber{% else %}badge-red{% endif %}">Score: {{ qa_score }}/10</span>
+                                    <span class="pill-badge pill-badge-sm {% if qa_score >= 8 %}badge-emerald{% elif qa_score >= 6 %}badge-amber{% else %}badge-rose{% endif %}">Score: {{ qa_score }}/10</span>
                                 </div>
                             </div>
-                            <div class="qa-block qa-user-answer">
-                                <strong>Your Answer:</strong>
-                                <p>{{ qa.answer }}</p>
+                            <div class="qa-block qa-user-answer" style="margin-bottom:1rem;padding:1rem;background:var(--bg-card);border:1px solid var(--border-subtle);border-radius:var(--radius-sm);">
+                                <strong style="color:var(--accent-indigo);font-size:0.85rem;text-transform:uppercase;">Your Answer:</strong>
+                                <p style="margin:0.25rem 0 0 0;font-size:0.92rem;color:var(--text-primary);">{{ qa.answer }}</p>
                             </div>
-                            <div class="qa-critique-grid">
+                            <div class="qa-critique-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
                                 {% if qa.strengths %}
-                                <div class="critique-column strengths-col">
-                                    <div class="critique-header">
+                                <div class="critique-column strengths-col" style="padding:1rem;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.2);border-radius:var(--radius-sm);">
+                                    <div class="critique-header" style="font-weight:700;font-size:0.85rem;color:var(--accent-emerald);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.35rem;">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><polyline points="20 6 9 17 4 12"/></svg>
                                         Key Strengths
                                     </div>
-                                    <ul class="critique-list">
+                                    <ul class="critique-list" style="margin:0;padding-left:1.2rem;font-size:0.85rem;color:var(--text-secondary);">
                                         {% for s in qa.strengths %}
                                         <li>{{ s }}</li>
                                         {% endfor %}
@@ -280,12 +282,12 @@
                                 </div>
                                 {% endif %}
                                 {% if qa.weaknesses %}
-                                <div class="critique-column weaknesses-col">
-                                    <div class="critique-header">
+                                <div class="critique-column weaknesses-col" style="padding:1rem;background:rgba(244,63,94,0.06);border:1px solid rgba(244,63,94,0.2);border-radius:var(--radius-sm);">
+                                    <div class="critique-header" style="font-weight:700;font-size:0.85rem;color:var(--accent-rose);margin-bottom:0.5rem;display:flex;align-items:center;gap:0.35rem;">
                                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                                         Gaps Identified
                                     </div>
-                                    <ul class="critique-list">
+                                    <ul class="critique-list" style="margin:0;padding-left:1.2rem;font-size:0.85rem;color:var(--text-secondary);">
                                         {% for w in qa.weaknesses %}
                                         <li>{{ w }}</li>
                                         {% endfor %}
@@ -293,217 +295,31 @@
                                 </div>
                                 {% endif %}
                             </div>
-                            {% if qa.keywords_used or qa.keywords_missed %}
-                            <div class="keywords-analysis-block">
-                                <div class="keywords-list">
-                                    {% for kw in qa.keywords_used[:4] %}
-                                    <span class="keyword-pill keyword-used">&#x2713; {{ kw }}</span>
-                                    {% endfor %}
-                                    {% for kw in qa.keywords_missed[:3] %}
-                                    <span class="keyword-pill keyword-missed">&#x2717; {{ kw }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            {% endif %}
                             {% if qa.ideal_answer or qa.improved_answer %}
-                            <div class="ideal-answer-box">
-                                <div class="ideal-answer-header">
+                            <div class="ideal-answer-box" style="padding:1rem;background:rgba(99,102,241,0.06);border:1px solid rgba(99,102,241,0.2);border-radius:var(--radius-sm);margin-bottom:1rem;">
+                                <div class="ideal-answer-header" style="font-weight:700;font-size:0.85rem;color:var(--accent-indigo);margin-bottom:0.35rem;">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;display:inline-block;vertical-align:middle;margin-right:4px;"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
                                     Benchmark Answer Suggestion
                                 </div>
-                                <p>{{ qa.ideal_answer or qa.improved_answer }}</p>
+                                <p style="margin:0;font-size:0.9rem;color:var(--text-primary);line-height:1.5;">{{ qa.ideal_answer or qa.improved_answer }}</p>
                             </div>
                             {% endif %}
                             {% if qa.feedback %}
-                            <div class="feedback-summary-box">
+                            <div class="feedback-summary-box" style="font-size:0.88rem;color:var(--text-secondary);">
                                 <strong>Feedback summary:</strong> {{ qa.feedback }}
-                            </div>
-                            {% endif %}
-                            {% if qa.improvement_tip %}
-                            <div class="actionable-tip-box">
-                                <span class="tip-tag">Practice Tip</span>
-                                <p>{{ qa.improvement_tip }}</p>
                             </div>
                             {% endif %}
                         </div>
                         {% endfor %}
                     </div>
                     {% else %}
-                    <div class="empty-state-sub">No answers were logged during this session.</div>
+                    <div class="empty-state-sub" style="text-align:center;padding:2rem;color:var(--text-muted);">No answers were logged during this session.</div>
                     {% endif %}
                 </div>
             </div>
-
-            {% if report.has_rewrites %}
-            <div class="card card-accent-emerald card-depth" style="margin-bottom:2rem;animation:fadeUp 0.5s ease 0.5s both">
-                <div class="card-header flex-between">
-                    <div class="card-header-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-                        <h3>Answer Optimizations</h3>
-                    </div>
-                    <span class="pill-badge pill-badge-sm badge-emerald" style="cursor:default;">{{ report.rewrite_count }} answers optimized</span>
-                </div>
-                <div class="card-body">
-                    <div class="rewrite-summary-cards">
-                        <div class="rewrite-stat-card">
-                            <span class="rewrite-stat-label">Total Answers Rewritten</span>
-                            <span class="rewrite-stat-value">{{ report.rewrite_count }}</span>
-                        </div>
-                        <div class="rewrite-stat-card">
-                            <span class="rewrite-stat-label">Avg Improvement Delta</span>
-                            <span class="rewrite-stat-value color-emerald">{{ report.avg_rewrite_improvement }}</span>
-                        </div>
-                    </div>
-                    {% for rewrite in report.rewrites %}
-                    <div class="rewrite-item-card">
-                        <h4 class="rewrite-q-title">Q{{ loop.index }}: {{ rewrite.question[:100] }}...</h4>
-                        <div class="rewrite-comparison-grid">
-                            <div class="rewrite-side original-side">
-                                <div class="side-header">Original Attempt</div>
-                                <p class="side-text">"{{ rewrite.original_answer }}"</p>
-                                <div class="side-scores-chips">
-                                    {% for key, val in rewrite.original_scores.items() %}
-                                    <span class="score-chip {{ 'score-chip-overall' if key == 'overall_score' else '' }}">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                            <div class="rewrite-side optimized-side">
-                                <div class="side-header">Optimized Attempt</div>
-                                <p class="side-text">"{{ rewrite.rewritten_answer }}"</p>
-                                <div class="side-scores-chips">
-                                    {% for key, val in rewrite.rewritten_scores.items() %}
-                                    <span class="score-chip score-chip-active {{ 'score-chip-overall' if key == 'overall_score' else '' }}">{{ key|replace('_', ' ')|title }}: {{ val }}</span>
-                                    {% endfor %}
-                                </div>
-                            </div>
-                        </div>
-                        {% if rewrite.improvement %}
-                        <div class="improvement-deltas-row">
-                            <span class="delta-title">Metric Delta:</span>
-                            <div class="delta-chips">
-                                {% for key, delta in rewrite.improvement.items() %}
-                                <span class="delta-chip {% if delta > 0 %}delta-up{% elif delta < 0 %}delta-down{% else %}delta-flat{% endif %}">
-                                    {{ key|replace('_', ' ')|title }}: {% if delta > 0 %}+{% endif %}{{ delta }}
-                                </span>
-                                {% endfor %}
-                            </div>
-                        </div>
-                        {% endif %}
-                    </div>
-                    {% endfor %}
-                </div>
-            </div>
-            {% endif %}
-
-            {% if report.filler_word_stats %}
-            <div class="card card-accent-amber card-depth" style="margin-bottom:2rem;animation:fadeUp 0.5s ease 0.6s both">
-                <div class="card-header flex-between">
-                    <div class="card-header-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                        <h3>Speech Fluency Analysis</h3>
-                    </div>
-                    <span class="pill-badge pill-badge-sm badge-amber" style="cursor:default;">{{ report.filler_word_stats.total }} fillers flagged</span>
-                </div>
-                <div class="card-body">
-                    {% if report.filler_word_stats.by_question %}
-                    <div class="filler-questions-grid">
-                        {% for q_filler in report.filler_word_stats.by_question %}
-                        <div class="filler-question-row">
-                            <div class="filler-question-meta">
-                                <span class="fq-num">Q{{ q_filler.number }}</span>
-                                <span class="fq-text">{{ q_filler.question[:80] }}...</span>
-                            </div>
-                            <div class="filler-progress-track">
-                                <div class="filler-progress-bar" style="width:{{ (q_filler.count / report.filler_word_stats.max_count) * 100 }}%;"></div>
-                                <span class="filler-qty-label">{{ q_filler.count }} word(s)</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    <div class="filler-frequency-breakdown">
-                        <h5>High Frequency Fillers</h5>
-                        <div class="filler-chips-list">
-                            {% for word, count in report.filler_word_stats.breakdown.items() %}
-                            <span class="filler-frequency-chip">{{ word }}: <strong>{{ count }}</strong></span>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    <div class="speech-advice-box">
-                        <strong>Fluency Strategy:</strong> Reducing filler words directly boosts both your Communication and Confidence scores. Pause intentionally, slow your pace, and breathe between transitions for a more polished delivery.
-                    </div>
-                </div>
-            </div>
-            {% endif %}
-
-            {% if report.aptitude_data %}
-            <div class="card card-accent-indigo card-depth" style="margin-bottom:2rem;animation:fadeUp 0.5s ease 0.7s both">
-                <div class="card-header">
-                    <div class="card-header-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></svg>
-                        <h3>Cognitive Aptitude Results</h3>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <div class="aptitude-summary-block">
-                        <div class="aptitude-score-donut {% if report.aptitude_data.score >= 80 %}score-high{% elif report.aptitude_data.score >= 50 %}score-mid{% else %}score-low{% endif %}">
-                            <span class="donut-number">{{ report.aptitude_data.score_out_of_10 }}/10</span>
-                            <span class="donut-percentage">{{ report.aptitude_data.score }}% accuracy</span>
-                        </div>
-                        <div class="aptitude-stats-cards">
-                            <div class="apt-stat-mini">
-                                <span class="label">Correct Answers</span>
-                                <span class="value color-emerald">{{ report.aptitude_data.correct }}</span>
-                            </div>
-                            <div class="apt-stat-mini">
-                                <span class="label">Total Questions</span>
-                                <span class="value">{{ report.aptitude_data.total }}</span>
-                            </div>
-                            <div class="apt-stat-mini">
-                                <span class="label">Success Margin</span>
-                                <span class="value">{{ report.aptitude_data.score }}%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <h5 class="sub-section-title">Cognitive Domain Breakdown</h5>
-                    <div class="aptitude-category-row">
-                        {% for cat_name, cat_data in report.aptitude_data.category_breakdown.items() %}
-                        <div class="aptitude-category-badge">
-                            <span class="cat-name">{{ cat_name|replace('_', ' ')|title }}</span>
-                            <div class="cat-stats-row">
-                                <span class="cat-fraction">{{ cat_data.correct }}/{{ cat_data.total }}</span>
-                                <span class="cat-pct {% if cat_data.score >= 80 %}color-emerald{% elif cat_data.score >= 50 %}color-amber{% else %}color-rose{% endif %}">{{ cat_data.score }}%</span>
-                            </div>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    <h5 class="sub-section-title">Response Audit</h5>
-                    <div class="aptitude-audit-list">
-                        {% for q in report.aptitude_data.questions %}
-                        <div class="aptitude-audit-card {% if q.is_correct %}audit-correct{% else %}audit-incorrect{% endif %}">
-                            <div class="audit-header flex-between">
-                                <span class="audit-q-title">Q{{ q.number }}. {{ q.question }}</span>
-                                <span class="audit-status-badge">{% if q.is_correct %}&#x2713; Correct{% else %}&#x2717; Incorrect{% endif %}</span>
-                            </div>
-                            <div class="audit-comparison-row">
-                                <span><strong>Your Selection:</strong> {{ q.answer }}</span>
-                                <span><strong>Correct Solution:</strong> {{ q.correct_answer }}</span>
-                                <span><strong>Domain:</strong> {{ q.category|replace('_', ' ')|title }}</span>
-                            </div>
-                            {% if q.explanation %}
-                            <div class="audit-explanation">
-                                <strong>Explanation:</strong> {{ q.explanation }}
-                            </div>
-                            {% endif %}
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endif %}
 
             {% if report.skill_gaps %}
-            <div class="report-analysis-grid" style="margin-bottom:2rem;">
+            <div class="report-analysis-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:2rem;">
                 <div class="card card-accent-amber card-depth" style="animation:fadeUp 0.5s ease 0.8s both">
                     <div class="card-header">
                         <div class="card-header-icon">
@@ -512,16 +328,16 @@
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="gap-analysis-list">
+                        <div class="gap-analysis-list" style="display:flex;flex-direction:column;gap:1rem;">
                             {% for gap in report.skill_gaps %}
-                            <div class="gap-item-premium">
-                                <div class="gap-item-header flex-between">
-                                    <span class="gap-skill-name">{{ gap.skill }}</span>
+                            <div class="gap-item-premium" style="padding:1rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);">
+                                <div class="gap-item-header flex-between" style="margin-bottom:0.5rem;">
+                                    <span class="gap-skill-name" style="font-weight:700;color:var(--text-primary);">{{ gap.skill }}</span>
                                     <span class="pill-badge pill-badge-sm {% if gap.level == 'high' %}badge-rose{% elif gap.level == 'medium' %}badge-amber{% else %}badge-indigo{% endif %}">{{ gap.level|upper }} Priority</span>
                                 </div>
                                 <div class="gap-item-body">
-                                    <p class="gap-desc">{{ gap.gap }}</p>
-                                    <div class="gap-rec-box">
+                                    <p class="gap-desc" style="font-size:0.88rem;color:var(--text-secondary);margin-bottom:0.5rem;">{{ gap.gap }}</p>
+                                    <div class="gap-rec-box" style="font-size:0.85rem;color:var(--accent-indigo);font-weight:600;">
                                         <strong>Rec:</strong> {{ gap.recommendation }}
                                     </div>
                                 </div>
@@ -539,79 +355,29 @@
                     </div>
                     <div class="card-body">
                         {% if report.recommendations %}
-                        <div class="recommendations-list">
+                        <div class="recommendations-list" style="display:flex;flex-direction:column;gap:1rem;">
                             {% for rec in report.recommendations %}
-                            <div class="rec-card-premium">
-                                <div class="rec-icon-box">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;color:var(--accent-indigo);"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+                            <div class="rec-card-premium" style="padding:1rem;background:var(--bg-secondary);border:1px solid var(--border-color);border-radius:var(--radius-md);display:flex;gap:1rem;align-items:flex-start;">
+                                <div class="rec-icon-box" style="padding:0.5rem;background:rgba(99,102,241,0.15);border-radius:var(--radius-sm);color:var(--accent-indigo);">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
                                 </div>
                                 <div class="rec-details">
-                                    <h4>{{ rec.area }}</h4>
-                                    <p>{{ rec.description }}</p>
+                                    <h4 style="margin:0 0 0.25rem 0;font-size:0.95rem;">{{ rec.area }}</h4>
+                                    <p style="margin:0 0 0.5rem 0;font-size:0.85rem;color:var(--text-secondary);">{{ rec.description }}</p>
                                     <span class="pill-badge pill-badge-sm {% if rec.priority == 'high' %}badge-rose{% elif rec.priority == 'medium' %}badge-amber{% else %}badge-indigo{% endif %}">{{ rec.priority }} priority</span>
                                 </div>
                             </div>
                             {% endfor %}
                         </div>
                         {% else %}
-                        <div class="empty-analytics-msg">No specific educational recommendations generated.</div>
+                        <div class="empty-analytics-msg" style="text-align:center;padding:2rem;color:var(--text-muted);">No specific educational recommendations generated.</div>
                         {% endif %}
                     </div>
                 </div>
             </div>
             {% endif %}
 
-            {% if report.improvement_roadmap %}
-            <div class="card card-accent-indigo card-depth" style="margin-bottom:2rem;animation:fadeUp 0.5s ease 1s both">
-                <div class="card-header">
-                    <div class="card-header-icon">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="10" y1="2" x2="14" y2="2"/><line x1="12" y1="2" x2="12" y2="6"/><path d="M16 8h2a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V10a2 2 0 0 1 2-2h2"/><polyline points="9 14 12 17 16 13"/></svg>
-                        <h3>30-Day Performance Roadmap</h3>
-                    </div>
-                </div>
-                <div class="card-body">
-                    <p class="roadmap-intro-text">{{ report.improvement_roadmap.overall_advice }}</p>
-                    {% set roadmap = report.improvement_roadmap.roadmap %}
-                    {% if roadmap %}
-                    <div class="roadmap-timeline">
-                        {% for week_key in ['week_1', 'week_2', 'week_3', 'week_4'] %}
-                        {% set week = roadmap.get(week_key, {}) %}
-                        <div class="roadmap-week-card">
-                            <div class="roadmap-week-header flex-between">
-                                <span class="week-title-text">{{ week_key.replace('_', ' ').title() }}</span>
-                                <span class="pill-badge pill-badge-sm badge-indigo" style="cursor:default;">{{ week.focus }}</span>
-                            </div>
-                            <div class="week-goal-statement">
-                                <strong>Weekly Goal:</strong> {{ week.goal }}
-                            </div>
-                            <ul class="week-tasks-list">
-                                {% for task in week.daily_plan %}
-                                <li>{{ task }}</li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                    {% if report.improvement_roadmap.learning_resources %}
-                    <h5 class="sub-section-title">Reference Documentation & Tutorials</h5>
-                    <div class="roadmap-resources-grid">
-                        {% for res in report.improvement_roadmap.learning_resources %}
-                        <div class="resource-card-premium">
-                            <div class="resource-meta flex-between">
-                                <h4>{{ res.title }}</h4>
-                                <span class="pill-badge pill-badge-sm" style="cursor:default;">{{ res.type }}</span>
-                            </div>
-                            <p>{{ res.description }}</p>
-                        </div>
-                        {% endfor %}
-                    </div>
-                    {% endif %}
-                </div>
-            </div>
-            {% endif %}
-
-            <div class="report-cta-action-row">
+            <div class="report-cta-action-row" style="display:flex;justify-content:center;gap:1rem;margin-top:2.5rem;flex-wrap:wrap;">
                 <a href="/dashboard" class="btn btn-secondary btn-lg">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
                     Dashboard
@@ -620,13 +386,9 @@
                     Practice Again
                     <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                 </a>
-                <button onclick="window.print()" class="btn btn-accent btn-lg">
+                <button onclick="window.print()" class="btn btn-secondary btn-lg">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                     Print Report
-                </button>
-                <button id="copy-report-link" class="btn btn-secondary btn-lg">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                    Copy Link
                 </button>
             </div>
         </div>
@@ -635,7 +397,6 @@
 
     <script src="/static/script.js"></script>
     <script>
-        // Human-format the session duration (e.g. "184s" -> "3m 04s")
         (function() {
             var el = document.getElementById('session-duration');
             if (!el) return;
@@ -662,10 +423,6 @@
                 var width = bar.getAttribute("data-width") || "0%";
                 if (!width.endsWith("%") && !isNaN(width)) { width = width + "%"; }
                 bar.style.width = width;
-            });
-            document.querySelectorAll(".card, .report-hero-card, .qa-analysis-card, .gap-item-premium, .rec-card-premium, .rewrite-item-card, .roadmap-week-card, .resource-card-premium, .aptitude-audit-card, .filler-question-row").forEach(function(el) {
-                el.style.opacity = "1";
-                el.style.transform = "none";
             });
         }
         document.addEventListener("DOMContentLoaded", function() {
