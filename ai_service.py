@@ -1,6 +1,6 @@
 """
 AI Service Module
-Handles all communication with LLM providers (Groq cloud API or local Ollama).
+Handles all communication with Groq cloud LLM API.
 Provides prompt templates for question generation, evaluation, and reporting.
 """
 
@@ -12,20 +12,14 @@ import re
 
 from stt_service import detect_filler_words
 
-# ── Provider selection ──────────────────────────────────────────────────────────
-# Groq (cloud) is preferred when GROQ_API_KEY is set; otherwise falls back to Ollama (local).
+# ── Groq provider ─────────────────────────────────────────────────────────────
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
 
-# Ollama fallback (local dev)
-OLLAMA_BASE_URL = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "llama3.2:latest")
-OLLAMA_ENDPOINT = f"{OLLAMA_BASE_URL}/api/generate"
-
 MAX_RETRIES = 2
 RETRY_DELAY = 1  # seconds
-REQUEST_TIMEOUT = 120  # seconds (generation can be slow on CPU, cold-start delay)
+REQUEST_TIMEOUT = 120  # seconds
 
 
 def _call_groq(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
@@ -57,12 +51,12 @@ def _call_groq(prompt: str, system_prompt: str = None, temperature: float = 0.7)
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY)
                 continue
-            return "[OLLAMA_CONNECTION_ERROR] Cannot connect to Groq API. Check your internet connection."
+            return "[GROQ_CONNECTION_ERROR] Cannot connect to Groq API. Check your internet connection."
         except requests.exceptions.Timeout:
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY)
                 continue
-            return "[OLLAMA_TIMEOUT] Groq API request timed out."
+            return "[GROQ_TIMEOUT] Groq API request timed out."
         except requests.exceptions.RequestException as e:
             if attempt < MAX_RETRIES:
                 time.sleep(RETRY_DELAY)
@@ -72,60 +66,14 @@ def _call_groq(prompt: str, system_prompt: str = None, temperature: float = 0.7)
                 detail = e.response.json().get("error", {}).get("message", str(e))
             except Exception:
                 detail = str(e)
-            return f"[OLLAMA_ERROR] Groq API error: {detail}"
+            return f"[GROQ_ERROR] Groq API error: {detail}"
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             return f"[PARSE_ERROR] Could not parse Groq response: {str(e)}"
 
 
-def _call_ollama(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
-    """
-    Send a prompt to Ollama and return the raw text response.
-    Handles connection errors, timeouts, and malformed responses.
-    """
-    payload = {
-        "model": OLLAMA_MODEL,
-        "prompt": prompt,
-        "stream": False,
-        "temperature": temperature,
-        "num_predict": 2048,
-    }
-    if system_prompt:
-        payload["system"] = system_prompt
-
-    for attempt in range(MAX_RETRIES + 1):
-        try:
-            resp = requests.post(OLLAMA_ENDPOINT, json=payload, timeout=REQUEST_TIMEOUT)
-            resp.raise_for_status()
-            data = resp.json()
-            return data.get("response", "").strip()
-
-        except requests.exceptions.ConnectionError:
-            if attempt < MAX_RETRIES:
-                time.sleep(RETRY_DELAY)
-                continue
-            return "[OLLAMA_CONNECTION_ERROR] Cannot connect to Ollama. Ensure it's running (ollama serve)."
-        except requests.exceptions.Timeout:
-            if attempt < MAX_RETRIES:
-                time.sleep(RETRY_DELAY)
-                continue
-            return "[OLLAMA_TIMEOUT] The model took too long to respond. Try a smaller model."
-        except requests.exceptions.RequestException as e:
-            if attempt < MAX_RETRIES:
-                time.sleep(RETRY_DELAY)
-                continue
-            return f"[OLLAMA_ERROR] {str(e)}"
-        except (json.JSONDecodeError, KeyError) as e:
-            return f"[PARSE_ERROR] Could not parse Ollama response: {str(e)}"
-
-
 def _call_llm(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
-    """
-    Route a prompt to the available LLM provider.
-    Uses Groq (cloud) when GROQ_API_KEY is set, otherwise falls back to Ollama (local).
-    """
-    if GROQ_API_KEY:
-        return _call_groq(prompt, system_prompt, temperature)
-    return _call_ollama(prompt, system_prompt, temperature)
+    """Route a prompt to Groq API."""
+    return _call_groq(prompt, system_prompt, temperature)
 
 
 def _extract_json(text: str):
@@ -597,8 +545,8 @@ CRITICAL RULES:
     if response:
         response = response[0].upper() + response[1:]
     
-    if not response or response.startswith("[OLLAMA_"):
-        # Fallback questions if Ollama is unavailable
+    if not response or response.startswith("[GROQ_") or response.startswith("[PARSE_"):
+        # Fallback questions if Groq is unavailable
         return _get_fallback_question(role, category, difficulty, company)
     
     # Safety check: if response contains code (class/def/enum/struct/etc.) or is too
@@ -711,7 +659,7 @@ Also include 'filler_word_count': {filler_data['total_count']} in the response.
 
     response = _call_llm(prompt, system_prompt, temperature=0.3)
     
-    if response.startswith("[OLLAMA_"):
+    if response.startswith("[GROQ_") or response.startswith("[OLLAMA_") or response.startswith("[PARSE_"):
         return _get_fallback_evaluation(answer)
     
     result = _extract_json(response)
@@ -914,7 +862,7 @@ Weakest Area: {min(avg_scores, key=avg_scores.get) if avg_scores else 'N/A'}
 The tone should be professional, encouraging, and constructive — like a real interview feedback session."""
 
     summary_text = _call_llm(prompt, system_prompt, temperature=0.7)
-    if summary_text.startswith("[OLLAMA_"):
+    if summary_text.startswith("[GROQ_") or summary_text.startswith("[PARSE_"):
         summary_text = "Thank you for completing the interview. Review the detailed scores and recommendations below to identify areas for improvement."
 
     # Determine weakest areas for improvement roadmap
@@ -1250,10 +1198,10 @@ def calculate_readiness_score(all_sessions: list) -> dict:
     }
 
 
-# ── Fallback Methods (when Ollama is unavailable) ──────────────────────────────
+# ── Fallback Methods (when Groq is unavailable) ──────────────────────────────
 
 def _get_fallback_question(role: str, category: str, difficulty: str, company: str = "General") -> str:
-    """Provide sensible fallback questions when Ollama is offline.
+    """Provide sensible fallback questions when Groq is offline.
     Uses company-specific questions when applicable."""
     company_lower = company.lower().strip() if company else "general"
     import random
@@ -1649,58 +1597,34 @@ def get_role_rubric(role: str) -> dict:
     return ROLE_SCORING_RUBRICS.get(role, ROLE_SCORING_RUBRICS["Software Engineer"])
 
 
-def check_ollama_health() -> dict:
-    """
-    Check LLM provider health.
-    Returns dict with status and available models.
-    When GROQ_API_KEY is set, validates the key by listing Groq models.
-    Otherwise falls back to checking local Ollama.
-    """
-    if GROQ_API_KEY:
-        try:
-            headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
-            resp = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=10)
-            if resp.status_code == 200:
-                models = [m["id"] for m in resp.json().get("data", [])]
-                our_model = GROQ_MODEL in models
-                return {
-                    "status": "connected",
-                    "provider": "groq",
-                    "model_available": our_model,
-                    "model_name": GROQ_MODEL,
-                    "available_models": models[:20],
-                    "message": f"Groq connected. Model '{GROQ_MODEL}' {'✓ available' if our_model else '✗ NOT found in Groq catalog. GROQ_MODEL=' + GROQ_MODEL}"
-                }
-            detail = ""
-            try:
-                detail = resp.json().get("error", {}).get("message", "")
-            except Exception:
-                detail = resp.text[:200]
-            return {"status": "error", "provider": "groq", "message": f"Groq returned {resp.status_code}: {detail}"}
-        except requests.exceptions.ConnectionError:
-            return {"status": "disconnected", "provider": "groq", "message": "Cannot connect to Groq API."}
-        except Exception as e:
-            return {"status": "error", "provider": "groq", "message": f"Groq check failed: {str(e)}"}
-
-    # Fallback: Ollama local check
+def check_groq_health() -> dict:
+    """Check Groq API health."""
     try:
-        resp = requests.get(f"{OLLAMA_BASE_URL}/api/tags", timeout=5)
+        headers = {"Authorization": f"Bearer {GROQ_API_KEY}"}
+        resp = requests.get("https://api.groq.com/openai/v1/models", headers=headers, timeout=10)
         if resp.status_code == 200:
-            models = [m['name'] for m in resp.json().get('models', [])]
-            our_model = OLLAMA_MODEL in models
+            models = [m["id"] for m in resp.json().get("data", [])]
+            our_model = GROQ_MODEL in models
             return {
                 "status": "connected",
-                "provider": "ollama",
+                "provider": "groq",
                 "model_available": our_model,
-                "model_name": OLLAMA_MODEL,
-                "available_models": models,
-                "message": f"Ollama is running. Model '{OLLAMA_MODEL}' {'✓ available' if our_model else '✗ NOT found. Run: ollama pull ' + OLLAMA_MODEL}"
+                "model_name": GROQ_MODEL,
+                "available_models": models[:20],
+                "message": f"Groq connected. Model '{GROQ_MODEL}' {'✓ available' if our_model else '✗ NOT found in Groq catalog. GROQ_MODEL=' + GROQ_MODEL}"
             }
-        return {"status": "error", "provider": "ollama", "message": f"Ollama returned status {resp.status_code}"}
+        detail = ""
+        try:
+            detail = resp.json().get("error", {}).get("message", "")
+        except Exception:
+            detail = resp.text[:200]
+        return {"status": "error", "provider": "groq", "message": f"Groq returned {resp.status_code}: {detail}"}
     except requests.exceptions.ConnectionError:
-        return {
-            "status": "disconnected",
-            "provider": "ollama",
-            "model_available": False,
-            "message": "Cannot connect to Ollama. Install: https://ollama.com, then run: ollama serve"
-        }
+        return {"status": "disconnected", "provider": "groq", "message": "Cannot connect to Groq API."}
+    except Exception as e:
+        return {"status": "error", "provider": "groq", "message": f"Groq check failed: {str(e)}"}
+
+
+def check_ollama_health() -> dict:
+    """Deprecated alias for check_groq_health — kept for backward compat."""
+    return check_groq_health()

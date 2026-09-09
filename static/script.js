@@ -607,12 +607,13 @@ function initRegistrationForm() {
         }
     });
 
-    // Ollama status check
-    checkOllamaStatus();
+    // Groq status check
+    checkGroqStatus();
 }
 
-async function checkOllamaStatus() {
-    const statusEl = $('#ollama-status');
+async function checkGroqStatus() {
+    // Support both new id (groq-status) and legacy id (ollama-status) for backward compat
+    const statusEl = $('#groq-status') || $('#ollama-status');
     if (!statusEl) return;
 
     const footerEl = document.getElementById('provider-footer');
@@ -627,34 +628,29 @@ async function checkOllamaStatus() {
     }
 
     try {
-        const resp = await fetch('/api/ollama_status');
+        const resp = await fetch('/api/groq_status');
         const data = await resp.json();
-        const isGroq = data.provider === 'groq';
 
         if (data.status === 'connected' && data.model_available) {
-            renderStatus('var(--accent-emerald)',
-                isGroq ? 'Groq Cloud Engine' : 'Local AI Engine',
+            renderStatus('var(--accent-emerald)', 'Groq Cloud Engine',
                 (data.model_name || '') + ' ready');
             if (footerEl) {
-                footerEl.textContent = isGroq
-                    ? 'Powered by Groq cloud LLMs \u2014 real-time adaptive feedback.'
-                    : 'Powered by local Ollama LLMs \u2014 100% private, fully offline processing.';
+                footerEl.textContent = 'Powered by Groq cloud LLMs \u2014 real-time adaptive feedback.';
             }
         } else if (data.status === 'connected') {
             renderStatus('var(--accent-amber)', 'AI Engine Warning',
-                isGroq
-                    ? 'Model "' + data.model_name + '" not found in Groq catalog. Check GROQ_MODEL.'
-                    : 'Model not found. Run: ollama pull llama3.2:latest');
+                'Model "' + data.model_name + '" not found in Groq catalog. Check GROQ_MODEL.');
         } else {
             renderStatus('var(--accent-rose)', 'AI Engine Offline',
-                isGroq
-                    ? 'Cannot reach Groq API. Check GROQ_API_KEY and your connection.'
-                    : 'Ollama not connected. Ensure ollama serve is running.');
+                'Cannot reach Groq API. Check GROQ_API_KEY and your connection.');
         }
     } catch {
         renderStatus('var(--accent-rose)', 'Connection Error', 'Cannot reach the server.');
     }
 }
+
+// Deprecated alias — kept for backward compat
+async function checkOllamaStatus() { return checkGroqStatus(); }
 
 
 // ── Camera Module ────────────────────────────────────────────────────────────

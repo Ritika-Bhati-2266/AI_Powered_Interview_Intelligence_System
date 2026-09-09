@@ -1,6 +1,6 @@
 # AI Interview Intelligence System
 
-A full-stack AI Interview Coach that runs locally with Flask, SQLite, Groq cloud API or Ollama (LLM),
+A full-stack AI Interview Coach that runs locally with Flask, SQLite, Groq cloud API (LLM),
 and OpenAI Whisper (speech-to-text). Candidates register, upload a resume, choose a role
 and company, answer role-specific questions (text or voice), receive instant multi-dimension
 feedback, and may rewrite each answer once for a re-score.
@@ -10,7 +10,7 @@ feedback, and may rewrite each answer once for a re-score.
 - **Candidate registration** with resume parsing (PDF/DOCX) and skill extraction
 - **Multi-round interviews** tailored to companies (Amazon, Google, Microsoft, Meta, etc.)
 - **Role-specific questions** for SWE, PM, DS, QA, DevOps, and more
-- **LLM** (Groq cloud API or local Ollama) for question generation and answer evaluation
+- **LLM** (Groq cloud API) for question generation and answer evaluation
 - **Local speech-to-text** (Whisper) — record or upload audio, transcript is auto-filled
 - **Filler-word detection** (`um`, `uh`, `like`, `you know`, etc.) with score impact
 - **One rewrite per answer** — see feedback, rewrite, get a second evaluation
@@ -21,8 +21,7 @@ feedback, and may rewrite each answer once for a re-score.
 
 - Python 3.10+
 - `ffmpeg` on PATH (required by Whisper)
-- **Either** a Groq API key (cloud, recommended for deployment),
-  **or** Ollama running locally (`ollama serve`) for local-only use
+- Groq API key (free from https://console.groq.com/keys)
 
 ### Install ffmpeg on Windows
 
@@ -36,20 +35,12 @@ ffmpeg -version  # verify
 
 ### Set up LLM provider
 
-**Option A — Groq (cloud, preferred for Render deployment):**
-
 1. Get a free API key from https://console.groq.com/keys
 2. Copy `.env.example` to `.env` and set your key:
    ```
    GROQ_API_KEY=gsk_your_key_here
+   GROQ_MODEL=openai/gpt-oss-120b
    ```
-
-**Option B — Ollama (local, easy for development):**
-
-```bash
-ollama serve               # in one terminal
-ollama pull llama3.2:latest
-```
 
 ### Install Python dependencies
 
@@ -67,10 +58,8 @@ Create a `.env` file (copy from `.env.example`) with these optional overrides:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GROQ_API_KEY` | — | Groq API key (set this on Render; omit for local Ollama) |
+| `GROQ_API_KEY` | — | Groq API key (required) |
 | `GROQ_MODEL` | `openai/gpt-oss-120b` | Groq model ID |
-| `OLLAMA_BASE_URL` | `http://localhost:11434` | Ollama server URL (fallback when no `GROQ_API_KEY`) |
-| `OLLAMA_MODEL` | `llama3.2:latest` | Ollama model name |
 | `WHISPER_MODEL` | `base` | Whisper model size: `tiny`, `base`, `small`, `medium`, `large` |
 | `SECRET_KEY` | random | Flask session secret (set a fixed value on Render to persist sessions across restarts) |
 
@@ -80,9 +69,7 @@ This app requires **ffmpeg** at the system level (the Python package `ffmpeg-pyt
 only a wrapper — it does not bundle the binary). Render's default Python runtime does
 **not** include ffmpeg, so you need a `render.yaml` with a pre-build command or a Dockerfile.
 
-**Important:** On Render you **must** set `GROQ_API_KEY` in the environment variables
-(Groq is a cloud API that works from any server). Ollama only runs locally and will
-not be accessible from Render.
+**Important:** On Render you **must** set `GROQ_API_KEY` in the environment variables.
 
 ### Option A — render.yaml (Blueprint)
 
@@ -128,11 +115,8 @@ or switch to PostgreSQL for production.
 ## Run
 
 ```bash
-# Local dev with Ollama (no API key needed):
+# Set GROQ_API_KEY in .env first, then:
 python app.py
-
-# Or with Groq (set .env first):
-# GROQ_API_KEY=gsk_... python app.py
 
 # Server: http://127.0.0.1:5050
 ```
@@ -148,7 +132,7 @@ python -m pytest tests/ -v
 ```
 ai-interview-system/
 ├── app.py                 # Flask routes
-├── ai_service.py          # LLM (Groq / Ollama) prompts + role rubrics
+├── ai_service.py          # LLM (Groq) prompts + role rubrics
 ├── interview_engine.py    # Session state, rounds, evaluation
 ├── stt_service.py         # Whisper STT + filler-word detection
 ├── resume_parser.py       # PDF/DOCX resume parsing

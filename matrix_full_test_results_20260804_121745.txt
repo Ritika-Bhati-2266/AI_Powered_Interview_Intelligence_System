@@ -1,0 +1,38 @@
+AI Interview Intelligence System - Full Matrix Results (2026-08-04 12:16:34)
+====================================================================================================
+
+candidate role                 company    exp    mode       rs_used  score  grade issues
+----------------------------------------------------------------------------------------------------
+C0001     Software Engineer    Google     2-4    coding     3        10.0   A+    -
+C0002     Data Scientist       Google     2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0003     Product Manager      Google     2-4    technical  1        5.5    C     -
+C0004     Frontend Developer   Startup    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0005     Full Stack Developer TCS        0-1    hr         0        7.7    B+    APTITUDE_BANK_ERROR(bank marks 'C' but correct is 'D'; middle (4th of 7) is D; bank marks C), RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0006     QA Engineer          Startup    7-10   coding     3        10.0   A+    -
+C0007     QA Engineer          Wipro      1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0008     Data Scientist       Google     4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0009     QA Engineer          Amazon     2-4    coding     1        10.0   A+    -
+C0010     Full Stack Developer Amazon     10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0011     QA Engineer          Wipro      10+    coding     0        7.5    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0012     Data Analyst         General    10+    hr         5        10.0   A+    -
+C0013     Full Stack Developer General    0-1    hr         1        10.0   A+    -
+C0014     ML Engineer          Infosys    0-1    hr         0        6.5    B     APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0015     Data Scientist       Meta       0-1    coding     0        9.5    A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0016     Full Stack Developer Amazon     0-1    technical  1        8.5    A     -
+C0017     Full Stack Developer Meta       2-4    coding     1        9.2    A+    -
+C0018     Data Analyst         Google     1-2    technical  1        5.5    C     -
+C0019     Software Engineer    Google     1-2    technical  1        10.0   A+    -
+C0020     Backend Developer    Microsoft  7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0021     DevOps Engineer      TCS        0-1    hr         1        7.5    B+    APTITUDE_BANK_ERROR(bank marks '2' but correct is '4'; multiples of 105: 210,315,420,525 = 4; bank marks 2), APTITUDE_BANK_ERROR(bank marks '3' but correct is '5'; 5 occurrences of 6 followed by an even; bank marks 3)
+C0022     QA Engineer          Meta       4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0023     Backend Developer    General    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0024     ML Engineer          Meta       0-1    technical  1        10.0   A+    -
+C0025     QA Engineer          Wipro      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+
+====================================================================================================
+AGGREGATES
+total=25 passed=11 failed=14 llm_calls=165 llm_errors=138 wall_min=1.2
+RESUME_PHASE_NO_SKILLS: 13
+NO_RESUME_SKILL_IN_ANY_QUESTION: 13
+APTITUDE_BANK_ERROR: 3
+APTITUDE_LEAKS_ANSWER: 1

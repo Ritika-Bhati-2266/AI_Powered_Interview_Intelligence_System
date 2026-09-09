@@ -17,7 +17,6 @@ from ai_service import (
     detect_skill_gaps,
     generate_recommendations,
     generate_final_report_data,
-    check_ollama_health,
 )
 from company_rounds import get_rounds_for_company
 from aptitude_bank import get_aptitude_set, format_aptitude_answer_record
@@ -623,6 +622,7 @@ def rewrite_answer(session_id: str, answer_index: int, rewritten_answer: str) ->
     # Store rewrite on the answer record
     record["rewrite_used"] = True
     record["rewrite_text"] = rewritten_answer
+    record["original_scores"] = original_scores
     record["rewrite_scores"] = rewrite_scores
     record["rewrite_evaluation"] = rewrite_evaluation
     record["rewrite_improvement"] = improvement
@@ -981,7 +981,7 @@ def _generate_next_question(session: InterviewSession) -> dict:
     """
     Generate the next question for the session, considering round info,
     resume phase, difficulty, mode, and conversation context.
-    For aptitude rounds, serves the next pre-loaded MCQ instead of calling Ollama.
+    For aptitude rounds, serves the next pre-loaded MCQ instead of calling Groq.
     """
     current_round = session.get_current_round()
 
@@ -1074,7 +1074,7 @@ def _generate_next_question(session: InterviewSession) -> dict:
         previous_questions=session.questions,
     )
 
-    if not question or question.startswith("[OLLAMA_") or question.startswith("[PARSE_"):
+    if not question or question.startswith("[GROQ_") or question.startswith("[OLLAMA_") or question.startswith("[PARSE_"):
         # Fallback: use a pre-built question (respects round type)
         question = _fallback_question(
             session.candidate_role,

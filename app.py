@@ -14,8 +14,6 @@ from contextlib import contextmanager
 
 from dotenv import load_dotenv
 # Load .env relative to this file so it works regardless of the launch CWD.
-# Without this, GROQ_API_KEY is missed (falls back to Ollama) when the app
-# is started from another directory.
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
@@ -32,7 +30,7 @@ from interview_engine import (
     get_session_state,
     session_store,
 )
-from ai_service import check_ollama_health
+from ai_service import check_groq_health
 from stt_service import transcribe_audio
 
 # ── Flask App Configuration ───────────────────────────────────────────────────
@@ -732,10 +730,17 @@ def api_session_state():
     return jsonify(state)
 
 
+@app.route("/api/groq_status")
+def api_groq_status():
+    """API endpoint to check Groq connection status."""
+    status = check_groq_health()
+    return jsonify(status)
+
+
 @app.route("/api/ollama_status")
 def api_ollama_status():
-    """API endpoint to check Ollama connection status."""
-    status = check_ollama_health()
+    """Deprecated alias for /api/groq_status — kept for backward compat."""
+    status = check_groq_health()
     return jsonify(status)
 
 
@@ -1035,8 +1040,6 @@ if __name__ == "__main__":
     print("  Server: http://127.0.0.1:5050")
     print("  Register: http://127.0.0.1:5050/")
     print()
-    print("  Make sure Ollama is running:")
-    print("  $ ollama serve")
-    print(f"  $ ollama pull llama3.2:latest")
+    print("  Groq API: ensure GROQ_API_KEY is set in .env")
     print()
     app.run(host="127.0.0.1", port=5050, debug=True, use_reloader=False)

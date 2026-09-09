@@ -1,0 +1,40 @@
+================================================================================
+AI INTERVIEW SYSTEM - FULL MATRIX TEST (Groq backend)
+Started: 2026-08-04T11:22:05.848771
+Candidates: 110  (roles=10 companies=11 exps=6 modes=3)
+Text-question cap per candidate: 5 (full rounds for flagships + aptitude full for Indian IT)
+================================================================================
+
+Elapsed: 111.2s  (LLM calls: 49)
+
+--- Coverage ---
+Roles (8): Backend Developer, Data Scientist, DevOps Engineer, Frontend Developer, ML Engineer, Product Manager, QA Engineer, Software Engineer
+Companies (1): Google
+Experiences (6): 0-1, 1-2, 10+, 2-4, 4-7, 7-10
+Modes (3): coding, hr, technical
+Resume uploads: 4  (skills parsed per candidate, range 0-10)
+Candidates with 0 resume skills parsed: DataG#002(found=0), FrontendG#004(found=0), BackendG#005(found=0), MLG#007(found=0)
+Full-round (flagship) completions: 1
+Aptitude questions answered (Indian IT): 0 correct / 0 total across 0 candidates
+Rewrite tests: 0
+DB-fallback report tests: 0 (0 ok)
+
+--- Issue Counts (by type) ---
+
+================================================================================
+SUMMARY TABLE
+================================================================================
+candidate        role                   company     exp    mode       resume skills  score grade issues
+--------------------------------------------------------------------------------
+SoftwareG#001    Software Engineer      Google      0-1    technical  1/14           6.6   B     none
+DataG#002        Data Scientist         Google      1-2    coding     0/6            6.4   B     none
+ProductG#003     Product Manager        Google      2-4    hr         1/6            7.4   B+    none
+FrontendG#004    Frontend Developer     Google      4-7    technical  0/6            5.8   C     none
+BackendG#005     Backend Developer      Google      7-10   coding     0/6            4.8   F     none
+DevOpsG#006      DevOps Engineer        Google      10+    hr         1/6            7.4   B+    none
+MLG#007          ML Engineer            Google      0-1    technical  0/6            7.0   B+    none
+QAG#008          QA Engineer            Google      1-2    coding     1/6            6.4   B     none
+--------------------------------------------------------------------------------
+TOTAL: 8 candidates | 0 with issues | PASS rate 100.0%
+
+Total time: 111.2s

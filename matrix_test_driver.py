@@ -160,7 +160,7 @@ def _patched_call_groq(prompt, system_prompt=None, temperature=0.7):
                 detail = e.response.json().get("error", {}).get("message", str(e))
             except Exception:
                 detail = str(e)
-            return f"[OLLAMA_ERROR] Groq API error: {detail}"
+            return f"[GROQ_ERROR] Groq API error: {detail}"
         except (json.JSONDecodeError, KeyError, IndexError) as e:
             return f"[PARSE_ERROR] Could not parse Groq response: {str(e)}"
 
@@ -358,7 +358,7 @@ LEAK_PATTERNS = [
     r"\bDo NOT repeat\b", r"\bsystem prompt\b", r"\bsystem_prompt\b",
     r"\[Instruction", r"\bGenerate a single\b", r"\bResume Context\b",
     r"\bPrevious Interview Context\b", r"\bCOMPANY-SPECIFIC\b", r"\bOutput ONLY\b",
-    r"\bYou are the interviewer\b", r"\bOLLAMA_\b", r"\bPARSE_ERROR\b",
+    r"\bYou are the interviewer\b", r"\bGROQ_\b", r"\bLLM_\b", r"\bOLLAMA_\b", r"\bPARSE_ERROR\b",
     r"\bDo NOT write\b", r"\bdo not preface\b", r"\bOutput ONLY a question\b",
 ]
 
@@ -845,7 +845,7 @@ def main():
     print("=" * 100)
     print(f"  AI Interview Intelligence System - Full Matrix Test (Groq backend)  {stamp}")
     print("=" * 100)
-    status = ai_service.check_ollama_health()
+    status = ai_service.check_groq_health()
     print(f"  LLM provider: {status.get('provider')} | model: {status.get('model_name')} "
           f"| status: {status.get('status')}")
     if status.get("status") != "connected":

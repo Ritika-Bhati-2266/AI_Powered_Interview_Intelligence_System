@@ -12,7 +12,7 @@ No verbatim reproduction of copyrighted problem banks.
 
 import random
 
-# ── Company-specific coding style guides (used in Ollama prompts) ────────────
+# ── Company-specific coding style guides (used in Groq prompts) ────────────
 
 COMPANY_CODING_STYLE = {
     "google": {
@@ -328,7 +328,7 @@ def get_coding_fallback(difficulty: str = "medium", company: str = "general") ->
 
 def get_coding_style_context(company: str) -> str:
     """
-    Get the company-specific coding style context for Ollama prompts.
+    Get the company-specific coding style context for Groq prompts.
 
     Returns a string describing what this company is known for asking
     in coding rounds, to be injected into the question generation prompt.

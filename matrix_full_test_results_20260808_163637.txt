@@ -1,0 +1,673 @@
+AI Interview Intelligence System - Full Matrix Results (2026-08-08 16:12:25)
+====================================================================================================
+
+candidate role                 company    exp    mode       rs_used  score  grade issues
+----------------------------------------------------------------------------------------------------
+C0004     Frontend Developer   Startup    4-7    hr         0        8.0    A     NO_RESUME_SKILL_IN_ANY_QUESTION
+C0025     QA Engineer          Wipro      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0007     QA Engineer          Wipro      1-2    technical  7        8.0    A     -
+C0008     Data Scientist       Google     4-7    technical  0        1.0    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0010     Full Stack Developer Amazon     10+    hr         7        7.0    B+    -
+C0011     QA Engineer          Wipro      10+    coding     0        1.0    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0012     Data Analyst         General    10+    hr         4        5.0    C     -
+C0013     Full Stack Developer General    0-1    hr         4        8.0    A     -
+C0016     Full Stack Developer Amazon     0-1    technical  5        7.0    B+    -
+C0018     Data Analyst         Google     1-2    technical  3        2.5    F     -
+C0019     Software Engineer    Google     1-2    technical  1        6.0    B     -
+C0024     ML Engineer          Meta       0-1    technical  1        3.5    F     -
+C0005     Full Stack Developer TCS        0-1    hr         0        6.2    B     APTITUDE_BANK_ERROR(bank marks '3' but correct is '5'; 5 occurrences of 6 followed by an even; bank marks 3), RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0014     ML Engineer          Infosys    0-1    hr         0        6.2    B     APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0021     DevOps Engineer      TCS        0-1    hr         6        6.2    B     APTITUDE_BANK_ERROR(bank marks '2' but correct is '4'; multiples of 105: 210,315,420,525 = 4; bank marks 2), APTITUDE_BANK_ERROR(explained code QPTJUJPO is not among the options; bank answer is arbitrary)
+C0023     Backend Developer    General    2-4    technical  0        1.0    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0002     Data Scientist       Google     2-4    hr         0        4.5    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0003     Product Manager      Google     2-4    technical  0        3.0    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0006     QA Engineer          Startup    7-10   coding     3        6.8    B     -
+C0009     QA Engineer          Amazon     2-4    coding     1        4.0    F     -
+C0015     Data Scientist       Meta       0-1    coding     0        2.5    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0017     Full Stack Developer Meta       2-4    coding     1        2.8    F     -
+C0020     Backend Developer    Microsoft  7-10   coding     0        3.8    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0022     QA Engineer          Meta       4-7    coding     7        5.2    C     -
+C0001     Software Engineer    Google     2-4    coding     1        3.5    F     -
+C0026     DevOps Engineer      Startup    0-1    coding     2        7.0    B+    -
+C0027     Product Manager      Startup    7-10   hr         0        1.0    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0028     ML Engineer          TCS        10+    hr         5        5.0    C     -
+C0029     Software Engineer    Amazon     0-1    coding     2        3.8    F     -
+C0030     Backend Developer    Startup    1-2    coding     2        6.8    B     -
+C0031     Data Scientist       Wipro      0-1    hr         1        5.6    C     APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0032     Data Scientist       Startup    10+    hr         3        4.5    F     -
+C0033     Product Manager      Wipro      0-1    technical  7        6.8    B     APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER
+C0034     Frontend Developer   HCL        4-7    technical  1        1.0    F     -
+C0035     Software Engineer    Meta       1-2    coding     1        6.0    B     -
+C0036     DevOps Engineer      Apple      1-2    coding     2        1.0    F     -
+C0037     Software Engineer    Wipro      0-1    coding     1        6.3    B     APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER
+C0038     Data Analyst         Microsoft  2-4    coding     3        6.2    B     -
+C0039     QA Engineer          Google     1-2    coding     0        1.0    F     NO_RESUME_SKILL_IN_ANY_QUESTION
+C0040     DevOps Engineer      Apple      0-1    technical  5        3.5    F     -
+C0041     Data Scientist       Wipro      7-10   technical  6        7.0    B+    APTITUDE_LEAKS_ANSWER
+C0042     Product Manager      TCS        0-1    hr         0        5.6    C     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0043     Frontend Developer   General    1-2    coding     2        3.8    F     -
+C0044     ML Engineer          Google     0-1    hr         2        7.0    B+    -
+C0045     Backend Developer    Google     0-1    technical  1        1.0    F     -
+C0046     Software Engineer    Infosys    10+    coding     0        4.5    F     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0047     Backend Developer    Amazon     0-1    hr         4        6.0    B     -
+C0048     QA Engineer          HCL        7-10   hr         0        5.6    C     RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0049     Software Engineer    Wipro      7-10   hr         5        6.6    B     APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER
+C0050     Full Stack Developer Microsoft  2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0051     Software Engineer    General    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0052     Frontend Developer   Amazon     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0053     Product Manager      Infosys    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0054     Data Scientist       Microsoft  0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0055     Frontend Developer   Meta       1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0056     QA Engineer          Apple      10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0057     Data Scientist       TCS        0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0058     Frontend Developer   TCS        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0059     QA Engineer          Meta       7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0060     Backend Developer    Startup    7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0061     Data Scientist       Infosys    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0062     Data Analyst         Startup    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0063     Full Stack Developer Apple      1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0064     Data Scientist       TCS        7-10   hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0065     Data Scientist       Startup    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0066     Frontend Developer   General    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0067     Data Scientist       Microsoft  2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0068     QA Engineer          Google     4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0069     Data Analyst         Startup    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0070     Frontend Developer   Amazon     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0071     Product Manager      Google     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0072     Product Manager      Infosys    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0073     QA Engineer          Google     10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0074     Product Manager      TCS        1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0075     Software Engineer    Microsoft  1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0076     DevOps Engineer      Meta       4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0077     Product Manager      Meta       10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0078     Product Manager      Startup    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0079     QA Engineer          Amazon     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0080     Product Manager      Microsoft  7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0081     Full Stack Developer Startup    0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0082     Product Manager      Microsoft  0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0083     ML Engineer          Wipro      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0084     Software Engineer    Amazon     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0085     Full Stack Developer TCS        1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0086     ML Engineer          Microsoft  1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0087     Full Stack Developer Wipro      4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0088     Data Analyst         General    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0089     Frontend Developer   HCL        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0090     Frontend Developer   Microsoft  1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0091     Full Stack Developer Google     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0092     Full Stack Developer HCL        0-1    hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0093     Software Engineer    Amazon     2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0094     QA Engineer          Meta       1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0095     Full Stack Developer Microsoft  1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0096     Product Manager      General    0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0097     ML Engineer          Amazon     2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0098     Product Manager      General    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0099     Frontend Developer   Startup    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0100     QA Engineer          Microsoft  7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0101     Full Stack Developer HCL        10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0102     Software Engineer    Apple      0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0103     ML Engineer          Apple      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0104     Frontend Developer   Wipro      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0105     DevOps Engineer      Meta       2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0106     Software Engineer    TCS        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0107     ML Engineer          Google     2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0108     DevOps Engineer      Apple      4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0109     Full Stack Developer Startup    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0110     Data Scientist       Wipro      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0111     QA Engineer          Meta       10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0112     Product Manager      Wipro      2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0113     Software Engineer    HCL        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0114     Backend Developer    HCL        4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0115     Data Analyst         Infosys    0-1    hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0116     Full Stack Developer HCL        7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0117     ML Engineer          Microsoft  4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0118     QA Engineer          Meta       2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0119     Backend Developer    Microsoft  1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0120     Backend Developer    Wipro      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0121     Frontend Developer   Meta       10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0122     Data Analyst         TCS        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0123     Backend Developer    Apple      10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0124     QA Engineer          Meta       0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0125     Data Scientist       Amazon     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0126     QA Engineer          TCS        0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0127     Full Stack Developer HCL        1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0128     QA Engineer          Infosys    7-10   coding     0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0129     Data Scientist       HCL        1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0130     DevOps Engineer      Amazon     2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0131     Data Scientist       Meta       7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0132     Data Scientist       HCL        7-10   hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0133     Backend Developer    Microsoft  0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0134     ML Engineer          Infosys    7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0135     Full Stack Developer Google     0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0136     Full Stack Developer TCS        10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0137     Backend Developer    Infosys    7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0138     Backend Developer    TCS        10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0139     Backend Developer    Apple      4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0140     Data Scientist       General    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0141     Data Analyst         Meta       7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0142     Full Stack Developer Google     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0143     DevOps Engineer      TCS        4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0144     Product Manager      Wipro      10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0145     Full Stack Developer Microsoft  0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0146     ML Engineer          Wipro      0-1    coding     1        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0147     Backend Developer    Google     7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0148     Data Analyst         Apple      0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0149     Data Scientist       TCS        1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0150     Frontend Developer   Microsoft  4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0151     Backend Developer    Google     2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0152     Data Scientist       Wipro      10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0153     Frontend Developer   HCL        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0154     DevOps Engineer      TCS        2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0155     Backend Developer    Meta       7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0156     Product Manager      Infosys    7-10   hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0157     Data Analyst         TCS        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0158     Data Scientist       General    7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0159     Frontend Developer   Google     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0160     DevOps Engineer      Wipro      10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0161     Product Manager      Wipro      7-10   coding     1        7.7    B+    APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0162     Backend Developer    Wipro      10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0163     QA Engineer          Infosys    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0164     ML Engineer          Amazon     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0165     Full Stack Developer Google     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0166     Data Analyst         Amazon     2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0167     ML Engineer          HCL        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0168     Product Manager      Microsoft  1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0169     ML Engineer          Startup    0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0170     ML Engineer          Apple      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0171     Product Manager      General    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0172     Product Manager      HCL        7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0173     ML Engineer          Infosys    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0174     Data Scientist       General    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0175     ML Engineer          Meta       10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0176     Product Manager      HCL        1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0177     DevOps Engineer      Startup    7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0178     DevOps Engineer      General    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0179     Backend Developer    Startup    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0180     Product Manager      Apple      1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0181     Frontend Developer   Amazon     2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0182     Backend Developer    General    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0183     DevOps Engineer      Wipro      1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0184     QA Engineer          Microsoft  4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0185     Product Manager      TCS        10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0186     Product Manager      Apple      0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0187     Data Analyst         Google     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0188     DevOps Engineer      Meta       7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0189     Data Scientist       HCL        10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0190     Product Manager      Startup    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0191     ML Engineer          Meta       2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0192     Product Manager      Apple      10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0193     Software Engineer    TCS        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0194     ML Engineer          TCS        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0195     DevOps Engineer      Microsoft  7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0196     QA Engineer          Apple      1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0197     ML Engineer          Wipro      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0198     Product Manager      Meta       4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0199     ML Engineer          Amazon     0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0200     Full Stack Developer Apple      4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0201     Software Engineer    Meta       10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0202     Data Scientist       Google     1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0203     Data Analyst         Google     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0204     ML Engineer          General    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0205     Backend Developer    Apple      7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0206     Software Engineer    Google     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0207     ML Engineer          Amazon     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0208     Software Engineer    HCL        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0209     DevOps Engineer      Google     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0210     ML Engineer          General    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0211     Product Manager      Meta       7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0212     Frontend Developer   Meta       0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0213     QA Engineer          General    7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0214     ML Engineer          Infosys    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0215     QA Engineer          HCL        2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0216     Frontend Developer   Infosys    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0217     Frontend Developer   Apple      7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0218     Product Manager      TCS        4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0219     DevOps Engineer      TCS        7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0220     Full Stack Developer Infosys    0-1    coding     0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0221     Frontend Developer   Amazon     0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0222     Data Analyst         Infosys    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0223     Product Manager      Google     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0224     Frontend Developer   TCS        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0225     Data Analyst         Microsoft  4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0226     Data Scientist       TCS        4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0227     Data Analyst         Wipro      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0228     Software Engineer    Google     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0229     Frontend Developer   HCL        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0230     QA Engineer          Startup    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0231     DevOps Engineer      TCS        10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0232     Frontend Developer   Google     2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0233     Software Engineer    Apple      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0234     Software Engineer    TCS        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0235     QA Engineer          Startup    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0236     Product Manager      Microsoft  2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0237     Backend Developer    Infosys    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0238     Data Analyst         TCS        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0239     Backend Developer    Startup    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0240     Product Manager      General    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0241     DevOps Engineer      Google     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0242     Data Scientist       Amazon     2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0243     DevOps Engineer      Infosys    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0244     DevOps Engineer      Startup    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0245     Software Engineer    Wipro      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0246     Product Manager      HCL        4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0247     Backend Developer    Infosys    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0248     Data Scientist       Meta       2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0249     Frontend Developer   General    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0250     QA Engineer          General    0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0251     Backend Developer    Apple      1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0252     DevOps Engineer      HCL        7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0253     QA Engineer          TCS        10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0254     Data Analyst         TCS        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0255     Frontend Developer   Startup    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0256     ML Engineer          Microsoft  0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0257     Product Manager      Meta       2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0258     Software Engineer    Startup    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0259     QA Engineer          General    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0260     ML Engineer          TCS        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0261     Data Scientist       HCL        0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0262     Backend Developer    TCS        4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0263     Software Engineer    Infosys    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0264     Data Scientist       Startup    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0265     ML Engineer          General    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0266     Full Stack Developer TCS        7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0267     ML Engineer          Infosys    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0268     Frontend Developer   HCL        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0269     DevOps Engineer      Startup    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0270     Data Scientist       Apple      1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0271     Product Manager      Amazon     0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0272     Data Scientist       General    0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0273     Product Manager      Apple      4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0274     DevOps Engineer      Amazon     7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0275     Software Engineer    General    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0276     Full Stack Developer Apple      2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0277     QA Engineer          Wipro      7-10   technical  0        7.7    B+    APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0278     Full Stack Developer General    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0279     Software Engineer    Microsoft  2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0280     Data Scientist       Infosys    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0281     Full Stack Developer Meta       10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0282     Frontend Developer   Apple      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0283     DevOps Engineer      HCL        0-1    hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0284     Backend Developer    Infosys    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0285     Full Stack Developer Apple      10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0286     Data Scientist       Wipro      4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0287     Product Manager      Google     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0288     Product Manager      Infosys    0-1    coding     0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0289     QA Engineer          Microsoft  1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0290     ML Engineer          TCS        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0291     Software Engineer    Startup    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0292     Full Stack Developer Infosys    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0293     Backend Developer    General    7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0294     Data Scientist       Amazon     0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0295     Software Engineer    HCL        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0296     Backend Developer    Google     10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0297     Data Analyst         Startup    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0298     Backend Developer    Wipro      7-10   technical  1        7.7    B+    APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0299     QA Engineer          Microsoft  2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0300     Product Manager      General    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0301     Backend Developer    Meta       1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0302     QA Engineer          HCL        0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0303     DevOps Engineer      HCL        1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0304     Product Manager      Amazon     1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0305     Product Manager      Amazon     10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0306     Data Scientist       Microsoft  10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0307     DevOps Engineer      Microsoft  1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0308     Product Manager      Amazon     7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0309     Backend Developer    Amazon     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0310     ML Engineer          Amazon     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0311     Frontend Developer   TCS        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0312     DevOps Engineer      Infosys    7-10   hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0313     Backend Developer    General    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0314     ML Engineer          HCL        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0315     Software Engineer    Infosys    7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0316     Backend Developer    Amazon     2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0317     Backend Developer    General    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0318     Software Engineer    Microsoft  0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0319     Software Engineer    Microsoft  4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0320     Backend Developer    HCL        10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0321     Full Stack Developer Apple      7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0322     Product Manager      Startup    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0323     Full Stack Developer HCL        2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0324     Frontend Developer   Microsoft  0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0325     QA Engineer          HCL        4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0326     Data Scientist       Google     10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0327     DevOps Engineer      Apple      2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0328     Data Analyst         Infosys    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0329     Product Manager      Google     0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0330     Full Stack Developer Apple      0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0331     Backend Developer    Meta       0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0332     Backend Developer    Meta       2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0333     Backend Developer    Google     4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0334     Data Analyst         Amazon     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0335     DevOps Engineer      TCS        1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0336     Backend Developer    HCL        7-10   hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0337     Software Engineer    HCL        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0338     QA Engineer          Infosys    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0339     DevOps Engineer      Wipro      2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0340     QA Engineer          Microsoft  0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0341     Backend Developer    Apple      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0342     QA Engineer          Apple      0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0343     ML Engineer          Apple      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0344     Data Scientist       Startup    7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0345     ML Engineer          Startup    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0346     Backend Developer    Infosys    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0347     QA Engineer          TCS        4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0348     Data Analyst         Infosys    7-10   technical  0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0349     Software Engineer    Wipro      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0350     Frontend Developer   Infosys    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0351     ML Engineer          Wipro      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0352     Data Analyst         TCS        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0353     Full Stack Developer Meta       4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0354     Full Stack Developer Meta       1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0355     Frontend Developer   Amazon     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0356     Backend Developer    Amazon     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0357     QA Engineer          Amazon     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0358     DevOps Engineer      HCL        2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0359     Product Manager      TCS        2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0360     ML Engineer          Google     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0361     Backend Developer    Amazon     1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0362     Data Analyst         Wipro      0-1    coding     1        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0363     Software Engineer    Infosys    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0364     Data Scientist       Google     7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0365     Product Manager      Wipro      1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0366     Full Stack Developer TCS        4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0367     Data Scientist       Amazon     1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0368     Frontend Developer   Infosys    7-10   technical  0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0369     Data Analyst         Meta       2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0370     DevOps Engineer      Wipro      0-1    technical  1        7.7    B+    RESUME_PHASE_NO_SKILLS
+C0371     Data Analyst         Meta       0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0372     DevOps Engineer      Microsoft  2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0373     Full Stack Developer Wipro      1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0374     Data Analyst         Apple      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0375     Frontend Developer   Google     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0376     QA Engineer          Apple      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0377     Frontend Developer   Google     0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0378     Software Engineer    Google     0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0379     Product Manager      Infosys    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0380     QA Engineer          TCS        2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0381     ML Engineer          Google     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0382     Frontend Developer   Infosys    0-1    hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0383     ML Engineer          Wipro      7-10   hr         1        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0384     Frontend Developer   Microsoft  7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0385     ML Engineer          Google     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0386     Data Analyst         HCL        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0387     Data Scientist       Wipro      1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0388     ML Engineer          Microsoft  7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0389     DevOps Engineer      General    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0390     Software Engineer    Meta       7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0391     Software Engineer    Infosys    0-1    hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0392     ML Engineer          Startup    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0393     DevOps Engineer      Meta       0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0394     Data Analyst         Wipro      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0395     ML Engineer          Infosys    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0396     QA Engineer          Infosys    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0397     Frontend Developer   TCS        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0398     Software Engineer    Apple      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0399     ML Engineer          General    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0400     Frontend Developer   Apple      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0401     ML Engineer          Meta       7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0402     Full Stack Developer Amazon     2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0403     ML Engineer          Microsoft  2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0404     Data Analyst         General    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0405     Frontend Developer   HCL        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0406     Full Stack Developer Google     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0407     ML Engineer          Startup    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0408     Data Scientist       Startup    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0409     Data Analyst         Wipro      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0410     Software Engineer    General    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0411     ML Engineer          Amazon     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0412     QA Engineer          Google     0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0413     DevOps Engineer      HCL        4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0414     Frontend Developer   Wipro      0-1    coding     1        7.7    B+    RESUME_PHASE_NO_SKILLS
+C0415     Software Engineer    HCL        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0416     Software Engineer    TCS        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0417     DevOps Engineer      General    0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0418     DevOps Engineer      Microsoft  0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0419     Data Analyst         Wipro      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0420     Data Analyst         Amazon     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0421     QA Engineer          Infosys    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0422     Frontend Developer   Wipro      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0423     Frontend Developer   Google     1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0424     QA Engineer          Google     2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0425     Product Manager      Apple      7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0426     Data Analyst         HCL        2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0427     QA Engineer          Startup    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0428     Software Engineer    Apple      7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0429     Full Stack Developer General    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0430     Data Scientist       HCL        2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0431     Frontend Developer   Startup    0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0432     ML Engineer          TCS        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0433     ML Engineer          Apple      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0434     ML Engineer          Apple      0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0435     Data Scientist       Meta       10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0436     Frontend Developer   General    7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0437     Backend Developer    HCL        2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0438     Backend Developer    TCS        2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0439     Full Stack Developer Infosys    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0440     Full Stack Developer General    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0441     QA Engineer          HCL        1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0442     Data Scientist       Startup    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0443     QA Engineer          Wipro      4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0444     DevOps Engineer      Google     1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0445     Full Stack Developer Amazon     4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0446     Data Scientist       General    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0447     Frontend Developer   Startup    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0448     ML Engineer          Microsoft  10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0449     Product Manager      Microsoft  4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0450     ML Engineer          General    7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0451     Software Engineer    Apple      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0452     Software Engineer    Google     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0453     Data Analyst         Infosys    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0454     Data Analyst         Wipro      7-10   hr         1        7.7    B+    RESUME_PHASE_NO_SKILLS
+C0455     Full Stack Developer Meta       7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0456     DevOps Engineer      Startup    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0457     Software Engineer    Meta       4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0458     Full Stack Developer Meta       0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0459     Full Stack Developer General    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0460     ML Engineer          Startup    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0461     Full Stack Developer General    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0462     Backend Developer    Wipro      1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0463     Backend Developer    Microsoft  4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0464     Software Engineer    Startup    0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0465     Product Manager      Wipro      4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0466     Full Stack Developer Microsoft  7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0467     Data Scientist       Apple      7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0468     Data Scientist       Apple      10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0469     Software Engineer    TCS        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0470     Frontend Developer   General    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0471     Backend Developer    General    0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0472     ML Engineer          HCL        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0473     Full Stack Developer TCS        2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0474     Product Manager      Microsoft  10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0475     Full Stack Developer Infosys    7-10   hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0476     DevOps Engineer      Amazon     1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0477     Frontend Developer   TCS        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0478     Data Analyst         Startup    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0479     DevOps Engineer      Amazon     4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0480     Data Scientist       Meta       4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0481     DevOps Engineer      Google     2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0482     Data Analyst         Google     0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0483     DevOps Engineer      Google     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0484     Full Stack Developer Startup    7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0485     QA Engineer          Amazon     1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0486     QA Engineer          HCL        10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0487     Full Stack Developer Startup    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0488     Backend Developer    Amazon     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0489     ML Engineer          TCS        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0490     Data Analyst         Google     2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0491     Product Manager      Meta       0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0492     Data Scientist       Infosys    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0493     Data Analyst         Infosys    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0494     QA Engineer          Google     7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0495     Frontend Developer   Google     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0496     DevOps Engineer      Infosys    0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0497     Full Stack Developer Microsoft  10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0498     Software Engineer    HCL        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0499     DevOps Engineer      Infosys    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0500     Backend Developer    Wipro      0-1    hr         0        7.7    B+    APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0501     Data Analyst         Microsoft  0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0502     Data Analyst         Microsoft  7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0503     Software Engineer    Amazon     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0504     ML Engineer          Startup    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0505     Frontend Developer   TCS        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0506     DevOps Engineer      General    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0507     Software Engineer    Startup    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0508     Software Engineer    Infosys    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0509     QA Engineer          General    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0510     Backend Developer    Microsoft  2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0511     ML Engineer          HCL        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0512     Data Scientist       Amazon     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0513     Software Engineer    Microsoft  10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0514     Frontend Developer   Meta       7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0515     Backend Developer    TCS        7-10   hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0516     DevOps Engineer      Wipro      4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0517     Full Stack Developer Wipro      0-1    technical  0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0518     Software Engineer    Wipro      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0519     QA Engineer          Apple      4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0520     DevOps Engineer      Google     0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0521     Software Engineer    General    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0522     Product Manager      General    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0523     DevOps Engineer      Wipro      7-10   coding     0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0524     Data Analyst         HCL        1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0525     Data Analyst         General    7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0526     QA Engineer          Startup    10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0527     Backend Developer    Wipro      4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0528     Data Scientist       HCL        4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0529     QA Engineer          Amazon     10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0530     Product Manager      TCS        7-10   technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0531     QA Engineer          TCS        7-10   hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0532     Full Stack Developer Startup    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0533     Software Engineer    Meta       0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0534     Data Analyst         Amazon     0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0535     Product Manager      Infosys    2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0536     ML Engineer          Apple      7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0537     Data Analyst         Microsoft  1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0538     Data Analyst         HCL        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0539     Data Analyst         Google     4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0540     Full Stack Developer Infosys    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0541     Data Scientist       Infosys    7-10   coding     0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0542     Software Engineer    General    1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0543     Frontend Developer   Microsoft  10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0544     Full Stack Developer Amazon     1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0545     QA Engineer          TCS        1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0546     DevOps Engineer      Apple      10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0547     DevOps Engineer      HCL        10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0548     Software Engineer    Startup    10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0549     Data Analyst         Amazon     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0550     Data Analyst         Meta       4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0551     Product Manager      Amazon     2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0552     Data Scientist       Amazon     7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0553     Software Engineer    Microsoft  7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0554     Data Scientist       Apple      2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0555     QA Engineer          Startup    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0556     QA Engineer          Microsoft  10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0557     Product Manager      HCL        0-1    hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0558     Full Stack Developer Wipro      7-10   coding     0        7.7    B+    APTITUDE_LEAKS_ANSWER, APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0559     Data Analyst         Meta       1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0560     ML Engineer          Google     1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0561     ML Engineer          HCL        4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0562     Backend Developer    Apple      0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0563     Full Stack Developer Google     2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0564     Frontend Developer   Startup    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0565     Data Analyst         Microsoft  10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0566     Backend Developer    Infosys    0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0567     Product Manager      Meta       1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0568     QA Engineer          Infosys    0-1    technical  0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0569     ML Engineer          HCL        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0570     QA Engineer          Apple      7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0571     Frontend Developer   Wipro      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0572     Backend Developer    Meta       10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0573     Frontend Developer   Infosys    1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0574     Data Scientist       Google     0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0575     Backend Developer    Startup    0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0576     ML Engineer          Meta       1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0577     Backend Developer    Microsoft  10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0578     Data Analyst         HCL        7-10   coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0579     Frontend Developer   Meta       4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0580     Software Engineer    Amazon     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0581     DevOps Engineer      Amazon     0-1    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0582     Frontend Developer   Microsoft  2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0583     Full Stack Developer HCL        4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0584     Backend Developer    Google     1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0585     DevOps Engineer      Meta       10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0586     QA Engineer          General    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0587     Product Manager      Amazon     4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0588     Data Analyst         TCS        10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0589     Full Stack Developer Infosys    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0590     Product Manager      Startup    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0591     Data Scientist       Infosys    0-1    technical  0        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0592     Backend Developer    HCL        0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0593     Frontend Developer   Apple      1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0594     DevOps Engineer      General    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0595     DevOps Engineer      Apple      7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0596     Product Manager      Google     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0597     DevOps Engineer      Startup    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0598     QA Engineer          Amazon     0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0599     Data Analyst         General    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0600     Data Analyst         Apple      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0601     Data Scientist       Microsoft  4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0602     Data Analyst         Apple      7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0603     Data Scientist       Microsoft  1-2    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0604     Backend Developer    Startup    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0605     Frontend Developer   Amazon     4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0606     Software Engineer    Amazon     7-10   hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0607     Data Scientist       Apple      0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0608     Product Manager      HCL        10+    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0609     Full Stack Developer Wipro      10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0610     DevOps Engineer      Infosys    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0611     Backend Developer    Meta       4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0612     Full Stack Developer Microsoft  4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0613     Data Scientist       Meta       1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0614     DevOps Engineer      Amazon     10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0615     Data Scientist       TCS        10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0616     Full Stack Developer Startup    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0617     QA Engineer          Wipro      0-1    hr         0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0618     Software Engineer    General    7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0619     Backend Developer    TCS        0-1    coding     0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0620     DevOps Engineer      General    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0621     DevOps Engineer      Microsoft  4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0622     Data Scientist       General    4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0623     DevOps Engineer      Microsoft  10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0624     Data Scientist       TCS        2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0625     Data Analyst         Meta       10+    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0626     DevOps Engineer      Meta       1-2    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0627     Frontend Developer   General    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0628     Product Manager      Apple      2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0629     Data Analyst         Apple      4-7    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0630     DevOps Engineer      Infosys    1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0631     Data Analyst         Startup    7-10   technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0632     Product Manager      HCL        2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0633     Software Engineer    TCS        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0634     Backend Developer    HCL        1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0635     Data Analyst         HCL        0-1    technical  0        7.7    B+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0636     ML Engineer          Wipro      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0637     Frontend Developer   Apple      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0638     ML Engineer          General    4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0639     Data Analyst         Amazon     10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0640     Frontend Developer   Apple      0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0641     Full Stack Developer Amazon     7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0642     Software Engineer    Apple      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0643     Data Analyst         General    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0644     QA Engineer          General    10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0645     Frontend Developer   Infosys    4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0646     Frontend Developer   Meta       2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0647     Data Scientist       Infosys    2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0648     Software Engineer    Wipro      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0649     Software Engineer    Startup    2-4    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0650     ML Engineer          Meta       4-7    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0651     Data Analyst         Startup    0-1    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0652     Full Stack Developer Wipro      2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0653     Data Scientist       Apple      4-7    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0654     Product Manager      Startup    0-1    coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0655     Frontend Developer   Wipro      2-4    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0656     Frontend Developer   Wipro      7-10   hr         1        7.7    B+    APTITUDE_LEAKS_ANSWER, RESUME_PHASE_NO_SKILLS
+C0657     Backend Developer    TCS        1-2    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0658     Software Engineer    Meta       2-4    hr         0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0659     Data Scientist       Microsoft  7-10   coding     0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+C0660     Data Analyst         Apple      10+    technical  0        10.0   A+    RESUME_PHASE_NO_SKILLS, NO_RESUME_SKILL_IN_ANY_QUESTION
+
+====================================================================================================
+AGGREGATES
+total=660 passed=27 failed=633 llm_calls=218 llm_errors=1 wall_min=24.2
+RESUME_PHASE_NO_SKILLS: 626
+NO_RESUME_SKILL_IN_ANY_QUESTION: 618
+APTITUDE_LEAKS_ANSWER: 40
+APTITUDE_BANK_ERROR: 3
