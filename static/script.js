@@ -1776,6 +1776,7 @@ function showGDTopic(topic, personas){
     const banner = document.getElementById('gd-topic-banner');
     const txt = document.getElementById('gd-topic-text');
     const bar = document.getElementById('gd-personas-bar');
+    const choice = document.getElementById('gd-input-choice');
     if (!banner || !txt) return;
     txt.textContent = topic || '';
     if (bar){
@@ -1789,7 +1790,37 @@ function showGDTopic(topic, personas){
         });
     }
     banner.style.display = 'block';
+    if (choice) choice.style.display = 'flex';
 }
+function chooseGDMode(mode){
+    const choice = document.getElementById('gd-input-choice');
+    if (choice) choice.style.display = 'none';
+    if (mode === 'verbal'){
+        if (typeof switchToVoiceMode === 'function') switchToVoiceMode();
+        else {
+            const vs = document.getElementById('voice-section');
+            const ts = document.getElementById('type-section');
+            if (vs) vs.style.display='block';
+            if (ts) ts.style.display='none';
+        }
+        addAIMessage('Verbal mode selected — speak your view. Live filler/pace meter is ON.','');
+    } else {
+        if (typeof switchToTypeMode === 'function') switchToTypeMode();
+        else {
+            const vs = document.getElementById('voice-section');
+            const ts = document.getElementById('type-section');
+            if (vs) vs.style.display='none';
+            if (ts) ts.style.display='block';
+        }
+        addAIMessage('Written mode selected — type your view.','');
+    }
+    // focus input
+    setTimeout(()=>{
+        const inp = document.getElementById('answer-input') || document.getElementById('answer-input-fallback');
+        if (inp) inp.focus();
+    }, 200);
+}
+window.chooseGDMode = chooseGDMode;
 function addGDMessage(name, text, idx){
     const container = document.getElementById('messages');
     if (!container) return;

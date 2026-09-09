@@ -1163,6 +1163,7 @@ body.page-register .btn-primary:disabled {
 .gd-turn-ai-0 { border-left: 3px solid #6366f1; }
 .gd-turn-ai-1 { border-left: 3px solid #ec4899; }
 .gd-turn-ai-2 { border-left: 3px solid #10b981; }
+.gd-input-choice { display:flex; gap:0.5rem; align-items:center; margin-top:0.7rem; flex-wrap:wrap; }
 .live-meter {
     display: flex; align-items: center; gap: 0.6rem;
     padding: 0.45rem 0.7rem; background: rgba(255,255,255,0.03);

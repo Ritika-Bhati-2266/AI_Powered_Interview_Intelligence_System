@@ -175,6 +175,11 @@
                     <span class="gd-topic-label">💬 GD Topic</span>
                     <span id="gd-topic-text"></span>
                     <div id="gd-personas-bar" class="gd-personas-bar"></div>
+                    <div id="gd-input-choice" class="gd-input-choice" style="display:none;">
+                        <span style="font-size:0.78rem;color:var(--text-muted);">How will you participate?</span>
+                        <button class="btn btn-primary btn-sm" onclick="chooseGDMode('verbal')">🎤 Verbal — I will speak</button>
+                        <button class="btn btn-secondary btn-sm" onclick="chooseGDMode('written')">⌨️ Written — I will type</button>
+                    </div>
                 </div>
 
                 <div id="messages" class="messages-container"></div>
