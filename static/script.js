@@ -892,8 +892,79 @@ function initInterview() {
     // Always-show-text accessibility toggle (voice-first by default)
     initAlwaysShowToggle();
 
-    // Start the interview
-    startInterviewSession();
+    // ── Waiting Room + Proctoring + Timer ─────────────────────────────
+    let questionTimer = null, timeLeft = 120, timerTotal = 120, proctorWarnings = 0;
+    function startQuestionTimer(seconds) {
+        clearInterval(questionTimer);
+        timerTotal = timeLeft = seconds;
+        const disp = document.getElementById('timer-display');
+        const fill = document.getElementById('timer-fill');
+        const wrap = document.getElementById('question-timer');
+        if (!disp || !fill || !wrap) return;
+        wrap.classList.remove('warn','danger');
+        const tick = () => {
+            const m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+            const s = String(timeLeft%60).padStart(2,'0');
+            disp.textContent = m+':'+s;
+            fill.style.width = (timeLeft/timerTotal*100)+'%';
+            if (timeLeft <= 30) wrap.classList.add('danger');
+            else if (timeLeft <= 60) wrap.classList.add('warn');
+            if (timeLeft <= 0) {
+                clearInterval(questionTimer);
+                addAIMessage('⏱ Time up! Auto-submitting...','');
+                const fallback = document.getElementById('answer-input-fallback');
+                const mainInp = document.getElementById('answer-input') || fallback;
+                if (mainInp) {
+                    if (!mainInp.value.trim()) mainInp.value = '[No answer — time expired]';
+                    submitAnswer();
+                }
+            }
+            timeLeft--;
+        };
+        tick();
+        questionTimer = setInterval(tick, 1000);
+    }
+    function stopQuestionTimer(){ clearInterval(questionTimer); }
+
+    // Proctoring: visibilitychange only (tab-switch). No copy/paste/blur block.
+    function initProctoring(){
+        const warn = () => {
+            if (interviewComplete) return;
+            proctorWarnings++;
+            const badge = document.getElementById('proctor-warnings');
+            const cnt = document.getElementById('warn-count');
+            if (badge && cnt){ badge.style.display='inline-flex'; cnt.textContent = proctorWarnings; }
+            addAIMessage('⚠️ Tab switch detected ('+proctorWarnings+'/3) — please stay on this tab.','');
+        };
+        document.addEventListener('visibilitychange', () => { if (document.hidden) warn(); });
+    }
+    initProctoring();
+
+    // Waiting Room — mic/cam check
+    (function initWaitingRoom(){
+        const overlay = document.getElementById('waiting-room');
+        const btn = document.getElementById('start-interview-btn');
+        const micEl = document.getElementById('mic-status');
+        const camEl = document.getElementById('cam-status');
+        const micItem = document.getElementById('check-mic');
+        const camItem = document.getElementById('check-cam');
+        if (!overlay || !btn) { startInterviewSession(); return; }
+        let micOk=false, camOk=false;
+        const checkDone = () => {
+            if (micOk && camOk) { btn.disabled=false; btn.textContent='Start Interview →'; btn.onclick = () => { overlay.classList.add('hidden'); startInterviewSession(); }; }
+            else if (micOk || camOk) { btn.disabled=false; btn.textContent='Start Anyway →'; btn.onclick = () => { overlay.classList.add('hidden'); startInterviewSession(); }; }
+        };
+        // Mic check
+        if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            navigator.mediaDevices.getUserMedia({audio:true}).then(s=>{
+                micOk=true; micEl.textContent='Ready ✓'; micItem.classList.add('ok'); s.getTracks().forEach(t=>t.stop()); checkDone();
+            }).catch(()=>{ micEl.textContent='Blocked (voice input fallback available)'; micItem.classList.add('warn'); checkDone(); });
+            navigator.mediaDevices.getUserMedia({video:true}).then(s=>{
+                camOk=true; camEl.textContent='Ready ✓'; camItem.classList.add('ok'); s.getTracks().forEach(t=>t.stop()); checkDone();
+            }).catch(()=>{ camEl.textContent='Blocked (optional)'; camItem.classList.add('warn'); checkDone(); });
+        } else { micEl.textContent='Not supported'; camEl.textContent='Not supported'; checkDone(); }
+        setTimeout(checkDone, 3000); // fallback allow start after 3s
+    })();
 
     async function startInterviewSession() {
         addAIMessage('Hello! I\'m your AI interviewer today. Let\'s begin...', '');
@@ -942,7 +1013,6 @@ function initInterview() {
             // Display the first question
             setTimeout(() => {
                 if (data.is_aptitude) {
-                    // Aptitude round: show question + MCQ mode
                     isAptitudeRound = true;
                     aptitudeTotal = data.aptitude_total || 10;
                     aptitudeCorrect = 0;
@@ -957,6 +1027,8 @@ function initInterview() {
                     setDifficulty(data.difficulty || 'medium');
                     updateRoundProgress(0, 0, data.current_round);
                     enableInput(true);
+                    const secs = data.difficulty==='hard'?150 : data.difficulty==='easy'?90 : 120;
+                    startQuestionTimer(secs);
                 }
             }, 500);
 
@@ -971,6 +1043,7 @@ function initInterview() {
 
         const answer = inputField.value.trim();
         if (!answer) return;
+        stopQuestionTimer();
 
         // Disable input
         isProcessing = true;
@@ -1090,11 +1163,14 @@ function initInterview() {
             }
 
             setDifficulty(data.difficulty || 'medium');
+            stopQuestionTimer();
 
             // Show next question after a brief pause
             setTimeout(() => {
                 if (data.next_question) {
                     addAIQuestionMessage(data.next_question, data.difficulty || 'medium');
+                    const secs = data.difficulty==='hard'?150 : data.difficulty==='easy'?90 : 120;
+                    startQuestionTimer(secs);
                 }
                 isProcessing = false;
                 enableInput(true);
@@ -2101,6 +2177,36 @@ let globalVoiceSilenceTimer = null;
 function getSpeechRecognition() {
     return window.SpeechRecognition || window.webkitSpeechRecognition;
 }
+// ── Live Meter Helpers ───────────────────────────────────────────────────
+const FILLER_RE = /\b(um+|uh+|er+|ah+|like|you know|actually|basically|literally|so|well|kind of|sort of)\b/gi;
+let liveMeterStart = 0, waveformInterval=null;
+function updateLiveMeter(text){
+    const fillers = (text.match(FILLER_RE)||[]).length;
+    const fillerEl = document.getElementById('live-filler-count');
+    const paceEl = document.getElementById('live-pace');
+    const fillEl = document.getElementById('live-pace-fill');
+    if (fillerEl) { fillerEl.textContent = 'Fillers: '+fillers; fillerEl.style.color = fillers>5?'#f43f5e':fillers>2?'#f59e0b':'#10b981'; }
+    const words = text.trim().split(/\s+/).filter(Boolean).length;
+    const secs = (Date.now()-liveMeterStart)/1000;
+    const wpm = secs>3 ? Math.round(words/(secs/60)) : 0;
+    if (paceEl) paceEl.textContent = 'Pace: '+(wpm? wpm+' wpm':'--');
+    if (fillEl){
+        const pct = Math.min(100, wpm? (wpm/160*100):0);
+        fillEl.style.width = pct+'%';
+        fillEl.className = 'live-meter-fill' + (wpm>180||wpm<90&&wpm>0?' warn':'') + (wpm>200||wpm<70&&wpm>0?' danger':'');
+    }
+    // also update warning badge
+    const warn = document.getElementById('filler-warning');
+    const warnTxt = document.getElementById('filler-warning-text');
+    if (fillers>2 && warn && warnTxt){ warn.style.display='flex'; warnTxt.textContent = fillers+' fillers detected — try to reduce "um/uh/like"'; } 
+    else if (warn){ warn.style.display='none'; }
+}
+function startWaveform(){
+    const wf = document.getElementById('waveform');
+    if (!wf) return;
+    waveformInterval = setInterval(()=>{ wf.querySelectorAll('span').forEach(s=> s.style.height = (4+Math.random()*12)+'px'); }, 90);
+}
+function stopWaveform(){ clearInterval(waveformInterval); waveformInterval=null; }
 
 function toggleVoiceRecording() {
     if (globalVoiceIsRecording) {
@@ -2135,9 +2241,13 @@ function startVoiceRecording() {
         btn.classList.remove('idle');
     }
 
-    // Show transcript area
+    // Show transcript area + live meter
     const transcriptContainer = document.getElementById('voice-transcript-container');
     if (transcriptContainer) transcriptContainer.style.display = 'block';
+    const liveMeter = document.getElementById('live-meter');
+    if (liveMeter) liveMeter.style.display='flex';
+    liveMeterStart = Date.now();
+    startWaveform();
 
     const statusEl = document.getElementById('voice-status');
     if (statusEl) statusEl.textContent = 'Listening...';
@@ -2174,6 +2284,7 @@ function startVoiceRecording() {
 
         const interimEl = document.getElementById('voice-interim-text');
         if (interimEl) interimEl.textContent = interimTranscript;
+        updateLiveMeter((globalVoiceFinalText+' '+interimTranscript).trim());
 
         // Reset silence timer on each speech
         clearTimeout(globalVoiceSilenceTimer);
@@ -2223,6 +2334,10 @@ function startVoiceRecording() {
 function stopVoiceRecording() {
     clearTimeout(globalVoiceSilenceTimer);
     globalVoiceSilenceTimer = null;
+    stopWaveform();
+    const liveMeter = document.getElementById('live-meter');
+    // keep meter visible for review, hide waveform animation
+    if (liveMeter) liveMeter.style.opacity='0.7';
 
     if (globalVoiceRecognition) {
         try {

@@ -370,8 +370,18 @@ def generate_question(role: str, experience: str, skills: list, category: str,
     company_lower = company.lower().strip() if company else "general"
     newline = chr(10)
 
+    # Follow-up chance: if previous answer was short/low-score, ask deep dive 40% of time
+    follow_up_hint = ""
+    if context and ("Score:" in context or "A:" in context):
+        import random as _rnd
+        if _rnd.random() < 0.4:
+            follow_up_hint = (
+                "FOLLOW-UP MODE: The last answer exists. If it was vague, incomplete, or low-scoring, "
+                "ask a pointed follow-up that drills deeper (e.g., 'You mentioned X — can you explain the trade-offs?' or 'How would you handle Y edge case?'). "
+                "Otherwise, move to a new topic. Keep it conversational like a real interviewer."
+            )
     context_part = (
-        f'Previous Interview Context (generate a relevant follow-up question based on this):{newline}{context[:1500]}'
+        f'Previous Interview Context (generate a relevant follow-up question based on this):{newline}{context[:1500]}{newline}{follow_up_hint}'
         if context else 'This is the start of the interview - generate a good opening question.'
     )
 
