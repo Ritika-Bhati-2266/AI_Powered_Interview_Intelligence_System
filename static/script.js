@@ -861,9 +861,25 @@ function initInterview() {
         }
     })();
 
+    // Coding mode: typing-only — no voice/speech UI
+    const isCodingMode = (window.INTERVIEW_MODE || '').toLowerCase() === 'coding';
+
     // Initialize voice (if available) — wire voice button
     const voiceBtn = document.getElementById('voice-btn');
-    if (voiceBtn) {
+    if (isCodingMode) {
+        const voiceSection = document.getElementById('voice-section');
+        if (voiceSection) voiceSection.style.display = 'none';
+        const unsupported = document.getElementById('voice-unsupported');
+        if (unsupported) unsupported.style.display = 'none';
+        const typeSection = document.getElementById('type-section');
+        if (typeSection) typeSection.style.display = 'block';
+        voiceModeActive = false;
+        // hide typing<->voice toggles inside input area for coding
+        const vmSwitch = document.getElementById('voice-mode-switch');
+        if (vmSwitch) vmSwitch.style.display = 'none';
+        const tmSwitch = document.getElementById('type-mode-switch');
+        if (tmSwitch) tmSwitch.style.display = 'none';
+    } else if (voiceBtn) {
         // Check browser support
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
@@ -888,6 +904,36 @@ function initInterview() {
     }
 
     typingModeActive = !voiceModeActive;
+    // force reveal question text in typing-only coding mode + code editor UX
+    if (isCodingMode) {
+        typingModeActive = true;
+        TTS.alwaysShowText = true;
+        const ttsWrap = document.getElementById('tts-always-show-wrap');
+        if (ttsWrap) ttsWrap.style.display = 'none';
+        // coding placeholder + mono + larger height
+        const codeInput = document.getElementById('answer-input');
+        if (codeInput) {
+            codeInput.placeholder = 'Write your code here... (e.g. Python / Java / C++). Press Ctrl+Enter to submit';
+            codeInput.style.fontFamily = 'var(--font-mono)';
+            codeInput.style.minHeight = '160px';
+            codeInput.style.tabSize = '4';
+            codeInput.rows = 8;
+            // allow Tab to insert spaces instead of changing focus
+            codeInput.addEventListener('keydown', function(e){
+                if (e.key === 'Tab') {
+                    e.preventDefault();
+                    const s = this.selectionStart, en = this.selectionEnd;
+                    this.value = this.value.substring(0,s) + '    ' + this.value.substring(en);
+                    this.selectionStart = this.selectionEnd = s + 4;
+                }
+            });
+        }
+        const codeFallback = document.getElementById('answer-input-fallback');
+        if (codeFallback) {
+            codeFallback.placeholder = 'Write your code here...';
+            codeFallback.style.fontFamily = 'var(--font-mono)';
+        }
+    }
 
     // Always-show-text accessibility toggle (voice-first by default)
     initAlwaysShowToggle();
@@ -2585,6 +2631,7 @@ function switchToTypeMode() {
 }
 
 function switchToVoiceMode() {
+    if ((window.INTERVIEW_MODE || '').toLowerCase() === 'coding') return;
     typingModeActive = false;
 
     const voiceSection = document.getElementById('voice-section');

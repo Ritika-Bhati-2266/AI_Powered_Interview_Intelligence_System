@@ -151,9 +151,24 @@ class InterviewSession:
         # Load company rounds
         raw_rounds = get_rounds_for_company(company)
 
+        # ── Coding mode: only code (bs code de) ──
+        # Keep only coding rounds; drop HR/aptitude/GD/technical so every question is DSA/coding
+        if (mode or "").lower() == "coding":
+            coding_only = [r for r in raw_rounds if r.get("type") == "coding"]
+            if coding_only:
+                raw_rounds = coding_only
+            else:
+                # General / fallback company has no coding round — create a pure coding round
+                raw_rounds = [
+                    {"name": "Coding Round", "type": "coding", "questions": 6, "duration_min": 45, "focus": "DSA — write code, analyse complexity, handle edge cases"},
+                ]
+
         # We prepend a "Resume Phase" as round 0 (only if we have resume text)
+        # Skip for coding mode — pure coding, no resume discussion
         self.rounds = []
-        if self.resume_text and self.resume_text.strip():
+        if (mode or "").lower() == "coding":
+            self.rounds = list(raw_rounds)
+        elif self.resume_text and self.resume_text.strip():
             # Resume phase: first 2-3 questions about the candidate's resume
             resume_questions = min(RESUME_PHASE_QUESTIONS, 3)
             # If first real round has fewer than 3 questions, combine resume into it

@@ -416,11 +416,17 @@ def generate_question(role: str, experience: str, skills: list, category: str,
         if rtype == "coding":
             coding_style = _get_company_coding_prompt(company_lower)
             round_type_instruction = (
-                "This is a CODING round. Ask a problem-solving question that requires "
-                "writing code, discussing algorithms, data structures, time/space complexity, "
-                "and edge cases. "
+                "This is a CODING round. You MUST ask a hands-on CODING/DSA problem that "
+                "REQUIRES the candidate to WRITE CODE (implement a function/method/class/algorithm). "
+                "The question MUST explicitly use phrases like 'write a function', 'implement', "
+                "'write code', or 'code a solution' and MUST ask the candidate to analyse time/space "
+                "complexity and handle edge cases. "
+                "STRICT RULES: Do NOT ask conceptual/explanation-only questions such as "
+                "'Explain what X is', 'Describe the architecture', 'What is your approach to testing', "
+                "or 'How would you debug'. Every question must be an algorithm/DSA coding task (arrays, "
+                "strings, linked lists, trees, graphs, DP, etc.) requiring actual code. "
                 "CRITICAL: Output ONLY a short question (1-2 sentences) that asks the candidate "
-                "to design, explain, or implement something. Do NOT write actual code, class "
+                "to implement code. Do NOT write actual code, class "
                 "definitions, pseudocode, or any part of the solution yourself. You are the "
                 "interviewer asking the question, not the candidate answering it. If you need "
                 "to reference code, describe it in words (e.g., 'implement a function that...') "
@@ -1215,6 +1221,24 @@ def _get_fallback_question(role: str, category: str, difficulty: str, company: s
     Uses company-specific questions when applicable."""
     company_lower = company.lower().strip() if company else "general"
     import random
+
+    # ── Normalize granular coding categories (from CODING_CATEGORIES) to "coding" ──
+    # interview_engine passes categories like "arrays_strings", "linked_lists", etc. for
+    # coding mode — these must map to the coding bank, not the generic technical pool.
+    _CODING_CATEGORIES = {
+        "coding", "arrays_strings", "arrays", "strings",
+        "linked_lists", "trees_graphs", "trees", "graphs",
+        "dynamic_programming", "sorting_searching",
+        "recursion_backtracking", "recursion",
+        "hashing", "two_pointers_sliding_window",
+    }
+    if category in _CODING_CATEGORIES:
+        try:
+            from coding_questions_bank import get_coding_fallback
+            return get_coding_fallback(difficulty=difficulty, company=company)["question"]
+        except Exception:
+            # Fall through to hardcoded coding pool below
+            category = "coding"
 
     # ── Company-specific behavioral questions for known patterns ──
     if category in ("behavioral", "hr"):

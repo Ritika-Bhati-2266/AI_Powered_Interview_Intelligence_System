@@ -17,7 +17,7 @@ from dotenv import load_dotenv
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
 
 # Local modules
@@ -491,6 +491,13 @@ def get_candidate_history(candidate_id: int) -> dict:
 def index():
     """Home/Registration page."""
     return render_template("index.html")
+
+
+@app.route("/download-ppt")
+def download_ppt():
+    """Route to download presentation PowerPoint file."""
+    static_dir = os.path.join(app.root_path, "static")
+    return send_from_directory(static_dir, "presentation.pptx", as_attachment=True, download_name="AI_Powered_Interview_Intelligence_System.pptx")
 
 
 @app.route("/register", methods=["POST"])

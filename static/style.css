@@ -843,6 +843,40 @@ body.page-register .btn-primary:disabled {
     overflow: hidden;
 }
 
+/* Sidebar — mobile toggle (hidden on desktop, shown <=1024px) */
+.sidebar-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.6rem 0.85rem;
+    background: var(--bg-card-elevated);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.sidebar-toggle svg {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    transition: transform 0.2s ease;
+}
+.sidebar-toggle[aria-expanded="false"] svg {
+    transform: rotate(-90deg);
+}
+.sidebar-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+.sidebar-body.collapsed {
+    display: none !important;
+}
+
 /* Sidebar */
 .interview-sidebar {
     background: var(--bg-secondary);
@@ -1682,11 +1716,8 @@ body.page-register .btn-primary:disabled {
 @media (max-width: 1024px) {
     .interview-container { height: auto; min-height: calc(100vh - 70px); }
     .interview-page { grid-template-columns: 1fr; height: auto; min-height: 70vh; }
-    .interview-sidebar { display: none; }
-    .interview-sidebar.active {
-        display: flex; position: fixed; inset: 0; z-index: 200;
-        background: var(--bg-secondary); overflow-y: auto;
-    }
+    .interview-sidebar { display: flex; }
+    .interview-sidebar .sidebar-body:not(.collapsed) { display: flex; }
     #sidebar-toggle { display: inline-flex !important; }
     .dashboard-grid { grid-template-columns: 1fr 1fr; }
     .panels-split { grid-template-columns: 1fr; }
