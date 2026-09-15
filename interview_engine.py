@@ -125,7 +125,8 @@ class InterviewSession:
                  candidate_role: str, candidate_experience: str,
                  candidate_skills: list, resume_text: str, mode: str,
                  company: str = "General",
-                 total_questions: int = DEFAULT_QUESTION_LIMIT):
+                 total_questions: int = DEFAULT_QUESTION_LIMIT,
+                 jd_text: str = ""):
         self.session_id = session_id
         self.candidate_id = candidate_id
         self.candidate_name = candidate_name
@@ -133,6 +134,7 @@ class InterviewSession:
         self.candidate_experience = candidate_experience
         self.candidate_skills = candidate_skills or []
         self.resume_text = resume_text or ""
+        self.jd_text = (jd_text or "")[:3000]
         self.mode = mode
         self.company = company
         self.status = "waiting"
@@ -242,6 +244,7 @@ class InterviewSession:
             "candidate_experience": self.candidate_experience,
             "candidate_skills": self.candidate_skills,
             "resume_text": self.resume_text[:500] if self.resume_text else "",
+            "jd_text": self.jd_text[:500] if self.jd_text else "",
             "mode": self.mode,
             "company": self.company,
             "status": self.status,
@@ -305,7 +308,7 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
                     candidate_role: str, candidate_experience: str,
                     candidate_skills: list, resume_text: str,
                     mode: str = "technical", total_questions: int = None,
-                    company: str = "General") -> dict:
+                    company: str = "General", jd_text: str = "") -> dict:
     """
     Initialize a new interview session with company-specific round structure.
 
@@ -326,6 +329,7 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
         mode=mode,
         company=company,
         total_questions=total_questions,
+        jd_text=jd_text,
     )
 
     session.status = "in_progress"
@@ -355,6 +359,7 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
         "session_id": session.session_id,
         "status": session.status,
         "question": result.get("question", ""),
+        "question_id": result.get("question_id", ""),
         "question_number": 1,
         "total_questions": session.total_questions,
         "difficulty": DIFFICULTY_LEVELS[session.current_difficulty],
@@ -383,7 +388,7 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
     }
 
 
-def submit_answer(session_id: str, answer: str) -> dict:
+def submit_answer(session_id: str, answer: str, code_execution_result: dict = None) -> dict:
     """
     Process a candidate's answer, evaluate it, adapt difficulty,
     handle round transitions, and return the next question or completion.
@@ -391,6 +396,8 @@ def submit_answer(session_id: str, answer: str) -> dict:
     Args:
         session_id: Active session ID
         answer: Candidate's answer text
+        code_execution_result: Optional dict from Judge0 run — {passed, total, details}
+                               Injected into LLM evaluation for coding questions.
 
     Returns:
         Dict with evaluation results and next question (or completion)
@@ -420,14 +427,29 @@ def submit_answer(session_id: str, answer: str) -> dict:
     if current_round.get("type") == "aptitude":
         return _handle_aptitude_answer(session, answer, current_round, current_question)
 
-    # Evaluate the answer
-    evaluation = evaluate_answer(
+    # Evaluate the answer — inject code execution result for coding questions if provided
+    # If not provided via param but stored on session (e.g., from /api/run_code), use that
+    if code_execution_result is None:
+        # Check if caller stashed execution result on session (set via app.py if needed)
+        code_execution_result = getattr(session, '_last_code_execution', None)
+        # Clear after use so it doesn't bleed to next question
+        if hasattr(session, '_last_code_execution'):
+            try:
+                delattr(session, '_last_code_execution')
+            except Exception:
+                pass
+
+    evaluation_kwargs = dict(
         question=current_question,
         answer=answer,
         role=session.candidate_role,
         difficulty=DIFFICULTY_LEVELS[session.current_difficulty],
         skills=session.candidate_skills,
     )
+    if code_execution_result:
+        evaluation_kwargs["code_execution_result"] = code_execution_result
+
+    evaluation = evaluate_answer(**evaluation_kwargs)
 
     # Get question metadata
     question_meta = session.questions_meta[session.current_question_index] if session.questions_meta else {}
@@ -458,6 +480,8 @@ def submit_answer(session_id: str, answer: str) -> dict:
         # Filler-word analysis (populated by ai_service.evaluate_answer)
         "filler_word_count": evaluation.get("filler_word_count", 0),
         "filler_words": evaluation.get("filler_words", {}),
+        # Code execution result (for coding rounds)
+        "code_execution": code_execution_result or {},
         # Rewrite tracking
         "rewrite_used": False,
         "rewrite_text": "",
@@ -583,6 +607,7 @@ def submit_answer(session_id: str, answer: str) -> dict:
             response["error"] = next_q_result["error"]
         else:
             response["next_question"] = next_q_result.get("question", "")
+            response["next_question_id"] = next_q_result.get("question_id", "")
             response["difficulty"] = next_q_result.get("difficulty", DIFFICULTY_LEVELS[session.current_difficulty])
             if next_q_result.get("is_gd"):
                 response["gd_topic"] = next_q_result.get("gd_topic","")
@@ -596,6 +621,7 @@ def submit_answer(session_id: str, answer: str) -> dict:
             response["error"] = next_q_result["error"]
         else:
             response["next_question"] = next_q_result.get("question", "")
+            response["next_question_id"] = next_q_result.get("question_id", "")
             response["difficulty"] = next_q_result.get("difficulty", DIFFICULTY_LEVELS[session.current_difficulty])
             if next_q_result.get("is_gd"):
                 response["gd_topic"] = next_q_result.get("gd_topic","")
@@ -1225,7 +1251,7 @@ def _generate_next_question(session: InterviewSession) -> dict:
         context_parts.append(f"Q: {qa.get('question', '')}\nA: {qa.get('answer', '')}")
     context = "\n\n".join(context_parts)
 
-    # Generate the question with round info, resume phase flag, and previous questions history
+    # Generate the question with round info, resume phase flag, previous questions and JD
     question = generate_question(
         role=session.candidate_role,
         experience=session.candidate_experience,
@@ -1238,16 +1264,42 @@ def _generate_next_question(session: InterviewSession) -> dict:
         is_resume_phase=is_resume,
         company=session.company,
         previous_questions=session.questions,
+        jd_text=getattr(session, "jd_text", ""),
     )
 
+    # Track question_id for coding fallbacks (used by Judge0 /api/run_code)
+    question_id = ""
+    is_fallback = False
     if not question or question.startswith("[GROQ_") or question.startswith("[OLLAMA_") or question.startswith("[PARSE_"):
         # Fallback: use a pre-built question (respects round type)
-        question = _fallback_question(
-            session.candidate_role,
-            round_info.get("type", category),
-            difficulty,
-            company=session.company,
-        )
+        is_fallback = True
+        fallback_data = None
+        if round_info.get("type") == "coding":
+            try:
+                from coding_questions_bank import get_coding_fallback
+                fallback_data = get_coding_fallback(difficulty=difficulty, company=session.company)
+            except Exception:
+                fallback_data = None
+        if fallback_data and isinstance(fallback_data, dict) and fallback_data.get("question"):
+            question = fallback_data["question"]
+            question_id = fallback_data.get("id", "")
+        else:
+            question = _fallback_question(
+                session.candidate_role,
+                round_info.get("type", category),
+                difficulty,
+                company=session.company,
+            )
+            # Try to resolve id by matching question text
+            try:
+                from coding_questions_bank import FALLBACK_CODING_QUESTIONS
+                for diff_list in FALLBACK_CODING_QUESTIONS.values():
+                    for item in diff_list:
+                        if item.get("question") == question:
+                            question_id = item.get("id", "")
+                            break
+            except Exception:
+                pass
         # Tag the fallback with company context
         company_label = ""
         if session.company and session.company.lower() != "general":
@@ -1257,6 +1309,10 @@ def _generate_next_question(session: InterviewSession) -> dict:
                 company_label = ctx["label"]
             except Exception:
                 pass
+    else:
+        # LLM-generated coding question: no stable id, but still allow execution via stdin-less run
+        if round_info.get("type") == "coding":
+            question_id = ""
 
     # Store question and metadata
     session.questions.append(question)
@@ -1267,10 +1323,11 @@ def _generate_next_question(session: InterviewSession) -> dict:
         "round_name": current_round.get("name", ""),
         "is_resume_phase": is_resume,
         "company": session.company,
+        "question_id": question_id,
     })
 
     return {"question": question, "category": category, "difficulty": difficulty,
-            "round_info": round_info, "is_resume_phase": is_resume}
+            "round_info": round_info, "is_resume_phase": is_resume, "question_id": question_id}
 
 
 def _adapt_difficulty(session: InterviewSession):

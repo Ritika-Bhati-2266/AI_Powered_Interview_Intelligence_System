@@ -554,6 +554,8 @@ def register():
         )
 
         # Store candidate info in session for interview flow
+        jd_text = request.form.get("jd_text", "").strip()
+        jd_text = jd_text[:3000]  # length cap per requirements
         session["candidate_id"] = candidate_id
         session["candidate_name"] = name
         session["candidate_email"] = email
@@ -562,6 +564,7 @@ def register():
         session["candidate_skills"] = skills
         session["candidate_company"] = request.form.get("company", "General")
         session["resume_text"] = resume_text[:5000]  # Truncate for session storage
+        session["jd_text"] = jd_text
 
         return jsonify({
             "success": True,
@@ -617,6 +620,7 @@ def api_start_interview():
             mode=mode,
             total_questions=total_questions,
             company=company,
+            jd_text=session.get("jd_text", ""),
         )
 
         if "error" in result:
@@ -639,11 +643,22 @@ def api_submit_answer():
 
         data = request.get_json() or {}
         answer = data.get("answer", "").strip()
+        code_execution_result = data.get("code_execution_result") or data.get("code_execution")
 
         if not answer:
             return jsonify({"error": "Answer cannot be empty."}), 400
 
-        result = submit_answer(session["current_session_id"], answer)
+        # If code execution result provided in same request, stash on session for evaluate
+        if code_execution_result:
+            try:
+                sess = session_store.get(session["current_session_id"])
+                if sess is not None:
+                    sess._last_code_execution = code_execution_result
+            except Exception:
+                pass
+            result = submit_answer(session["current_session_id"], answer, code_execution_result=code_execution_result)
+        else:
+            result = submit_answer(session["current_session_id"], answer)
 
         if "error" in result:
             return jsonify(result), 500

@@ -349,7 +349,8 @@ Use the company-specific style guidance provided in the prompt below."""
 def generate_question(role: str, experience: str, skills: list, category: str,
                       difficulty: str, context: str = "", resume_text: str = "",
                       round_info: dict = None, is_resume_phase: bool = False,
-                      company: str = "General", previous_questions: list = None) -> str:
+                      company: str = "General", previous_questions: list = None,
+                      jd_text: str = "") -> str:
     """
     Generate an interview question based on candidate profile.
     
@@ -404,6 +405,15 @@ def generate_question(role: str, experience: str, skills: list, category: str,
         if resume_text else ''
     )
 
+    # JD context — optional, 3000 char cap enforced at call-site, but double-cap here
+    jd_clean = (jd_text or "").strip()[:3000]
+    jd_part = (
+        f'JOB DESCRIPTION:{newline}{jd_clean}{newline}{newline}'
+        f'Prioritize skills, tools, and requirements mentioned in this JD over generic role-based questions. '
+        f'Generate questions that test the candidate against what THIS JD asks for.'
+        if jd_clean else ''
+    )
+
     # Build round-specific instruction
     round_focus = ""
     round_type_instruction = ""
@@ -439,9 +449,23 @@ def generate_question(role: str, experience: str, skills: list, category: str,
                     f"Do NOT preface the question with any description or label — output ONLY the question."
                 )
                 round_type_instruction = f"{round_type_instruction}\n\n{company_round_style}"
+            if jd_clean:
+                round_type_instruction += (
+                    f"\n\nJD ALIGNMENT FOR CODING ROUND: The Job Description lists specific requirements. "
+                    f"If JD mentions tools like Kubernetes, AWS, Docker, or domain requirements, frame the coding task to test relevance to those JD keywords where feasible (e.g., Kubernetes-related coding, system design coding aligned to JD). "
+                    f"Prioritize JD skills over generic DSA topics."
+                )
 
         elif rtype == "technical":
-            round_type_instruction = "This is a TECHNICAL round. Ask about system design, architecture, best practices, or deep technical concepts relevant to the role."
+            base_tech = "This is a TECHNICAL round. Ask about system design, architecture, best practices, or deep technical concepts relevant to the role."
+            if jd_clean:
+                round_type_instruction = (
+                    f"{base_tech} CRITICAL JD ALIGNMENT: The Job Description provided lists specific skills/tools/requirements. "
+                    f"You MUST prioritize those JD keywords (e.g., if JD mentions Kubernetes, AWS, Docker, microservices, etc., generate a question directly testing that). "
+                    f"Align the question to what THIS JD asks for, not generic {role} topics."
+                )
+            else:
+                round_type_instruction = base_tech
 
         elif rtype == "hr":
             hr_context = get_company_hr_context(company_lower)
@@ -522,6 +546,8 @@ Question Category: {category}
 
 {resume_part}
 
+{jd_part}
+
 {round_type_instruction}
 
 {resume_instruction}
@@ -577,7 +603,7 @@ CRITICAL RULES:
 
 
 def evaluate_answer(question: str, answer: str, role: str, difficulty: str,
-                    skills: list = None) -> dict:
+                    skills: list = None, code_execution_result: dict = None) -> dict:
     """
     Evaluate a candidate's answer with detailed multi-dimension scoring.
     
@@ -585,6 +611,24 @@ def evaluate_answer(question: str, answer: str, role: str, difficulty: str,
     ideal answer, keywords analysis, and improvement tips.
     """
     skills_str = ", ".join(skills) if skills else "general"
+    # Build code execution context for prompt injection (Judge0 results)
+    code_execution_note = ""
+    if code_execution_result and isinstance(code_execution_result, dict):
+        try:
+            passed = code_execution_result.get("passed", 0)
+            total = code_execution_result.get("total", 0)
+            details = code_execution_result.get("details") or code_execution_result.get("results") or []
+            # Truncate details for prompt size
+            detail_str = json.dumps(details[:3], ensure_ascii=False)[:1500] if details else "no details"
+            code_execution_note = (
+                f"\n\nCandidate's code execution result: passed {passed}/{total} test cases. "
+                f"Test details: {detail_str}. "
+                f"Factor this into TECHNICAL_ACCURACY and PROBLEM_SOLVING scores — "
+                f"if all tests passed, score high on technical; if 0/{total} or errors, score low and mention failures in feedback. "
+                f"If execution service was unavailable, evaluate based on code review only."
+            )
+        except Exception:
+            pass
 
     # Get role-specific scoring rubric
     rubric = get_role_rubric(role)
@@ -619,6 +663,7 @@ Question: {question}
 Question: {question}
 
 Candidate's Answer: {answer}
+{code_execution_note}
 
 Score each dimension from 0-10:
 
