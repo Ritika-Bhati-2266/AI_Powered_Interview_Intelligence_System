@@ -214,6 +214,22 @@
                     </div>
                 </div>
 
+                <!-- Live Code Execution — Monaco Editor (visible only in coding round) -->
+                <div id="code-editor-section" style="display:none; border-top:1px solid var(--border); padding:0.75rem; background:var(--bg-surface);">
+                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.5rem;">
+                        <label for="code-language" style="font-size:0.8rem; font-weight:600; color:var(--text-muted);">Language:</label>
+                        <select id="code-language" class="code-language-select" style="padding:0.3rem 0.5rem; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--text-primary); font-size:0.8rem;">
+                            <option value="python">Python</option>
+                            <option value="javascript">JavaScript</option>
+                        </select>
+                        <button id="run-code-btn" class="btn btn-secondary btn-sm" onclick="runCode()" style="margin-left:auto;">
+                            <span id="run-code-spinner" style="display:none; margin-right:6px;">⏳</span>▶ Run Code
+                        </button>
+                    </div>
+                    <div id="monaco-editor" style="height:260px; border:1px solid var(--border); border-radius:8px; overflow:hidden;"></div>
+                    <div id="code-results" class="code-results" style="margin-top:0.6rem; display:none;"></div>
+                </div>
+
                 <div id="input-area" class="input-area">
                     <div id="voice-section" class="voice-section">
                         <div class="voice-btn-container" style="text-align:center;">
@@ -290,5 +306,163 @@
     </script>
     <script src="/static/script.js"></script>
     <script src="/static/audio_input.js"></script>
+    <!-- Monaco Editor for Live Code Execution (coding round) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script>
+        window._currentQuestionId = "";
+        window.monacoEditor = null;
+        (function initMonacoForCoding() {
+            var isCoding = (window.INTERVIEW_MODE || '').toLowerCase() === 'coding';
+            var section = document.getElementById('code-editor-section');
+            var langSelect = document.getElementById('code-language');
+            var answerInput = document.getElementById('answer-input');
+            var answerFallback = document.getElementById('answer-input-fallback');
+            if (!section) return;
+            if (!isCoding) return;
+            // Show coding editor section; hide voice-specific toggles handled by script.js
+            section.style.display = 'block';
+            // Monaco loader config
+            if (typeof require !== 'undefined') {
+                require.config({ paths: { vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
+                require(['vs/editor/editor.main'], function () {
+                    var container = document.getElementById('monaco-editor');
+                    if (!container) return;
+                    window.monacoEditor = monaco.editor.create(container, {
+                        value: '# Write your Python code here\n# e.g. def is_palindrome(s):\n#     return s == s[::-1]\n',
+                        language: 'python',
+                        theme: 'vs-dark',
+                        fontSize: 13,
+                        minimap: { enabled: false },
+                        automaticLayout: true,
+                        scrollBeyondLastLine: false,
+                        wordWrap: 'on',
+                    });
+                    // Sync to hidden textarea so existing submitAnswer() works
+                    function syncToTextarea() {
+                        var val = window.monacoEditor.getValue();
+                        if (answerInput) answerInput.value = val;
+                        if (answerFallback) answerFallback.value = val;
+                        // Enable send buttons if content non-empty
+                        var sendBtn = document.getElementById('send-btn');
+                        var sendFallback = document.getElementById('send-btn-fallback');
+                        var hasContent = val.trim().length > 0;
+                        if (sendBtn) sendBtn.disabled = !hasContent;
+                        if (sendFallback) sendFallback.disabled = !hasContent;
+                    }
+                    window.monacoEditor.onDidChangeModelContent(syncToTextarea);
+                    syncToTextarea();
+                    // Paste handling via Monaco is native; no extra block
+                });
+            }
+            if (langSelect) {
+                langSelect.addEventListener('change', function() {
+                    var lang = this.value === 'javascript' ? 'javascript' : 'python';
+                    if (window.monacoEditor && window.monaco) {
+                        monaco.editor.setModelLanguage(window.monacoEditor.getModel(), lang);
+                        // Update starter template
+                        var cur = window.monacoEditor.getValue();
+                        if (!cur.trim() || cur.indexOf('Write your') !== -1) {
+                            if (lang === 'javascript') {
+                                window.monacoEditor.setValue('// Write your JavaScript code here\n// e.g. function isPalindrome(s) {\n//   return s === s.split("").reverse().join("");\n// }\n');
+                            } else {
+                                window.monacoEditor.setValue('# Write your Python code here\n# e.g. def is_palindrome(s):\n#     return s == s[::-1]\n');
+                            }
+                        }
+                    }
+                });
+            }
+            // Expose setter for question id (called by script.js patch below)
+            window.setCurrentQuestionId = function(id) { window._currentQuestionId = id || ""; };
+            // Patch fetch handling: observe messages to capture question id if rendered with data attribute
+            var _origAddAI = window.addAIQuestionMessage;
+            if (typeof _origAddAI === 'function') {
+                window.addAIQuestionMessage = function(text, difficulty, companyContext) {
+                    var el = _origAddAI.apply(this, arguments);
+                    // Try to infer question id by matching text to bank (fallback)
+                    window._currentQuestionId = window._currentQuestionId || "";
+                    return el;
+                };
+            }
+        })();
+
+        async function runCode() {
+            var code = window.monacoEditor ? window.monacoEditor.getValue() : (document.getElementById('answer-input') || {}).value || '';
+            var langEl = document.getElementById('code-language');
+            var language = langEl ? langEl.value : 'python';
+            var question_id = window._currentQuestionId || '';
+            var btn = document.getElementById('run-code-btn');
+            var spinner = document.getElementById('run-code-spinner');
+            var resultsEl = document.getElementById('code-results');
+            if (!code.trim()) {
+                if (resultsEl) {
+                    resultsEl.style.display = 'block';
+                    resultsEl.innerHTML = '<div style="color:var(--accent-rose); font-size:0.85rem;">Please write some code first.</div>';
+                }
+                return;
+            }
+            if (btn) btn.disabled = true;
+            if (spinner) spinner.style.display = 'inline';
+            if (resultsEl) {
+                resultsEl.style.display = 'block';
+                resultsEl.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Running ' + language + ' code against test cases...</div>';
+            }
+            try {
+                var resp = await fetch('/api/run_code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: code, language: language, question_id: question_id })
+                });
+                var data = await resp.json();
+                if (!resp.ok && data.error && data.passed === undefined) {
+                    if (resultsEl) resultsEl.innerHTML = '<div style="color:var(--accent-rose); font-size:0.85rem;"><strong>Error:</strong> ' + (data.error || 'Execution failed') + '<br><span style="color:var(--text-muted);">' + (data.details || '') + '</span></div>';
+                    return;
+                }
+                // Graceful fallback message from server (503 with partial)
+                if (data.error && data.error.indexOf('Execution service unavailable') !== -1) {
+                    var fallback = '<div style="color:var(--accent-amber); font-size:0.85rem; margin-bottom:0.4rem;">' + data.error + '</div>';
+                    if (data.details) fallback += '<div style="color:var(--text-muted); font-size:0.78rem;">' + data.details + '</div>';
+                    if (resultsEl) resultsEl.innerHTML = fallback;
+                    return;
+                }
+                var passed = data.passed || 0;
+                var total = data.total || 0;
+                var details = data.details || data.results || [];
+                var color = passed === total ? 'var(--accent-emerald)' : (passed > 0 ? 'var(--accent-amber)' : 'var(--accent-rose)');
+                var html = '<div style="font-weight:700; color:' + color + '; margin-bottom:0.4rem;">' + passed + '/' + total + ' test cases passed</div>';
+                if (details.length) {
+                    html += '<div style="display:flex; flex-direction:column; gap:0.35rem;">';
+                    details.forEach(function(tc, idx) {
+                        var bg = tc.passed ? 'rgba(16,185,129,0.12)' : 'rgba(244,63,94,0.12)';
+                        var border = tc.passed ? 'rgba(16,185,129,0.3)' : 'rgba(244,63,94,0.3)';
+                        var icon = tc.passed ? '✓' : '✗';
+                        html += '<div style="background:' + bg + '; border:1px solid ' + border + '; border-radius:6px; padding:0.4rem 0.5rem; font-size:0.78rem; font-family:var(--font-mono);">'
+                            + '<div><strong>Test ' + (idx+1) + ' ' + icon + '</strong> — Input: <code>' + escapeHtml(String(tc.input || "").slice(0,120)) + '</code></div>'
+                            + '<div>Expected: <code>' + escapeHtml(String(tc.expected || "")) + '</code> | Actual: <code>' + escapeHtml(String(tc.actual || tc.stdout || "")) + '</code></div>'
+                            + (tc.stderr ? '<div style="color:var(--accent-rose);">Error: ' + escapeHtml(String(tc.stderr).slice(0,300)) + '</div>' : '')
+                            + (tc.status ? '<div style="color:var(--text-muted);">Status: ' + escapeHtml(String(tc.status)) + '</div>' : '')
+                            + '</div>';
+                    });
+                    html += '</div>';
+                }
+                if (resultsEl) resultsEl.innerHTML = html;
+                // Also sync code to textarea so submit will send it
+                var ai = document.getElementById('answer-input');
+                var af = document.getElementById('answer-input-fallback');
+                if (ai) ai.value = code;
+                if (af) af.value = code;
+            } catch (e) {
+                if (resultsEl) resultsEl.innerHTML = '<div style="color:var(--accent-rose); font-size:0.85rem;">Network error: ' + escapeHtml(e.message) + '</div>';
+            } finally {
+                if (btn) btn.disabled = false;
+                if (spinner) spinner.style.display = 'none';
+            }
+        }
+        // Helper for escape in this scope if not already defined
+        function escapeHtml(s) {
+            var div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+    </script>
 </body>
 </html>

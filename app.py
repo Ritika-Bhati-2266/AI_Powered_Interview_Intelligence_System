@@ -19,6 +19,7 @@ load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
 from werkzeug.utils import secure_filename
+import requests
 
 # Local modules
 from resume_parser import parse_resume
@@ -790,6 +791,149 @@ def api_transcribe():
         "filler_words": result.get("filler_words", {}),
         "filler_count": result.get("filler_word_count", 0),
         "language": result.get("language", "en"),
+    })
+
+
+@app.route("/api/run_code", methods=["POST"])
+def api_run_code():
+    """
+    Live Code Execution via Judge0 CE API (RapidAPI).
+    Input: {code, language: python|javascript, question_id}
+    Runs code against test_cases from coding_questions_bank.py.
+    Returns: {passed, total, details: [{input, expected, actual, passed, stdout, stderr, status}]}
+    """
+    data = request.get_json() or {}
+    code = (data.get("code") or "").strip()
+    language = (data.get("language") or "python").lower().strip()
+    question_id = (data.get("question_id") or "").strip()
+
+    if not code:
+        return jsonify({"error": "Code cannot be empty."}), 400
+
+    lang_map = {"python": 71, "javascript": 63, "js": 63}
+    if language not in lang_map:
+        return jsonify({"error": "Unsupported language. Use 'python' or 'javascript'."}), 400
+    language_id = lang_map[language]
+
+    # Resolve test cases
+    test_cases = []
+    if question_id:
+        try:
+            from coding_questions_bank import get_question_by_id, FALLBACK_CODING_QUESTIONS
+            q = get_question_by_id(question_id)
+            if q and q.get("test_cases"):
+                test_cases = q["test_cases"]
+            else:
+                # Try fallback: search by question text containment
+                for diff_list in FALLBACK_CODING_QUESTIONS.values():
+                    for item in diff_list:
+                        if question_id.lower() in item.get("question", "").lower()[:80].lower():
+                            if item.get("test_cases"):
+                                test_cases = item["test_cases"]
+                                break
+        except Exception:
+            pass
+
+    # If no test_cases found, run single execution with no stdin
+    if not test_cases:
+        test_cases = [{"input": "", "expected_output": ""}]
+
+    api_key = os.environ.get("JUDGE0_API_KEY", "").strip()
+    if not api_key:
+        return jsonify({
+            "error": "Execution service unavailable, evaluating based on code review only",
+            "details": "JUDGE0_API_KEY not configured on server",
+            "passed": 0,
+            "total": len(test_cases),
+            "results": [],
+        }), 503
+
+    judge0_url = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true"
+    headers = {
+        "X-RapidAPI-Key": api_key,
+        "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
+        "Content-Type": "application/json",
+    }
+
+    results = []
+    passed_count = 0
+
+    for tc in test_cases:
+        stdin_val = tc.get("input", "")
+        expected = (tc.get("expected_output") or "").strip()
+        payload = {
+            "source_code": code,
+            "language_id": language_id,
+            "stdin": stdin_val,
+        }
+        try:
+            resp = requests.post(judge0_url, json=payload, headers=headers, timeout=15)
+            resp.raise_for_status()
+            jdata = resp.json()
+            stdout = (jdata.get("stdout") or "").strip()
+            stderr = (jdata.get("stderr") or "").strip()
+            compile_output = (jdata.get("compile_output") or "").strip()
+            status_desc = (jdata.get("status") or {}).get("description", "")
+            # Actual output is stdout; if compile error, use compile_output
+            actual = stdout if stdout else compile_output
+            # Compare: case-insensitive for boolean-like outputs, otherwise exact trimmed
+            def _normalize(s):
+                return s.strip().lower()
+            if expected.lower() in ("true", "false") and actual.lower() in ("true", "false"):
+                is_passed = _normalize(actual) == _normalize(expected)
+            else:
+                is_passed = _normalize(actual) == _normalize(expected) if expected else (status_desc == "Accepted" and not stderr and not compile_output)
+                # If expected is empty (no test case), pass means no runtime error
+                if not expected:
+                    is_passed = status_desc == "Accepted" and not stderr and not compile_output
+            if is_passed:
+                passed_count += 1
+            results.append({
+                "input": stdin_val,
+                "expected": expected,
+                "actual": actual,
+                "passed": is_passed,
+                "stdout": stdout,
+                "stderr": stderr or compile_output,
+                "status": status_desc,
+            })
+        except requests.exceptions.Timeout:
+            return jsonify({
+                "error": "Execution service unavailable, evaluating based on code review only",
+                "details": "Judge0 API timeout",
+                "passed": passed_count,
+                "total": len(test_cases),
+                "results": results,
+            }), 503
+        except requests.exceptions.RequestException as e:
+            err_msg = str(e)
+            try:
+                detail = e.response.json().get("message", err_msg) if hasattr(e, 'response') and e.response is not None else err_msg
+            except Exception:
+                detail = err_msg
+            return jsonify({
+                "error": "Execution service unavailable, evaluating based on code review only",
+                "details": detail,
+                "passed": passed_count,
+                "total": len(test_cases),
+                "results": results,
+            }), 503
+        except Exception as e:
+            return jsonify({
+                "error": "Execution service unavailable, evaluating based on code review only",
+                "details": str(e),
+                "passed": passed_count,
+                "total": len(test_cases),
+                "results": results,
+            }), 503
+
+    return jsonify({
+        "passed": passed_count,
+        "total": len(test_cases),
+        "details": results,
+        "results": results,  # alias for compat
+        "language": language,
+        "question_id": question_id,
     })
 
 
