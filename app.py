@@ -17,12 +17,12 @@ from dotenv import load_dotenv
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory, send_file
 from werkzeug.utils import secure_filename
 import requests
 
 # Local modules
-from resume_parser import parse_resume
+from resume_parser import parse_resume, calculate_ats_score
 from interview_engine import (
     start_interview,
     submit_answer,
@@ -218,6 +218,10 @@ def init_db():
         cursor.execute("PRAGMA foreign_keys=ON")
         conn.commit()
 
+    # ── ATS score migration (safe, preserves existing DB) ─────────────────
+    _add_column_if_not_exists(cursor, "candidates", "ats_score", "TEXT DEFAULT '{}'")
+    _add_column_if_not_exists(cursor, "candidates", "jd_text", "TEXT DEFAULT ''")
+
     # ── Safe column migrations ────────────────────────────────────────────
     _add_column_if_not_exists(cursor, "answers", "problem_solving_score", "INTEGER DEFAULT 5")
     _add_column_if_not_exists(cursor, "answers", "time_management_score", "INTEGER DEFAULT 5")
@@ -271,13 +275,15 @@ def allowed_file(filename: str) -> bool:
 
 def save_candidate_to_db(name: str, email: str, role: str, experience: str,
                          resume_filename: str = None, resume_text: str = "",
-                         skills: list = None) -> int:
+                         skills: list = None, ats_score: dict = None, jd_text: str = "") -> int:
     """
     Insert or update a candidate record in the database.
     Returns the candidate ID.
     """
     with _db_conn() as (conn, cursor):
         skills_json = json.dumps(skills or [])
+        ats_json = json.dumps(ats_score or {})
+        jd_val = (jd_text or "")[:3000]
 
         # Check if candidate already exists by email
         existing = cursor.execute(
@@ -285,20 +291,34 @@ def save_candidate_to_db(name: str, email: str, role: str, experience: str,
         ).fetchone()
 
         if existing:
-            # Update existing record
-            cursor.execute("""
-                UPDATE candidates
-                SET name = ?, role = ?, experience = ?, resume_filename = ?,
-                    resume_text = ?, skills = ?
-                WHERE id = ?
-            """, (name, role, experience, resume_filename, resume_text, skills_json, existing["id"]))
+            # Update existing record (safe: handles old DBs without new columns via try/except)
+            try:
+                cursor.execute("""
+                    UPDATE candidates
+                    SET name = ?, role = ?, experience = ?, resume_filename = ?,
+                        resume_text = ?, skills = ?, ats_score = ?, jd_text = ?
+                    WHERE id = ?
+                """, (name, role, experience, resume_filename, resume_text, skills_json, ats_json, jd_val, existing["id"]))
+            except Exception:
+                # Fallback for DBs where migration hasn't run yet
+                cursor.execute("""
+                    UPDATE candidates
+                    SET name = ?, role = ?, experience = ?, resume_filename = ?,
+                        resume_text = ?, skills = ?
+                    WHERE id = ?
+                """, (name, role, experience, resume_filename, resume_text, skills_json, existing["id"]))
             candidate_id = existing["id"]
         else:
-            # Insert new candidate
-            cursor.execute("""
-                INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
-            """, (name, email, role, experience, resume_filename, resume_text, skills_json))
+            try:
+                cursor.execute("""
+                    INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills, ats_score, jd_text)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (name, email, role, experience, resume_filename, resume_text, skills_json, ats_json, jd_val))
+            except Exception:
+                cursor.execute("""
+                    INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                """, (name, email, role, experience, resume_filename, resume_text, skills_json))
             candidate_id = cursor.lastrowid
 
         return candidate_id
@@ -470,10 +490,20 @@ def get_candidate_history(candidate_id: int) -> dict:
         if conf_scores:
             avg_confidence = round(sum(conf_scores) / len(conf_scores), 1)
 
+    # Parse ATS score if present
+    candidate_dict = dict(candidate) if candidate else None
+    if candidate_dict is not None and "ats_score" in candidate_dict:
+        try:
+            raw = candidate_dict.get("ats_score")
+            if isinstance(raw, str) and raw.strip().startswith("{"):
+                candidate_dict["ats_score"] = json.loads(raw)
+        except Exception:
+            pass
+
     conn.close()
 
     return {
-        "candidate": dict(candidate) if candidate else None,
+        "candidate": candidate_dict,
         "total_sessions": total_sessions,
         "total_answers": total_answers,
         "avg_overall": avg_overall,
@@ -542,6 +572,14 @@ def register():
                     if parse_result.get("name") and name.lower() in ["", "candidate"]:
                         name = parse_result["name"]
 
+        # Calculate ATS score (always, even if no JD or no resume)
+        jd_text = request.form.get("jd_text", "").strip()
+        jd_text = jd_text[:3000]
+        try:
+            ats_result = calculate_ats_score(resume_text, jd_text, role, skills)
+        except Exception:
+            ats_result = {"score": 0, "breakdown": {"skills_match":0,"experience_keywords":0,"education":0,"formatting":0,"keyword_density":0}, "missing_keywords": [], "matched_keywords": []}
+
         # Save candidate to database
         candidate_id = save_candidate_to_db(
             name=name,
@@ -551,11 +589,11 @@ def register():
             resume_filename=resume_filename,
             resume_text=resume_text,
             skills=skills,
+            ats_score=ats_result,
+            jd_text=jd_text,
         )
 
         # Store candidate info in session for interview flow
-        jd_text = request.form.get("jd_text", "").strip()
-        jd_text = jd_text[:3000]  # length cap per requirements
         session["candidate_id"] = candidate_id
         session["candidate_name"] = name
         session["candidate_email"] = email
@@ -565,6 +603,7 @@ def register():
         session["candidate_company"] = request.form.get("company", "General")
         session["resume_text"] = resume_text[:5000]  # Truncate for session storage
         session["jd_text"] = jd_text
+        session["ats_score"] = ats_result
 
         return jsonify({
             "success": True,
@@ -572,7 +611,8 @@ def register():
             "name": name,
             "skills_found": len(skills),
             "skills": skills[:20],  # Top 20 skills for display
-            "message": f"Registered successfully! {len(skills)} skills identified from resume."
+            "ats_score": ats_result,
+            "message": f"Registered successfully! {len(skills)} skills identified from resume. ATS Score: {ats_result['score']}%"
         })
 
     except Exception as e:
@@ -812,7 +852,7 @@ def api_transcribe():
 @app.route("/api/run_code", methods=["POST"])
 def api_run_code():
     """
-    Live Code Execution via Judge0 CE API (RapidAPI).
+    Live Code Execution via Piston API (no key required).
     Input: {code, language: python|javascript, question_id}
     Runs code against test_cases from coding_questions_bank.py.
     Returns: {passed, total, details: [{input, expected, actual, passed, stdout, stderr, status}]}
@@ -825,10 +865,11 @@ def api_run_code():
     if not code:
         return jsonify({"error": "Code cannot be empty."}), 400
 
-    lang_map = {"python": 71, "javascript": 63, "js": 63}
+    # Piston language mapping (no key needed)
+    lang_map = {"python": "python", "javascript": "javascript", "js": "javascript"}
     if language not in lang_map:
         return jsonify({"error": "Unsupported language. Use 'python' or 'javascript'."}), 400
-    language_id = lang_map[language]
+    piston_lang = lang_map[language]
 
     # Resolve test cases
     test_cases = []
@@ -853,22 +894,8 @@ def api_run_code():
     if not test_cases:
         test_cases = [{"input": "", "expected_output": ""}]
 
-    api_key = os.environ.get("JUDGE0_API_KEY", "").strip()
-    if not api_key:
-        return jsonify({
-            "error": "Execution service unavailable, evaluating based on code review only",
-            "details": "JUDGE0_API_KEY not configured on server",
-            "passed": 0,
-            "total": len(test_cases),
-            "results": [],
-        }), 503
-
-    judge0_url = "https://judge0-ce.p.rapidapi.com/submissions?base64_encoded=false&wait=true"
-    headers = {
-        "X-RapidAPI-Key": api_key,
-        "X-RapidAPI-Host": "judge0-ce.p.rapidapi.com",
-        "Content-Type": "application/json",
-    }
+    piston_url = "https://emkc.org/api/v2/piston/execute"
+    headers = {"Content-Type": "application/json"}
 
     results = []
     passed_count = 0
@@ -877,30 +904,61 @@ def api_run_code():
         stdin_val = tc.get("input", "")
         expected = (tc.get("expected_output") or "").strip()
         payload = {
-            "source_code": code,
-            "language_id": language_id,
+            "language": piston_lang,
+            "version": "*",
+            "files": [{"content": code}],
             "stdin": stdin_val,
         }
         try:
-            resp = requests.post(judge0_url, json=payload, headers=headers, timeout=15)
+            resp = requests.post(piston_url, json=payload, headers=headers, timeout=15)
             resp.raise_for_status()
             jdata = resp.json()
-            stdout = (jdata.get("stdout") or "").strip()
-            stderr = (jdata.get("stderr") or "").strip()
-            compile_output = (jdata.get("compile_output") or "").strip()
-            status_desc = (jdata.get("status") or {}).get("description", "")
-            # Actual output is stdout; if compile error, use compile_output
-            actual = stdout if stdout else compile_output
-            # Compare: case-insensitive for boolean-like outputs, otherwise exact trimmed
+            # Piston shape: {run: {stdout, stderr, code, output}, compile: {...}}
+            run_data = jdata.get("run") or {}
+            compile_data = jdata.get("compile") or {}
+            stdout = (run_data.get("stdout") or "").strip()
+            stderr = (run_data.get("stderr") or "").strip()
+            compile_stderr = (compile_data.get("stderr") or "").strip()
+            compile_output = (compile_data.get("output") or "").strip()
+            # Prefer compile error if present
+            if compile_stderr:
+                stderr = compile_stderr or stderr
+            if compile_output and not stdout:
+                actual = compile_output
+            else:
+                actual = stdout if stdout else (stderr or compile_output)
+                # For success case actual is stdout
+                actual = stdout if stdout else compile_output
+            # Piston exit code: 0 = success
+            run_code = run_data.get("code")
+            compile_code = compile_data.get("code")
+            # Derive status description
+            if compile_code not in (None, 0):
+                status_desc = "Compilation Error"
+            elif run_code == 0:
+                status_desc = "Accepted"
+            elif run_code is None:
+                status_desc = "Accepted" if not stderr and not compile_stderr else "Runtime Error"
+            else:
+                status_desc = "Runtime Error" if run_code != 0 else "Accepted"
+            # For display, actual is stdout trimmed
+            actual = stdout if stdout else (compile_stderr or compile_output or stderr)
+            actual = (actual or "").strip()
+            # Compare
             def _normalize(s):
                 return s.strip().lower()
             if expected.lower() in ("true", "false") and actual.lower() in ("true", "false"):
                 is_passed = _normalize(actual) == _normalize(expected)
             else:
-                is_passed = _normalize(actual) == _normalize(expected) if expected else (status_desc == "Accepted" and not stderr and not compile_output)
-                # If expected is empty (no test case), pass means no runtime error
-                if not expected:
-                    is_passed = status_desc == "Accepted" and not stderr and not compile_output
+                if expected:
+                    is_passed = _normalize(actual) == _normalize(expected)
+                else:
+                    # No expected → pass if exit code 0 and no stderr
+                    is_passed = (run_code == 0 or run_code is None) and not stderr and not compile_stderr
+                    if not expected:
+                        # Also consider compile success
+                        if compile_code not in (None, 0):
+                            is_passed = False
             if is_passed:
                 passed_count += 1
             results.append({
@@ -909,13 +967,13 @@ def api_run_code():
                 "actual": actual,
                 "passed": is_passed,
                 "stdout": stdout,
-                "stderr": stderr or compile_output,
+                "stderr": stderr or compile_stderr or compile_output,
                 "status": status_desc,
             })
         except requests.exceptions.Timeout:
             return jsonify({
                 "error": "Execution service unavailable, evaluating based on code review only",
-                "details": "Judge0 API timeout",
+                "details": "Piston API timeout",
                 "passed": passed_count,
                 "total": len(test_cases),
                 "results": results,
@@ -963,7 +1021,99 @@ def report_page(session_id: str):
     # Ensure data is persisted
     _persist_session_to_db(session_id, report)
 
-    return render_template("report.html", report=report)
+    # Fetch ATS score for candidate (from DB or session fallback)
+    ats_score = session.get("ats_score")
+    if not ats_score:
+        try:
+            conn = get_db()
+            # Try to find candidate_id via session
+            sid_row = conn.execute("SELECT candidate_id FROM sessions WHERE id = ?", (session_id,)).fetchone()
+            cid = sid_row["candidate_id"] if sid_row else session.get("candidate_id")
+            if cid:
+                cand = conn.execute("SELECT ats_score FROM candidates WHERE id = ?", (cid,)).fetchone()
+                if cand and cand["ats_score"]:
+                    try:
+                        ats_score = json.loads(cand["ats_score"]) if isinstance(cand["ats_score"], str) else cand["ats_score"]
+                    except Exception:
+                        ats_score = None
+            conn.close()
+        except Exception:
+            ats_score = None
+
+    return render_template("report.html", report=report, ats_score=ats_score)
+
+
+@app.route("/api/report/pdf/<session_id>")
+def api_report_pdf(session_id: str):
+    """Generate and download PDF report for a session."""
+    try:
+        report = generate_report(session_id)
+        if "error" in report:
+            return jsonify({"error": report["error"]}), 404
+
+        # Fetch ATS score (same logic as report_page)
+        ats_score = session.get("ats_score")
+        if not ats_score:
+            try:
+                conn = get_db()
+                sid_row = conn.execute("SELECT candidate_id FROM sessions WHERE id = ?", (session_id,)).fetchone()
+                cid = sid_row["candidate_id"] if sid_row else session.get("candidate_id")
+                if cid:
+                    cand = conn.execute("SELECT ats_score FROM candidates WHERE id = ?", (cid,)).fetchone()
+                    if cand and cand["ats_score"]:
+                        try:
+                            ats_score = json.loads(cand["ats_score"]) if isinstance(cand["ats_score"], str) else cand["ats_score"]
+                        except Exception:
+                            ats_score = None
+                conn.close()
+            except Exception:
+                ats_score = None
+
+        # Lazy import to give graceful error if reportlab missing
+        try:
+            from report_generator import generate_pdf_report as _gen_pdf
+        except ImportError as e:
+            return jsonify({"error": f"PDF generation unavailable: {str(e)}"}), 500
+
+        # Build minimal candidate_data / session_data for PDF
+        candidate_data = report.get("candidate_info") or {}
+        # Enrich candidate_data with email if available from report or DB
+        if not candidate_data.get("email"):
+            try:
+                conn = get_db()
+                sid_row = conn.execute("SELECT candidate_id FROM sessions WHERE id = ?", (session_id,)).fetchone()
+                if sid_row:
+                    cand_row = conn.execute("SELECT email FROM candidates WHERE id = ?", (sid_row["candidate_id"],)).fetchone()
+                    if cand_row:
+                        candidate_data["email"] = cand_row["email"]
+                conn.close()
+            except Exception:
+                pass
+
+        session_data = report.get("session_data") or {}
+        # Merge scores into session_data for PDF summary convenience
+        for k in ["overall_score", "technical_score", "communication_score", "confidence_score",
+                  "problem_solving_score", "time_management_score", "conceptual_clarity_score"]:
+            if k in report and k not in session_data:
+                session_data[k] = report.get(k)
+        session_data["skill_gaps"] = report.get("skill_gaps", [])
+        session_data["recommendations"] = report.get("recommendations", [])
+        session_data["answers"] = report.get("answers", [])
+        session_data["session_id"] = session_id
+
+        try:
+            pdf_buf = _gen_pdf(candidate_data, session_data, ats_score)
+        except Exception as e:
+            return jsonify({"error": f"PDF generation failed: {str(e)}"}), 500
+
+        return send_file(
+            pdf_buf,
+            mimetype="application/pdf",
+            as_attachment=True,
+            download_name=f"interview_report_{session_id}.pdf",
+        )
+    except Exception as e:
+        return jsonify({"error": f"PDF export failed: {str(e)}"}), 500
 
 
 @app.route("/api/report/<session_id>")

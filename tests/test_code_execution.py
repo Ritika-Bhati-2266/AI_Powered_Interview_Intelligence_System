@@ -1,5 +1,5 @@
 """
-Tests for Live Code Execution — POST /api/run_code with mocked Judge0
+Tests for Live Code Execution — POST /api/run_code with mocked Piston
 """
 
 import os
@@ -9,9 +9,6 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Ensure Judge0 key is set for tests
-os.environ["JUDGE0_API_KEY"] = "test_rapidapi_key_123"
 
 from app import app
 from coding_questions_bank import FALLBACK_CODING_QUESTIONS, get_question_by_id
@@ -47,6 +44,15 @@ class TestCodingBankTestCases:
         assert get_question_by_id("nonexistent_xyz") is None
 
 
+def _piston_response(stdout="", stderr="", compile_stderr="", code=0, compile_code=0):
+    return {
+        "run": {"stdout": stdout, "stderr": stderr, "code": code, "output": stdout or stderr},
+        "compile": {"stdout": "", "stderr": compile_stderr, "code": compile_code, "output": compile_stderr},
+        "language": "python",
+        "version": "3.10.0",
+    }
+
+
 class TestRunCodeEndpoint:
     def test_empty_code_rejected(self, client):
         resp = client.post("/api/run_code", json={"code": "", "language": "python"})
@@ -58,30 +64,45 @@ class TestRunCodeEndpoint:
         assert resp.status_code == 400
         assert "unsupported" in resp.get_json()["error"].lower()
 
-    def test_no_api_key_graceful(self, client):
-        # Temporarily clear key
+    def test_no_api_key_not_needed_for_piston(self, client):
+        # Piston requires no key — should succeed (mocked) even without JUDGE0_API_KEY
         with patch.dict(os.environ, {"JUDGE0_API_KEY": ""}):
-            resp = client.post("/api/run_code", json={"code": "print('hi')", "language": "python", "question_id": "easy_1"})
-            assert resp.status_code == 503
-            data = resp.get_json()
-            assert "execution service unavailable" in data["error"].lower()
+            with patch("app.requests.post") as mock_post:
+                m = MagicMock()
+                m.json.return_value = _piston_response(stdout="true\n", code=0)
+                m.raise_for_status.return_value = None
+                mock_post.return_value = m
+                # Need 3 calls for easy_1
+                def side_effect(url, json=None, headers=None, timeout=None):
+                    stdin = json.get("stdin", "")
+                    mm = MagicMock()
+                    if "racecar" in stdin:
+                        mm.json.return_value = _piston_response(stdout="true\n", code=0)
+                    elif "hello" in stdin:
+                        mm.json.return_value = _piston_response(stdout="false\n", code=0)
+                    else:
+                        mm.json.return_value = _piston_response(stdout="true\n", code=0)
+                    mm.raise_for_status.return_value = None
+                    return mm
+                mock_post.side_effect = side_effect
+                resp = client.post("/api/run_code", json={"code": "print('hi')", "language": "python", "question_id": "easy_1"})
+                assert resp.status_code == 200
+                assert resp.get_json()["passed"] == 3
 
     @patch("app.requests.post")
     def test_run_python_all_pass(self, mock_post, client):
-        # Mock Judge0 to return stdout matching expected_output for easy_1: "true", "false"
-        # easy_1 test_cases: racecar->true, hello->false
+        # Piston mock for easy_1: racecar->true, hello->false, Panama->true
         def side_effect(url, json=None, headers=None, timeout=None):
             stdin = json.get("stdin", "")
             m = MagicMock()
-            # Map stdin to expected
             if "racecar" in stdin:
-                m.json.return_value = {"stdout": "true\n", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+                m.json.return_value = _piston_response(stdout="true\n", code=0)
             elif "hello" in stdin:
-                m.json.return_value = {"stdout": "false\n", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+                m.json.return_value = _piston_response(stdout="false\n", code=0)
             elif "Panama" in stdin:
-                m.json.return_value = {"stdout": "true\n", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+                m.json.return_value = _piston_response(stdout="true\n", code=0)
             else:
-                m.json.return_value = {"stdout": "true", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+                m.json.return_value = _piston_response(stdout="true", code=0)
             m.raise_for_status.return_value = None
             return m
         mock_post.side_effect = side_effect
@@ -95,23 +116,24 @@ class TestRunCodeEndpoint:
         for d in data["details"]:
             assert d["passed"] is True
             assert "input" in d and "expected" in d and "actual" in d
+        # Verify Piston URL and payload shape on first call
+        assert "piston" in mock_post.call_args_list[0][0][0].lower()
+        first_payload = mock_post.call_args_list[0][1]["json"]
+        assert first_payload["language"] == "python"
+        assert "files" in first_payload
+        assert first_payload["files"][0]["content"] == "print('true')"
 
     @patch("app.requests.post")
     def test_run_partial_pass(self, mock_post, client):
-        # medium_1: two-sum — 3 test cases, 2 pass, 1 fails
         call_count = {"n": 0}
         def side_effect(url, json=None, headers=None, timeout=None):
             m = MagicMock()
-            # First two calls pass, third fails
             call_count["n"] += 1
+            exp_map = ["0 1", "1 2", "-1 -1"]
             if call_count["n"] <= 2:
-                m.json.return_value = {"stdout": json.get("stdin", ""), "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
-                # Actually return expected to pass — we mock to equal expected
-                # For medium_1: expected are "0 1", "1 2", "-1 -1"
-                exp_map = ["0 1", "1 2", "-1 -1"]
-                m.json.return_value = {"stdout": exp_map[call_count["n"]-1], "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+                m.json.return_value = _piston_response(stdout=exp_map[call_count["n"]-1], code=0)
             else:
-                m.json.return_value = {"stdout": "wrong", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+                m.json.return_value = _piston_response(stdout="wrong", code=0)
             m.raise_for_status.return_value = None
             return m
         mock_post.side_effect = side_effect
@@ -125,26 +147,24 @@ class TestRunCodeEndpoint:
         assert data["details"][2]["passed"] is False
 
     @patch("app.requests.post")
-    def test_javascript_language_id(self, mock_post, client):
-        # Verify javascript=63 is used
+    def test_javascript_language(self, mock_post, client):
         m = MagicMock()
-        m.json.return_value = {"stdout": "hello", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+        m.json.return_value = _piston_response(stdout="hello", code=0)
         m.raise_for_status.return_value = None
         mock_post.return_value = m
-        # easy_1 has 3 cases, so 3 calls
         resp = client.post("/api/run_code", json={"code": "console.log('hi')", "language": "javascript", "question_id": "easy_1"})
         assert resp.status_code == 200
-        # Check that language_id 63 was sent in at least one call
-        first_call_payload = mock_post.call_args_list[0][1]["json"]
-        assert first_call_payload["language_id"] == 63
+        first_payload = mock_post.call_args_list[0][1]["json"]
+        assert first_payload["language"] == "javascript"
+        assert first_payload["files"][0]["content"] == "console.log('hi')"
         # Also test alias "js"
         mock_post.reset_mock()
         resp = client.post("/api/run_code", json={"code": "console.log('hi')", "language": "js", "question_id": "easy_1"})
         assert resp.status_code == 200
-        assert mock_post.call_args_list[0][1]["json"]["language_id"] == 63
+        assert mock_post.call_args_list[0][1]["json"]["language"] == "javascript"
 
     @patch("app.requests.post")
-    def test_judge0_timeout_fallback(self, mock_post, client):
+    def test_piston_timeout_fallback(self, mock_post, client):
         import requests as req
         mock_post.side_effect = req.exceptions.Timeout("timeout")
         resp = client.post("/api/run_code", json={"code": "print(1)", "language": "python", "question_id": "easy_1"})
@@ -154,7 +174,7 @@ class TestRunCodeEndpoint:
         assert "timeout" in data["details"].lower()
 
     @patch("app.requests.post")
-    def test_judge0_request_exception_fallback(self, mock_post, client):
+    def test_piston_request_exception_fallback(self, mock_post, client):
         import requests as req
         mock_post.side_effect = req.exceptions.ConnectionError("conn fail")
         resp = client.post("/api/run_code", json={"code": "print(1)", "language": "python", "question_id": "easy_1"})
@@ -163,27 +183,31 @@ class TestRunCodeEndpoint:
 
     @patch("app.requests.post")
     def test_run_without_question_id_single_execution(self, mock_post, client):
-        # No question_id -> server creates single test case with empty input
         m = MagicMock()
-        m.json.return_value = {"stdout": "hello", "stderr": "", "compile_output": "", "status": {"description": "Accepted"}}
+        m.json.return_value = _piston_response(stdout="hello", code=0)
         m.raise_for_status.return_value = None
         mock_post.return_value = m
         resp = client.post("/api/run_code", json={"code": "print('hello')", "language": "python"})
         assert resp.status_code == 200
         data = resp.get_json()
         assert data["total"] == 1
-        assert data["passed"] == 1  # Accepted with no expected => pass
+        assert data["passed"] == 1
 
     @patch("app.requests.post")
     def test_compile_error_shown(self, mock_post, client):
         m = MagicMock()
-        m.json.return_value = {"stdout": "", "stderr": "", "compile_output": "SyntaxError: invalid syntax", "status": {"description": "Compilation Error"}}
+        # Piston compile error: compile.code !=0, stderr in compile
+        m.json.return_value = {
+            "run": {"stdout": "", "stderr": "", "code": None, "output": ""},
+            "compile": {"stdout": "", "stderr": "SyntaxError: invalid syntax", "code": 1, "output": "SyntaxError: invalid syntax"},
+            "language": "python",
+            "version": "3.10.0",
+        }
         m.raise_for_status.return_value = None
         mock_post.return_value = m
         resp = client.post("/api/run_code", json={"code": "print(", "language": "python", "question_id": "easy_1"})
         assert resp.status_code == 200
         data = resp.get_json()
-        # All should fail when compile error
         assert data["passed"] == 0
         assert "SyntaxError" in data["details"][0]["stderr"] or "SyntaxError" in data["details"][0]["actual"]
 
@@ -191,7 +215,6 @@ class TestRunCodeEndpoint:
 class TestEvaluateWithCodeExecution:
     def test_evaluate_injects_code_result(self):
         from ai_service import evaluate_answer
-        # Mock Groq call to avoid network
         with patch("ai_service._call_llm") as mock_llm:
             mock_llm.return_value = json.dumps({
                 "overall_score": 9,
@@ -218,7 +241,6 @@ class TestEvaluateWithCodeExecution:
                 code_execution_result={"passed": 3, "total": 3, "details": [{"input":"racecar","expected":"true","actual":"true","passed":True}]}
             )
             assert result["overall_score"] == 9
-            # Verify prompt included execution note
             called_prompt = mock_llm.call_args[0][0]
             assert "3/3 test cases" in called_prompt or "passed 3/3" in called_prompt.lower()
 
@@ -243,7 +265,6 @@ class TestEvaluateWithCodeExecution:
                 }
                 result = submit_answer(sid, "def is_palindrome(s): return s==s[::-1]", code_execution_result={"passed": 3, "total": 3, "details": []})
                 assert mock_eval.called
-                # Check that code_execution_result was forwarded
                 kwargs = mock_eval.call_args[1] if mock_eval.call_args[1] else {}
                 assert "code_execution_result" in kwargs
                 assert kwargs["code_execution_result"]["passed"] == 3

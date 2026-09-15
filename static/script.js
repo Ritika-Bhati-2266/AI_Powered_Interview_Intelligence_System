@@ -594,6 +594,36 @@ function initRegistrationForm() {
                 skillsContainer.innerHTML = data.skills.map(s =>
                     '<span class="skill-tag">' + escapeHtml(s) + '</span>'
                 ).join('');
+                skillsContainer.classList.remove('hidden');
+            }
+            // ATS Score — circular progress + breakdown + keyword chips
+            const atsContainer = document.getElementById('ats-display');
+            if (atsContainer && data.ats_score) {
+                const ats = data.ats_score;
+                const score = Math.max(0, Math.min(100, ats.score || 0));
+                const bd = ats.breakdown || {};
+                const color = score >= 75 ? '#10b981' : score >= 50 ? '#f59e0b' : '#f43f5e';
+                const matched = (ats.matched_keywords || []).map(k => '<span class="skill-tag" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#065f46;">' + escapeHtml(k) + '</span>').join(' ');
+                const missing = (ats.missing_keywords || []).map(k => '<span class="skill-tag" style="background:rgba(244,63,94,0.12); border:1px solid rgba(244,63,94,0.3); color:#9f1239;">' + escapeHtml(k) + '</span>').join(' ');
+                atsContainer.innerHTML = ''
+                    + '<div style="display:flex; gap:1rem; align-items:center; flex-wrap:wrap; background:var(--bg-secondary); border:1px solid var(--border-color); border-radius:12px; padding:1rem;">'
+                    + '<div style="width:92px; height:92px; border-radius:50%; background: conic-gradient(' + color + ' ' + (score*3.6) + 'deg, var(--bg-input) 0deg); display:flex; align-items:center; justify-content:center; flex-shrink:0;">'
+                    + '<div style="width:74px; height:74px; border-radius:50%; background:var(--bg-card); display:flex; flex-direction:column; align-items:center; justify-content:center;">'
+                    + '<span style="font-weight:800; font-size:1.35rem; color:' + color + ';">' + score + '%</span><span style="font-size:0.65rem; color:var(--text-muted); font-weight:600;">ATS SCORE</span>'
+                    + '</div></div>'
+                    + '<div style="flex:1; min-width:200px;">'
+                    + '<div style="font-weight:700; font-size:0.9rem; margin-bottom:0.4rem;">Resume ATS Analysis</div>'
+                    + '<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.25rem; font-size:0.78rem; color:var(--text-secondary);">'
+                    + '<span>Skills Match: <strong>' + (bd.skills_match||0) + '/40</strong></span>'
+                    + '<span>Experience: <strong>' + (bd.experience_keywords||0) + '/20</strong></span>'
+                    + '<span>Education: <strong>' + (bd.education||0) + '/15</strong></span>'
+                    + '<span>Formatting: <strong>' + (bd.formatting||0) + '/10</strong></span>'
+                    + '<span>Keyword Density: <strong>' + (bd.keyword_density||0) + '/15</strong></span>'
+                    + '</div>'
+                    + (matched ? '<div style="margin-top:0.5rem; font-size:0.78rem;"><span style="color:var(--accent-emerald); font-weight:600;">Matched:</span> ' + matched + '</div>' : '')
+                    + (missing ? '<div style="margin-top:0.35rem; font-size:0.78rem;"><span style="color:var(--accent-rose); font-weight:600;">Missing:</span> ' + missing + '</div>' : '')
+                    + '</div></div>';
+                atsContainer.classList.remove('hidden');
             }
 
             // Redirect to interview after brief delay

@@ -201,6 +201,299 @@ def extract_skills(text: str) -> list:
     return sorted(found_skills)
 
 
+# Role -> common expected skills for ATS fallback when JD not provided
+ROLE_COMMON_SKILLS = {
+    "python developer": ["python", "django", "flask", "fastapi", "sql", "git", "rest api", "docker"],
+    "full stack developer": ["javascript", "react", "node.js", "express", "mongodb", "sql", "html", "css", "git"],
+    "frontend developer": ["javascript", "typescript", "react", "angular", "vue", "html", "css", "tailwind"],
+    "backend developer": ["python", "java", "node.js", "express", "sql", "mongodb", "rest api", "docker"],
+    "data scientist": ["python", "machine learning", "pandas", "numpy", "scikit-learn", "tensorflow", "pytorch", "sql"],
+    "machine learning engineer": ["python", "tensorflow", "pytorch", "machine learning", "deep learning", "scikit-learn", "mlflow"],
+    "devops engineer": ["docker", "kubernetes", "aws", "jenkins", "terraform", "linux", "ci/cd", "ansible"],
+    "software engineer": ["python", "java", "javascript", "sql", "git", "rest api", "docker", "agile"],
+    "react developer": ["react", "javascript", "typescript", "redux", "html", "css", "node.js", "git"],
+    "node.js developer": ["node.js", "javascript", "express", "mongodb", "sql", "rest api", "docker", "git"],
+    "java developer": ["java", "spring", "spring boot", "sql", "hibernate", "maven", "git", "rest api"],
+    "cloud engineer": ["aws", "azure", "gcp", "docker", "kubernetes", "terraform", "linux", "jenkins"],
+    "product manager": ["agile", "scrum", "jira", "confluence", "roadmap", "analytics", "api", "sql"],
+    "data analyst": ["sql", "python", "pandas", "excel", "tableau", "statistics", "data analysis", "power bi"],
+    "qa engineer": ["selenium", "pytest", "junit", "testng", "cypress", "postman", "agile", "sql"],
+}
+
+_STOPWORDS = {
+    "the", "and", "for", "with", "you", "are", "have", "this", "that", "will", "from", "your",
+    "our", "their", "about", "which", "when", "what", "where", "experience", "years", "year",
+    "must", "should", "required", "requirements", "responsibilities", "looking", "candidate",
+    "role", "position", "company", "team", "work", "working", "ability", "knowledge", "skill",
+    "skills", "strong", "good", "excellent", "plus", "including", "using", "within", "across",
+}
+
+
+def _extract_jd_terms(jd_text: str) -> list:
+    """Extract important keyword terms from JD (skip stopwords, length>2)."""
+    if not jd_text:
+        return []
+    # Lowercase and extract words (alphanumeric + . + - + #)
+    words = re.findall(r"[a-zA-Z][a-zA-Z0-9\.\-\+#]*", jd_text.lower())
+    terms = []
+    seen = set()
+    for w in words:
+        w = w.strip(".-")
+        if len(w) < 3 or w in _STOPWORDS:
+            continue
+        # Filter pure numbers
+        if re.match(r"^\d+$", w):
+            continue
+        if w not in seen:
+            seen.add(w)
+            terms.append(w)
+    return terms
+
+
+def calculate_ats_score(resume_text: str, jd_text: str = "", role: str = "", extracted_skills: list = None) -> dict:
+    """
+    Calculate ATS-style match score for resume.
+    Returns dict: {
+        "score": int (0-100),
+        "breakdown": {
+            "skills_match": int (0-40),
+            "experience_keywords": int (0-20),
+            "education": int (0-15),
+            "formatting": int (0-10),
+            "keyword_density": int (0-15)
+        },
+        "missing_keywords": list[str],
+        "matched_keywords": list[str]
+    }
+    """
+    try:
+        resume_text = resume_text or ""
+        jd_text = jd_text or ""
+        role = role or ""
+        extracted_skills = extracted_skills or []
+        if extracted_skills is None:
+            extracted_skills = extract_skills(resume_text)
+        # Normalize
+        resume_lower = resume_text.lower()
+        jd_lower = jd_text.lower()
+        extracted_lower = set(s.lower() for s in extracted_skills)
+
+        # ── Skills match (40) ──
+        skills_match = 0
+        matched_keywords = []
+        missing_keywords = []
+        if jd_lower.strip():
+            # JD-based: extract required skills by scanning JD against skill_keywords
+            # Reuse skill_keywords from extract_skills scope — rebuild minimal set
+            # Approach: JD terms that are also known skills
+            jd_terms = _extract_jd_terms(jd_text)
+            # Required skills are JD terms that appear in our skill universe
+            # Build quick skill universe
+            skill_universe = set(
+                s.lower() for s in [
+                    "python","javascript","typescript","java","c++","c#","ruby","go","golang","rust","swift","kotlin","scala","php",
+                    "react","angular","vue","next.js","django","flask","fastapi","spring","express","node.js","postgresql","mysql","mongodb","redis",
+                    "aws","azure","gcp","docker","kubernetes","jenkins","terraform","ansible","helm","prometheus","grafana","nginx",
+                    "tensorflow","pytorch","keras","scikit-learn","pandas","numpy","spark","hadoop","git","github","jira","figma",
+                    "jest","pytest","selenium","cypress","rest api","microservices","ci/cd","agile","kafka","rabbitmq"
+                ]
+            )
+            required_skills = set()
+            for term in jd_terms:
+                if term in skill_universe:
+                    required_skills.add(term)
+                # Also check multi-word? For simplicity, also scan JD lower for exact skill phrase
+            # Also directly scan JD for skill universe via regex (covers "react native" etc)
+            for sk in skill_universe:
+                if re.search(r'\b' + re.escape(sk) + r'\b', jd_lower):
+                    required_skills.add(sk)
+            if required_skills:
+                matched = extracted_lower.intersection(required_skills)
+                missing = required_skills - extracted_lower
+                matched_keywords = sorted(matched)[:8]
+                missing_keywords = sorted(missing)[:8]
+                ratio = len(matched) / len(required_skills) if required_skills else 0
+                skills_match = int(round(ratio * 40))
+            else:
+                # No skill-like terms in JD — fallback to generic JD term overlap for skills_match
+                jd_terms_set = set(jd_terms[:20])
+                if jd_terms_set:
+                    overlap = sum(1 for t in jd_terms_set if t in resume_lower)
+                    ratio = overlap / len(jd_terms_set) if jd_terms_set else 0
+                    skills_match = int(round(ratio * 40))
+                    # For missing/matched, use JD terms
+                    matched_keywords = [t for t in jd_terms[:8] if t in resume_lower][:8]
+                    missing_keywords = [t for t in jd_terms[:8] if t not in resume_lower][:8]
+                else:
+                    skills_match = 20  # neutral
+        else:
+            # Role-based fallback
+            role_key = role.lower().strip()
+            role_skills = ROLE_COMMON_SKILLS.get(role_key)
+            if not role_skills:
+                # Try partial match
+                for k, v in ROLE_COMMON_SKILLS.items():
+                    if k in role_key or role_key in k:
+                        role_skills = v
+                        break
+            if not role_skills:
+                role_skills = ROLE_COMMON_SKILLS.get("software engineer", [])
+            role_set = set(s.lower() for s in role_skills)
+            matched = extracted_lower.intersection(role_set)
+            missing = role_set - extracted_lower
+            matched_keywords = sorted(matched)[:8]
+            # If no extracted skills at all, missing will be full role set
+            missing_keywords = sorted(missing)[:8]
+            ratio = len(matched) / len(role_set) if role_set else 0
+            skills_match = int(round(ratio * 40))
+            # If resume empty, ensure 0
+            if not resume_text.strip():
+                skills_match = 0
+
+        skills_match = max(0, min(40, skills_match))
+
+        # ── Experience keywords (20) ──
+        exp_keywords = ["led", "managed", "developed", "implemented", "built", "designed", "created", "delivered", "achieved", "improved", "optimized", "launched", "mentored"]
+        exp_score = 0
+        if resume_text.strip():
+            found_exp = sum(1 for kw in exp_keywords if re.search(r'\b' + re.escape(kw) + r'\b', resume_lower))
+            # Cap at 4 keywords * 3 pts =12
+            exp_score += min(found_exp * 3, 12)
+            # Quantified achievements: numbers with % or numbers + years/months
+            has_percent = bool(re.search(r'\d+%', resume_text))
+            has_number = bool(re.search(r'\b\d+[\+]?\s*(years?|months?|projects?|users?|clients?)\b', resume_lower))
+            has_years_phrase = "years of experience" in resume_lower or "year of experience" in resume_lower
+            if has_percent:
+                exp_score += 4
+            if has_number:
+                exp_score += 2
+            if has_years_phrase:
+                exp_score += 2
+            exp_score = min(20, exp_score)
+        experience_keywords = max(0, min(20, exp_score))
+
+        # ── Education (15) ──
+        edu_score = 0
+        if resume_text.strip():
+            degree_pattern = r'\b(b\.?tech|b\.?e\.?|m\.?tech|m\.?e\.?|bachelor|master|b\.?sc|m\.?sc|mba|ph\.?d|doctorate|degree|university|college|institute)\b'
+            if re.search(degree_pattern, resume_lower):
+                edu_score += 8
+            field_pattern = r'\b(computer science|information technology|electronics|mechanical|civil|engineering|data science|artificial intelligence|commerce|business)\b'
+            if re.search(field_pattern, resume_lower):
+                edu_score += 7
+        education = max(0, min(15, edu_score))
+
+        # ── Formatting (10) ──
+        fmt_score = 0
+        if not resume_text.strip():
+            formatting = 0
+        else:
+            length = len(resume_text)
+            if 300 <= length <= 8000:
+                fmt_score += 4
+            elif 200 <= length < 300 or 8000 < length <= 12000:
+                fmt_score += 2
+            # Sections present
+            sections = ["education", "experience", "skills", "projects", "summary", "objective"]
+            found_sections = sum(1 for sec in sections if re.search(r'\b' + re.escape(sec) + r'\b', resume_lower))
+            fmt_score += min(found_sections, 4)  # up to 4
+            # Excessive special characters
+            special_count = len(re.findall(r'[^\w\s.,;:\-\(\)\/]', resume_text))
+            ratio_special = special_count / max(length, 1)
+            if ratio_special < 0.15:
+                fmt_score += 2
+            formatting = max(0, min(10, fmt_score))
+            # Ensure variable name consistency
+            formatting = fmt_score
+        formatting = max(0, min(10, formatting if 'formatting' in locals() else fmt_score))
+
+        # ── Keyword density (15) ──
+        keyword_density = 0
+        if jd_lower.strip():
+            jd_terms = _extract_jd_terms(jd_text)
+            # Use top 20 distinct JD terms
+            distinct = []
+            seen = set()
+            for t in jd_terms:
+                if t not in seen:
+                    seen.add(t)
+                    distinct.append(t)
+                if len(distinct) >= 20:
+                    break
+            if distinct:
+                found = sum(1 for t in distinct if re.search(r'\b' + re.escape(t) + r'\b', resume_lower))
+                ratio = found / len(distinct) if distinct else 0
+                keyword_density = int(round(ratio * 15))
+                # If no resume, 0
+                if not resume_text.strip():
+                    keyword_density = 0
+            else:
+                keyword_density = 0
+            # Override missing/matched if still empty and JD present — use JD terms
+            if not matched_keywords and not missing_keywords and distinct:
+                matched_keywords = [t for t in distinct[:8] if re.search(r'\b' + re.escape(t) + r'\b', resume_lower)][:8]
+                missing_keywords = [t for t in distinct[:8] if not re.search(r'\b' + re.escape(t) + r'\b', resume_lower)][:8]
+        else:
+            # JD empty — fallback: density based on role keywords overlap (already counted in skills_match partially, but give partial)
+            # Use role skills density
+            role_key = role.lower().strip()
+            role_skills = ROLE_COMMON_SKILLS.get(role_key)
+            if not role_skills:
+                for k, v in ROLE_COMMON_SKILLS.items():
+                    if k in role_key or role_key in k:
+                        role_skills = v
+                        break
+            if not role_skills:
+                role_skills = ROLE_COMMON_SKILLS.get("software engineer", [])
+            # Count how many role skills appear as substrings
+            if role_skills and resume_text.strip():
+                found = sum(1 for sk in role_skills if re.search(r'\b' + re.escape(sk.lower()) + r'\b', resume_lower))
+                ratio = found / len(role_skills) if role_skills else 0
+                keyword_density = int(round(ratio * 15))
+            else:
+                keyword_density = 0
+
+        keyword_density = max(0, min(15, keyword_density))
+
+        total = skills_match + experience_keywords + education + formatting + keyword_density
+        total = max(0, min(100, total))
+        # Empty resume -> ensure low score
+        if not resume_text.strip():
+            total = min(total, 10)
+            # Force breakdown to minimal if empty
+            if total > 10:
+                total = 5
+
+        breakdown = {
+            "skills_match": skills_match,
+            "experience_keywords": experience_keywords,
+            "education": education,
+            "formatting": formatting,
+            "keyword_density": keyword_density,
+        }
+
+        return {
+            "score": int(total),
+            "breakdown": breakdown,
+            "missing_keywords": missing_keywords[:8],
+            "matched_keywords": matched_keywords[:8],
+        }
+    except Exception:
+        # Graceful fallback — never crash
+        return {
+            "score": 0,
+            "breakdown": {
+                "skills_match": 0,
+                "experience_keywords": 0,
+                "education": 0,
+                "formatting": 0,
+                "keyword_density": 0,
+            },
+            "missing_keywords": [],
+            "matched_keywords": [],
+        }
+
+
 def extract_name(text: str) -> str:
     """
     Attempt to extract candidate name from resume text.
