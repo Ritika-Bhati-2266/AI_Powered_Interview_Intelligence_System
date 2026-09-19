@@ -8,6 +8,52 @@ Provides basic skill extraction from text content.
 import re
 import os
 
+# ── Global skill universe (single source of truth for extract_skills + ATS) ──
+SKILL_KEYWORDS = {
+    # Programming Languages
+    "python", "javascript", "typescript", "java", "c++", "c#", "ruby", "go", "golang",
+    "rust", "swift", "kotlin", "scala", "php", "perl", "r", "matlab", "dart", "lua",
+    "bash", "shell", "sql", "graphql", "html", "css", "sass", "less", "julia",
+    "c", "objective-c", "elixir", "haskell", "clojure", "solidity",
+    # Frontend Frameworks
+    "react", "angular", "vue", "vue.js", "svelte", "next.js", "nuxt", "gatsby",
+    "jquery", "bootstrap", "tailwind", "material-ui", "chakra-ui", "redux",
+    "webpack", "vite", "parcel", "electron", "react native", "flutter",
+    # Backend Frameworks
+    "django", "flask", "fastapi", "spring", "spring boot", "ruby on rails",
+    "express", "node.js", "laravel", "asp.net", "gin", "echo", "fiber",
+    "ktor", "actix", "rocket",
+    # Databases
+    "postgresql", "postgres", "mysql", "mongodb", "redis", "sqlite",
+    "oracle", "sql server", "mariadb", "cassandra", "dynamodb", "firebase",
+    "elasticsearch", "neo4j", "couchdb", "influxdb", "supabase",
+    # Cloud & DevOps
+    "aws", "azure", "gcp", "google cloud", "docker", "kubernetes", "k8s",
+    "jenkins", "github actions", "gitlab ci", "circleci", "terraform",
+    "ansible", "puppet", "chef", "helm", "argocd", "prometheus", "grafana",
+    "nginx", "apache", "cloudflare", "heroku", "vercel", "netlify",
+    # Data Science & ML
+    "tensorflow", "pytorch", "keras", "scikit-learn", "pandas", "numpy",
+    "jupyter", "spark", "hadoop", "airflow", "mlflow", "dvc",
+    "opencv", "nltk", "hugging face", "langchain", "llama", "ollama",
+    "machine learning", "deep learning", "nlp", "computer vision",
+    "data science", "data analysis", "statistics",
+    # Tools & Platforms
+    "git", "github", "gitlab", "bitbucket", "jira", "confluence",
+    "figma", "sketch", "photoshop", "trello", "asana", "notion",
+    "slack", "discord", "postman", "insomnia", "swagger",
+    "linux", "unix", "macos", "windows", "vim", "vscode", "intellij",
+    "yarn", "npm", "pnpm", "pip", "maven", "gradle",
+    # Testing
+    "jest", "mocha", "chai", "pytest", "cypress", "selenium",
+    "playwright", "junit", "unittest", "rspec", "testng",
+    # Concepts
+    "rest api", "restful", "microservices", "api", "graphql",
+    "ci/cd", "agile", "scrum", "tdd", "devops", "serverless",
+    "event-driven", "message queue", "rabbitmq", "kafka",
+    "unit testing", "integration testing", "e2e testing",
+}
+
 
 def extract_text_from_pdf(filepath: str) -> str:
     """
@@ -130,62 +176,8 @@ def extract_skills(text: str) -> list:
 
     text_lower = text.lower()
 
-    # Comprehensive skill keyword list organized by category
-    skill_keywords = {
-        # Programming Languages
-        "python", "javascript", "typescript", "java", "c++", "c#", "ruby", "go", "golang",
-        "rust", "swift", "kotlin", "scala", "php", "perl", "r", "matlab", "dart", "lua",
-        "bash", "shell", "sql", "graphql", "html", "css", "sass", "less", "julia",
-        "c", "objective-c", "elixir", "haskell", "clojure", "solidity",
-
-        # Frontend Frameworks
-        "react", "angular", "vue", "vue.js", "svelte", "next.js", "nuxt", "gatsby",
-        "jquery", "bootstrap", "tailwind", "material-ui", "chakra-ui", "redux",
-        "webpack", "vite", "parcel", "electron", "react native", "flutter",
-
-        # Backend Frameworks
-        "django", "flask", "fastapi", "spring", "spring boot", "ruby on rails",
-        "express", "node.js", "laravel", "asp.net", "gin", "echo", "fiber",
-        "ktor", "actix", "rocket",
-
-        # Databases
-        "postgresql", "postgres", "mysql", "mongodb", "redis", "sqlite",
-        "oracle", "sql server", "mariadb", "cassandra", "dynamodb", "firebase",
-        "elasticsearch", "neo4j", "couchdb", "influxdb", "supabase",
-
-        # Cloud & DevOps
-        "aws", "azure", "gcp", "google cloud", "docker", "kubernetes", "k8s",
-        "jenkins", "github actions", "gitlab ci", "circleci", "terraform",
-        "ansible", "puppet", "chef", "helm", "argocd", "prometheus", "grafana",
-        "nginx", "apache", "cloudflare", "heroku", "vercel", "netlify",
-
-        # Data Science & ML
-        "tensorflow", "pytorch", "keras", "scikit-learn", "pandas", "numpy",
-        "jupyter", "spark", "hadoop", "airflow", "mlflow", "dvc",
-        "opencv", "nltk", "hugging face", "langchain", "llama", "ollama",
-        "machine learning", "deep learning", "nlp", "computer vision",
-        "data science", "data analysis", "statistics",
-
-        # Tools & Platforms
-        "git", "github", "gitlab", "bitbucket", "jira", "confluence",
-        "figma", "sketch", "photoshop", "trello", "asana", "notion",
-        "slack", "discord", "postman", "insomnia", "swagger",
-        "linux", "unix", "macos", "windows", "vim", "vscode", "intellij",
-        "yarn", "npm", "pnpm", "pip", "maven", "gradle",
-
-        # Testing
-        "jest", "mocha", "chai", "pytest", "cypress", "selenium",
-        "playwright", "junit", "unittest", "rspec", "testng",
-
-        # Concepts
-        "rest api", "restful", "microservices", "api", "graphql",
-        "ci/cd", "agile", "scrum", "tdd", "devops", "serverless",
-        "event-driven", "message queue", "rabbitmq", "kafka",
-        "unit testing", "integration testing", "e2e testing",
-    }
-
     found_skills = set()
-    skill_pattern_lower = {s.lower() for s in skill_keywords}
+    skill_pattern_lower = {s.lower() for s in SKILL_KEYWORDS}
 
     # Check each skill keyword
     for skill in skill_pattern_lower:
@@ -287,17 +279,8 @@ def calculate_ats_score(resume_text: str, jd_text: str = "", role: str = "", ext
             # Reuse skill_keywords from extract_skills scope — rebuild minimal set
             # Approach: JD terms that are also known skills
             jd_terms = _extract_jd_terms(jd_text)
-            # Required skills are JD terms that appear in our skill universe
-            # Build quick skill universe
-            skill_universe = set(
-                s.lower() for s in [
-                    "python","javascript","typescript","java","c++","c#","ruby","go","golang","rust","swift","kotlin","scala","php",
-                    "react","angular","vue","next.js","django","flask","fastapi","spring","express","node.js","postgresql","mysql","mongodb","redis",
-                    "aws","azure","gcp","docker","kubernetes","jenkins","terraform","ansible","helm","prometheus","grafana","nginx",
-                    "tensorflow","pytorch","keras","scikit-learn","pandas","numpy","spark","hadoop","git","github","jira","figma",
-                    "jest","pytest","selenium","cypress","rest api","microservices","ci/cd","agile","kafka","rabbitmq"
-                ]
-            )
+            # Use global SKILL_KEYWORDS as single source of truth
+            skill_universe = {s.lower() for s in SKILL_KEYWORDS}
             required_skills = set()
             for term in jd_terms:
                 if term in skill_universe:

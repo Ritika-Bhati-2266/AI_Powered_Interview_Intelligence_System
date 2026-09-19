@@ -24,7 +24,7 @@ from ai_service import (
     evaluate_gd,
 )
 from company_rounds import get_rounds_for_company
-from aptitude_bank import get_aptitude_set, format_aptitude_answer_record
+from aptitude_bank import get_aptitude_set, get_aptitude_set_for_total, format_aptitude_answer_record
 
 # ── Constants ──────────────────────────────────────────────────────────────────
 
@@ -274,27 +274,57 @@ class SessionStore:
     """
     Simple in-memory store for active interview sessions.
     In production, this would be replaced with Redis or database storage.
+    Includes TTL eviction to prevent unbounded memory growth.
     """
 
-    def __init__(self):
+    def __init__(self, ttl_hours: int = 6):
         self._sessions = {}
+        self._created_at = {}  # session_id -> timestamp
+        self._ttl = ttl_hours * 3600
+
+    def _evict_expired(self):
+        now = time.time()
+        expired = [sid for sid, ts in self._created_at.items() if now - ts > self._ttl]
+        for sid in expired:
+            self._sessions.pop(sid, None)
+            self._created_at.pop(sid, None)
 
     def create(self, session: InterviewSession):
+        self._evict_expired()
         self._sessions[session.session_id] = session
+        self._created_at[session.session_id] = time.time()
 
     def get(self, session_id: str) -> InterviewSession:
+        # lazy eviction on read
+        ts = self._created_at.get(session_id)
+        if ts is not None and time.time() - ts > self._ttl:
+            self._sessions.pop(session_id, None)
+            self._created_at.pop(session_id, None)
+            return None
         return self._sessions.get(session_id)
 
     def delete(self, session_id: str):
         self._sessions.pop(session_id, None)
+        self._created_at.pop(session_id, None)
+
+    def cleanup_completed(self, max_completed: int = 50):
+        """Keep at most max_completed completed sessions in memory."""
+        completed = [(sid, s) for sid, s in self._sessions.items() if getattr(s, "status", "") == "completed"]
+        if len(completed) > max_completed:
+            # remove oldest completed first
+            completed.sort(key=lambda x: self._created_at.get(x[0], 0))
+            for sid, _ in completed[: len(completed) - max_completed]:
+                self.delete(sid)
 
     def list_by_candidate(self, candidate_id: int) -> list:
+        self._evict_expired()
         return [
             s for s in self._sessions.values()
             if s.candidate_id == candidate_id
         ]
 
     def list_all(self) -> list:
+        self._evict_expired()
         return list(self._sessions.values())
 
 
@@ -341,9 +371,8 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
     current_round = session.get_current_round()
     if current_round.get("type") == "aptitude":
         q_count = current_round.get("questions", 10)
-        # Distribute using company-specific ratios
-        session.aptitude_questions = get_aptitude_set(
-            num_quant=4, num_logical=4, num_verbal=2,
+        session.aptitude_questions = get_aptitude_set_for_total(
+            total=q_count,
             company=session.company,
         )
 
@@ -557,6 +586,11 @@ def submit_answer(session_id: str, answer: str, code_execution_result: dict = No
         # End the interview
         session.status = "completed"
         session.end_time = time.time()
+        # Evict old completed sessions to bound memory (keep last 50)
+        try:
+            session_store.cleanup_completed()
+        except Exception:
+            pass
         response["completion"] = {
             "message": "🎉 All rounds complete! Generating your comprehensive report...",
             "report_url": f"/report/{session.session_id}",
@@ -576,8 +610,8 @@ def submit_answer(session_id: str, answer: str, code_execution_result: dict = No
         # ── Pre-load aptitude questions if transitioning to an aptitude round ──
         if next_round.get("type") == "aptitude":
             q_count = next_round.get("questions", 10)
-            session.aptitude_questions = get_aptitude_set(
-                num_quant=4, num_logical=4, num_verbal=2,
+            session.aptitude_questions = get_aptitude_set_for_total(
+                total=q_count,
                 company=session.company,
             )
             session.aptitude_question_index = 0
@@ -738,7 +772,12 @@ def rewrite_answer(session_id: str, answer_index: int, rewritten_answer: str) ->
 
 
 def _get_db_path():
-    """Get the SQLite database path (same convention as app.py)."""
+    """Get the SQLite database path (same convention as app.py, with Render Disk support)."""
+    if os.environ.get("DATABASE_PATH"):
+        return os.environ["DATABASE_PATH"]
+    _disk = "/opt/render/project/src/data"
+    if os.path.isdir(_disk):
+        return os.path.join(_disk, "database.db")
     base_dir = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_dir, "database.db")
 
@@ -1182,8 +1221,8 @@ def _generate_next_question(session: InterviewSession) -> dict:
         # Defensive: auto-load if not pre-loaded at round transition
         if not session.aptitude_questions:
             q_count = current_round.get("questions", 10)
-            session.aptitude_questions = get_aptitude_set(
-                num_quant=4, num_logical=4, num_verbal=2,
+            session.aptitude_questions = get_aptitude_set_for_total(
+                total=q_count,
                 company=session.company,
             )
             session.aptitude_question_index = 0

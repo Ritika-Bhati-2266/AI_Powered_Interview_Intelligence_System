@@ -153,7 +153,9 @@ def generate_pdf_report(candidate_data: dict, session_data: dict, ats_score: dic
 
     # ── Interview Summary ──
     story.append(Paragraph("Interview Summary", s_h1))
-    total_q = _safe(session_data.get("total_questions") or session_data.get("total") or len(session_data.get("questions", [])) if isinstance(session_data.get("questions"), list) else 0, 0)
+    _qs = session_data.get("questions")
+    _qs_len = len(_qs) if isinstance(_qs, list) else 0
+    total_q = _safe(session_data.get("total_questions") or session_data.get("total") or _qs_len, 0)
     # Try to get avg scores from session_data or candidate_data or top-level report dict
     def _get_score(key):
         for src in (session_data, candidate_data):

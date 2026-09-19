@@ -17,9 +17,12 @@ from dotenv import load_dotenv
 _BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
-from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory, send_file
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory, send_file, Response
 from werkzeug.utils import secure_filename
 import requests
+import base64
+from collections import defaultdict
+from functools import wraps
 
 # Local modules
 from resume_parser import parse_resume, calculate_ats_score
@@ -48,8 +51,62 @@ app.config["MAX_CONTENT_LENGTH"] = 16 * 1024 * 1024  # 16MB max upload
 # Ensure upload directory exists
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# Database configuration
-DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
+# ── Lightweight in-memory rate limiter (no extra deps) ───────────────────────
+# Protects /register, /api/run_code, /api/transcribe from abuse.
+# Disabled automatically when app.testing is True (pytest).
+_RATE_LIMIT_STORE = defaultdict(list)  # key -> [timestamps]
+
+def _rate_limit(max_calls: int, window_sec: int):
+    def decorator(fn):
+        @wraps(fn)
+        def wrapper(*args, **kwargs):
+            if app.testing or app.config.get("TESTING"):
+                return fn(*args, **kwargs)
+            key = f"{fn.__name__}:{request.remote_addr}"
+            now = time.time()
+            q = _RATE_LIMIT_STORE[key]
+            # drop old entries
+            while q and q[0] <= now - window_sec:
+                q.pop(0)
+            if len(q) >= max_calls:
+                return jsonify({"error": "Too many requests. Please try again later."}), 429
+            q.append(now)
+            return fn(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
+def _cleanup_old_uploads(max_age_days: int = 7, max_files: int = 100):
+    """Delete upload files older than max_age_days or beyond max_files newest."""
+    try:
+        files = []
+        for fname in os.listdir(UPLOAD_FOLDER):
+            fpath = os.path.join(UPLOAD_FOLDER, fname)
+            if os.path.isfile(fpath):
+                files.append((os.path.getmtime(fpath), fpath))
+        if not files:
+            return
+        files.sort(reverse=True)  # newest first
+        now = time.time()
+        cutoff = now - max_age_days * 86400
+        for idx, (mtime, fpath) in enumerate(files):
+            if mtime < cutoff or idx >= max_files:
+                try:
+                    os.remove(fpath)
+                except Exception:
+                    pass
+    except Exception:
+        pass
+
+# Database configuration — uses Render Disk if mounted, else local file. Override via DATABASE_PATH env.
+_BASE_DATA_DIR = "/opt/render/project/src/data"
+if os.environ.get("DATABASE_PATH"):
+    DATABASE_PATH = os.environ["DATABASE_PATH"]
+elif os.path.isdir(_BASE_DATA_DIR):
+    os.makedirs(_BASE_DATA_DIR, exist_ok=True)
+    DATABASE_PATH = os.path.join(_BASE_DATA_DIR, "database.db")
+else:
+    DATABASE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "database.db")
 
 # Full sessions table DDL (includes all migrated columns). The mode CHECK allows
 # 'hr', 'technical' and 'coding' (coding sessions previously failed to persist).
@@ -532,6 +589,7 @@ def download_ppt():
 
 
 @app.route("/register", methods=["POST"])
+@_rate_limit(max_calls=20, window_sec=60)
 def register():
     """
     Handle candidate registration form submission.
@@ -547,9 +605,17 @@ def register():
         if not all([name, email, role]):
             return jsonify({"error": "Name, email, and role are required."}), 400
 
+        # Email format validation
+        import re as _re
+        if not _re.match(r'^[\w\.\+\-]+@[\w\-]+\.[\w\.\-]+$', email):
+            return jsonify({"error": "Invalid email format."}), 400
+
         resume_text = ""
         skills = []
         resume_filename = None
+
+        # Opportunistic cleanup (cheap, runs on every register)
+        _cleanup_old_uploads()
 
         # Handle resume upload
         if "resume" in request.files:
@@ -594,15 +660,17 @@ def register():
         )
 
         # Store candidate info in session for interview flow
+        # FIX: keep Flask cookie small (<4KB). Store only IDs + tiny summary;
+        # resume_text / jd_text stay in DB, fetched when needed.
         session["candidate_id"] = candidate_id
         session["candidate_name"] = name
         session["candidate_email"] = email
         session["candidate_role"] = role
         session["candidate_experience"] = experience
-        session["candidate_skills"] = skills
+        session["candidate_skills"] = skills[:15]
         session["candidate_company"] = request.form.get("company", "General")
-        session["resume_text"] = resume_text[:5000]  # Truncate for session storage
-        session["jd_text"] = jd_text
+        session["resume_text"] = resume_text[:400]  # tiny preview only, full text in DB
+        session["jd_text"] = jd_text[:3000]
         session["ats_score"] = ats_result
 
         return jsonify({
@@ -649,18 +717,39 @@ def api_start_interview():
         # Generate a unique session ID
         session_id = str(uuid.uuid4())[:8]
 
+        # FIX: fetch full resume_text/jd_text/skills from DB instead of
+        # truncated cookie session to avoid 4KB overflow and stale data.
+        _full_resume = session.get("resume_text", "")
+        _full_jd = session.get("jd_text", "")
+        _full_skills = session.get("candidate_skills", [])
+        try:
+            conn = get_db()
+            cand = conn.execute("SELECT resume_text, jd_text, skills FROM candidates WHERE id=?", (session["candidate_id"],)).fetchone()
+            conn.close()
+            if cand:
+                if cand["resume_text"]:
+                    _full_resume = cand["resume_text"]
+                if cand["jd_text"]:
+                    _full_jd = cand["jd_text"]
+                try:
+                    _full_skills = json.loads(cand["skills"]) if isinstance(cand["skills"], str) else _full_skills
+                except Exception:
+                    pass
+        except Exception:
+            pass
+
         result = start_interview(
             session_id=session_id,
             candidate_id=session["candidate_id"],
             candidate_name=session.get("candidate_name", "Candidate"),
             candidate_role=session.get("candidate_role", ""),
             candidate_experience=session.get("candidate_experience", "0"),
-            candidate_skills=session.get("candidate_skills", []),
-            resume_text=session.get("resume_text", ""),
+            candidate_skills=_full_skills,
+            resume_text=_full_resume,
             mode=mode,
             total_questions=total_questions,
             company=company,
-            jd_text=session.get("jd_text", ""),
+            jd_text=_full_jd,
         )
 
         if "error" in result:
@@ -808,6 +897,7 @@ def api_ollama_status():
 
 
 @app.route("/api/transcribe", methods=["POST"])
+@_rate_limit(max_calls=30, window_sec=60)
 def api_transcribe():
     """
     API endpoint to transcribe uploaded audio using local Whisper.
@@ -850,6 +940,7 @@ def api_transcribe():
 
 
 @app.route("/api/run_code", methods=["POST"])
+@_rate_limit(max_calls=30, window_sec=60)
 def api_run_code():
     """
     Live Code Execution via Piston API (no key required).
@@ -894,7 +985,7 @@ def api_run_code():
     if not test_cases:
         test_cases = [{"input": "", "expected_output": ""}]
 
-    piston_url = "https://emkc.org/api/v2/piston/execute"
+    piston_url = os.environ.get("PISTON_API_URL", "https://emkc.org/api/v2/piston/execute")
     headers = {"Content-Type": "application/json"}
 
     results = []
@@ -932,9 +1023,28 @@ def api_run_code():
             # Piston exit code: 0 = success
             run_code = run_data.get("code")
             compile_code = compile_data.get("code")
-            # Derive status description
+            run_signal = run_data.get("signal")
+            compile_signal = compile_data.get("signal")
+            # Derive granular status description (Syntax / TLE / MLE / Runtime)
+            combined_err = " ".join([stderr or "", compile_stderr or "", compile_output or ""]).lower()
+            signal_val = (run_signal or compile_signal or "")
             if compile_code not in (None, 0):
-                status_desc = "Compilation Error"
+                if "syntaxerror" in combined_err or "syntax error" in combined_err:
+                    status_desc = "Syntax Error"
+                else:
+                    status_desc = "Compilation Error"
+            elif signal_val == "SIGKILL" or run_code == 137:
+                if "memory" in combined_err or "killed" in combined_err:
+                    # Heuristic: memory vs time — Piston often kills for both, prefer TLE unless memory keyword
+                    status_desc = "Memory Limit Exceeded" if "memory" in combined_err else "Time Limit Exceeded"
+                else:
+                    status_desc = "Time Limit Exceeded"
+            elif any(k in combined_err for k in ("timed out", "timeout", "time limit exceeded")):
+                status_desc = "Time Limit Exceeded"
+            elif any(k in combined_err for k in ("memoryerror", "memory limit", "out of memory")):
+                status_desc = "Memory Limit Exceeded"
+            elif "syntaxerror" in combined_err:
+                status_desc = "Syntax Error"
             elif run_code == 0:
                 status_desc = "Accepted"
             elif run_code is None:
@@ -1147,6 +1257,94 @@ def api_dashboard(candidate_id: int):
     if not history:
         return jsonify({"error": "Candidate not found"}), 404
     return jsonify(history)
+
+
+def _is_admin_authenticated() -> bool:
+    """Check Basic Auth if ADMIN_USER is set; otherwise allow (local dev)."""
+    admin_user = os.environ.get("ADMIN_USER", "").strip()
+    if not admin_user:
+        return True
+    admin_pass = os.environ.get("ADMIN_PASSWORD") or os.environ.get("ADMIN_PASS") or ""
+    auth = request.headers.get("Authorization", "")
+    if not auth.startswith("Basic "):
+        return False
+    try:
+        decoded = base64.b64decode(auth.split(" ", 1)[1]).decode("utf-8")
+        u, p = decoded.split(":", 1)
+        return u == admin_user and p == admin_pass
+    except Exception:
+        return False
+
+
+@app.route("/admin")
+def admin_panel():
+    """Minimal Admin Panel — lists candidates + sessions. Protected by Basic Auth if ADMIN_USER is set."""
+    if not _is_admin_authenticated():
+        return Response("Admin auth required", 401, {"WWW-Authenticate": 'Basic realm="Admin Panel"'})
+    conn = get_db()
+    try:
+        candidates = conn.execute(
+            "SELECT id, name, email, role, experience, ats_score, created_at FROM candidates ORDER BY created_at DESC LIMIT 100"
+        ).fetchall()
+        sessions = conn.execute(
+            "SELECT id, candidate_id, mode, status, overall_score, grade, star_rating, total_questions, completed_questions, created_at FROM sessions ORDER BY created_at DESC LIMIT 100"
+        ).fetchall()
+    except Exception as e:
+        # Fallback if ats_score column not yet migrated
+        candidates = conn.execute(
+            "SELECT id, name, email, role, experience, created_at FROM candidates ORDER BY created_at DESC LIMIT 100"
+        ).fetchall()
+        sessions = conn.execute(
+            "SELECT id, candidate_id, mode, status, overall_score, grade, star_rating, total_questions, completed_questions, created_at FROM sessions ORDER BY created_at DESC LIMIT 100"
+        ).fetchall()
+    conn.close()
+    # Render inline HTML to avoid extra template file (minimal, consistent with existing style)
+    cand_rows = ""
+    for c in candidates:
+        d = dict(c)
+        ats_raw = d.get("ats_score", "")
+        try:
+            ats_val = json.loads(ats_raw) if isinstance(ats_raw, str) and ats_raw.strip().startswith("{") else ats_raw
+            ats_str = f"{ats_val.get('score')}%" if isinstance(ats_val, dict) and ats_val.get("score") is not None else "-"
+        except Exception:
+            ats_str = "-"
+        cand_rows += f"<tr><td>{d.get('id')}</td><td>{d.get('name','')}</td><td>{d.get('email','')}</td><td>{d.get('role','')}</td><td>{d.get('experience','')}</td><td>{ats_str}</td><td>{str(d.get('created_at',''))[:19]}</td></tr>"
+    sess_rows = ""
+    for s in sessions:
+        d = dict(s)
+        sess_rows += f"<tr><td>{d.get('id')}</td><td>{d.get('candidate_id')}</td><td>{d.get('mode')}</td><td>{d.get('status')}</td><td>{d.get('overall_score',0)}</td><td>{d.get('grade','')}</td><td>{d.get('total_questions',0)}</td><td>{str(d.get('created_at',''))[:19]}</td><td><form method='POST' action='/admin/delete/{d.get('id')}' onsubmit=\"return confirm('Delete session {d.get('id')}?')\"><button type='submit' style='background:#f43f5e;color:#fff;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem;'>Delete</button></form></td></tr>"
+    html = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Panel</title>
+    <link rel="stylesheet" href="/static/style.css"><style>body{{padding:1.5rem; background:var(--bg);}} table{{width:100%;border-collapse:collapse; font-size:0.82rem;}} th,td{{border:1px solid var(--border); padding:6px 8px; text-align:left;}} th{{background:var(--bg-secondary);}} .card{{background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:1.25rem;}}</style></head><body>
+    <nav class="navbar" style="margin:-1.5rem -1.5rem 1.5rem -1.5rem;"><div class="container navbar-container"><span class="navbar-brand"><span class="text-gradient-indigo">Admin Panel</span></span><div class="navbar-links"><a href="/" class="nav-link">Home</a><a href="/dashboard" class="nav-link">Dashboard</a></div></div></nav>
+    <div class="card"><h3 style="margin:0 0 0.6rem 0;">Candidates ({len(candidates)})</h3><div style="overflow-x:auto;"><table><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Exp</th><th>ATS</th><th>Created</th></tr></thead><tbody>{cand_rows or '<tr><td colspan=7 style="text-align:center;color:var(--text-muted);">No candidates</td></tr>'}</tbody></table></div></div>
+    <div class="card"><h3 style="margin:0 0 0.6rem 0;">Recent Sessions ({len(sessions)})</h3><div style="overflow-x:auto;"><table><thead><tr><th>ID</th><th>Candidate</th><th>Mode</th><th>Status</th><th>Score</th><th>Grade</th><th>Qs</th><th>Created</th><th>Action</th></tr></thead><tbody>{sess_rows or '<tr><td colspan=9 style="text-align:center;color:var(--text-muted);">No sessions</td></tr>'}</tbody></table></div></div>
+    <p style="font-size:0.75rem;color:var(--text-muted);">Set <code>ADMIN_USER</code> + <code>ADMIN_PASSWORD</code> in .env to protect this page with Basic Auth.</p>
+    </body></html>"""
+    return Response(html, mimetype="text/html")
+
+
+@app.route("/admin/delete/<session_id>", methods=["POST"])
+def admin_delete_session(session_id: str):
+    """Delete a session and its child rows (answers, skill_gaps, recommendations)."""
+    if not _is_admin_authenticated():
+        return Response("Admin auth required", 401, {"WWW-Authenticate": 'Basic realm="Admin Panel"'})
+    conn = get_db()
+    cur = conn.cursor()
+    # Delete child rows first (FK)
+    for tbl in ("answers", "skill_gaps", "recommendations"):
+        try:
+            cur.execute(f"DELETE FROM {tbl} WHERE session_id = ?", (session_id,))
+        except Exception:
+            pass
+    cur.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+    conn.commit()
+    conn.close()
+    # If in-memory session exists, remove it
+    try:
+        session_store.delete(session_id)
+    except Exception:
+        pass
+    return redirect(url_for("admin_panel"))
 
 
 @app.route("/api/candidates")

@@ -1089,6 +1089,29 @@ COMPANY_APTITUDE_CONFIG = {
 APTITUDE_COMPANIES = {"tcs", "infosys", "wipro", "hcl"}
 
 
+def get_aptitude_set_for_total(total: int, company: str = "general") -> list:
+    """Convenience: build aptitude set respecting company's distribution for a given total."""
+    company_lower = company.lower().strip()
+    if company_lower in COMPANY_APTITUDE_CONFIG:
+        dist = COMPANY_APTITUDE_CONFIG[company_lower]["distribution"]
+        nq = max(1, round(total * dist[0]))
+        nl = max(1, round(total * dist[1]))
+        nv = max(1, total - nq - nl)
+        # Guard against rounding overflow
+        nv = max(1, min(nv, total - nq - nl + (nv if nv < 1 else 0)))
+        # Final clamp
+        if nq + nl + nv > total:
+            nv = total - nq - nl
+        if nq + nl + nv < total:
+            nv += total - (nq + nl + nv)
+        return get_aptitude_set(num_quant=nq, num_logical=nl, num_verbal=nv, company=company)
+    # Fallback general: split roughly 40/35/25
+    nq = max(1, round(total * 0.40))
+    nl = max(1, round(total * 0.35))
+    nv = max(1, total - nq - nl)
+    return get_aptitude_set(num_quant=nq, num_logical=nl, num_verbal=nv, company=company)
+
+
 def get_aptitude_set(num_quant: int = 4, num_logical: int = 4, num_verbal: int = 2,
                     company: str = "general") -> list:
     """

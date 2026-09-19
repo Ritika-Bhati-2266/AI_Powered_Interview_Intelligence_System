@@ -13,6 +13,9 @@ import re
 from stt_service import detect_filler_words
 
 # ── Groq provider ─────────────────────────────────────────────────────────────
+# NOTE: GROQ_API_KEY is read LIVE inside _call_groq() so dotenv / env changes
+# after import (tests, Render) are always picked up. Keep module-level fallback
+# for backward compat but do not rely on it.
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 GROQ_MODEL = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
 GROQ_ENDPOINT = "https://api.groq.com/openai/v1/chat/completions"
@@ -22,10 +25,21 @@ RETRY_DELAY = 1  # seconds
 REQUEST_TIMEOUT = 120  # seconds
 
 
+def _get_groq_key() -> str:
+    """Live read of GROQ_API_KEY so .env loaded after import still works."""
+    return os.environ.get("GROQ_API_KEY") or GROQ_API_KEY or ""
+
+
+def _get_groq_model() -> str:
+    return os.environ.get("GROQ_MODEL") or GROQ_MODEL
+
+
 def _call_groq(prompt: str, system_prompt: str = None, temperature: float = 0.7) -> str:
     """Send a prompt to Groq's OpenAI-compatible API and return the text response."""
+    live_key = _get_groq_key()
+    live_model = _get_groq_model()
     headers = {
-        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Authorization": f"Bearer {live_key}",
         "Content-Type": "application/json",
     }
     messages = []
@@ -34,7 +48,7 @@ def _call_groq(prompt: str, system_prompt: str = None, temperature: float = 0.7)
     messages.append({"role": "user", "content": prompt})
 
     payload = {
-        "model": GROQ_MODEL,
+        "model": live_model,
         "messages": messages,
         "temperature": temperature,
         "max_tokens": 4096,
