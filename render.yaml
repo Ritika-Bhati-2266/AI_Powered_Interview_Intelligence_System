@@ -5,7 +5,11 @@ services:
     buildCommand: |
       apt-get update && apt-get install -y ffmpeg
       pip install -r requirements.txt
-    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --timeout 300
+    startCommand: gunicorn app:app --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 300
+    disk:
+      name: ai-interview-data
+      mountPath: /opt/render/project/src/data
+      sizeGB: 1
     envVars:
       - key: GROQ_API_KEY
         sync: false          # Enter manually in Render dashboard (never committed)
