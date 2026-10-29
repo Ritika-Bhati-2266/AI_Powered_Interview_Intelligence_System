@@ -3,187 +3,1288 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Interview Coach - Real-Time Behavior Engine</title>
+    <meta name="description" content="Practice company-style interviews with an AI coach. JD-aware questions, ATS resume scoring, live code execution, voice answers and a downloadable report.">
+    <meta name="theme-color" content="#050310">
+    <title>InterviewIQ — Learn · Practice · Crack</title>
     <link rel="stylesheet" href="/static/style.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* ============================ Landing page ============================ */
+        :root {
+            --ld-bg: #050310;
+            --ld-bg-soft: #0a0618;
+            --ld-text: #ece9ff;
+            --ld-muted: #a5a0c9;
+            --ld-purple: #8b5cf6;
+            --ld-purple-2: #a855f7;
+            --ld-line: rgba(139, 124, 246, 0.16);
+            --ld-card: rgba(19, 15, 41, 0.72);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        .sr-only {
+            position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+            overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+        }
+        .sr-only:focus {
+            position: fixed; top: 10px; left: 10px; z-index: 400;
+            width: auto; height: auto; clip: auto; margin: 0; padding: .6rem 1rem;
+            background: #7c3aed; color: #fff; border-radius: 8px; font-size: .85rem;
+        }
+
+        body.page-register.ld-body {
+            margin: 0;
+            background:
+                radial-gradient(900px 620px at 10% -8%, rgba(124, 58, 237, 0.22), transparent 62%),
+                radial-gradient(760px 520px at 94% 6%, rgba(88, 28, 135, 0.22), transparent 64%),
+                radial-gradient(900px 600px at 50% 108%, rgba(76, 29, 149, 0.16), transparent 66%),
+                var(--ld-bg);
+            color: var(--ld-text);
+            font-family: 'Inter', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+        }
+        body.page-register.ld-body::before { opacity: 0; }
+        .ld-body.ld-modal-open { overflow: hidden; }
+
+        .ld-stars {
+            position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .7;
+            background-image:
+                radial-gradient(1.3px 1.3px at 12% 18%, rgba(255,255,255,.6), transparent 60%),
+                radial-gradient(1.1px 1.1px at 68% 12%, rgba(216,180,254,.55), transparent 60%),
+                radial-gradient(1.6px 1.6px at 84% 42%, rgba(196,181,253,.6), transparent 60%),
+                radial-gradient(1px 1px at 32% 64%, rgba(255,255,255,.4), transparent 60%),
+                radial-gradient(1.4px 1.4px at 52% 88%, rgba(255,255,255,.45), transparent 60%),
+                radial-gradient(1px 1px at 92% 74%, rgba(216,180,254,.45), transparent 60%);
+            background-size: 420px 420px, 520px 520px, 640px 640px, 380px 380px, 560px 560px, 460px 460px;
+            background-position: 0 0, 140px 90px, 40px 220px, 220px 40px, 90px 300px, 300px 120px;
+        }
+
+        .ld-shell { position: relative; z-index: 1; max-width: 1220px; margin: 0 auto; padding: 0 24px; }
+
+        /* ---------------------------- Navigation ---------------------------- */
+        .ld-nav {
+            position: sticky; top: 0; z-index: 60;
+            backdrop-filter: blur(16px);
+            background: linear-gradient(180deg, rgba(7, 4, 20, .92), rgba(7, 4, 20, .62));
+            border-bottom: 1px solid rgba(139, 124, 246, .12);
+        }
+        .ld-nav-inner {
+            max-width: 1220px; margin: 0 auto; padding: 15px 24px;
+            display: flex; align-items: center; gap: 1.4rem;
+        }
+        .ld-brand { display: inline-flex; align-items: center; gap: .6rem; text-decoration: none; }
+        .ld-brand-mark {
+            width: 38px; height: 38px; border-radius: 11px; flex-shrink: 0;
+            display: inline-flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #a855f7, #6d28d9);
+            box-shadow: 0 8px 22px rgba(124, 58, 237, .45), inset 0 1px 0 rgba(255,255,255,.28);
+            color: #fff;
+        }
+        .ld-brand-mark svg { width: 20px; height: 20px; }
+        .ld-brand-name {
+            font-family: var(--font-heading); font-size: 1.34rem; font-weight: 800;
+            letter-spacing: -.03em; color: #f5f2ff; line-height: 1;
+        }
+        .ld-brand-name em { font-style: normal; background: linear-gradient(90deg, #c084fc, #8b5cf6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .ld-brand-tag {
+            display: block; margin-top: 3px; font-size: .58rem; font-weight: 600;
+            letter-spacing: .16em; text-transform: uppercase; color: #8f89b4;
+        }
+        .ld-menu { display: flex; align-items: center; gap: .25rem; margin: 0 auto; }
+        .ld-menu a {
+            padding: .5rem .82rem; border-radius: 9px; text-decoration: none;
+            font-size: .84rem; font-weight: 600; color: #b7b1d6;
+            transition: color .18s, background .18s;
+        }
+        .ld-menu a:hover { color: #f0ecff; background: rgba(168, 150, 255, .09); }
+        .ld-nav-actions { display: flex; align-items: center; gap: .6rem; }
+        .ld-btn {
+            display: inline-flex; align-items: center; justify-content: center; gap: .5rem;
+            padding: .78rem 1.55rem; border-radius: 11px; cursor: pointer;
+            font-family: var(--font-heading); font-size: .9rem; font-weight: 700;
+            text-decoration: none; border: 1px solid transparent;
+            transition: transform .18s, box-shadow .18s, background .18s, filter .18s;
+            white-space: nowrap;
+        }
+        .ld-btn-sm { padding: .56rem 1.1rem; font-size: .82rem; border-radius: 10px; }
+        .ld-btn svg { width: 17px; height: 17px; }
+        .ld-btn-primary {
+            color: #fff;
+            background: linear-gradient(135deg, #a855f7 0%, #7c3aed 55%, #6d28d9 100%);
+            box-shadow: 0 12px 30px rgba(124, 58, 237, .44), inset 0 1px 0 rgba(255,255,255,.24);
+        }
+        .ld-btn-primary:hover { transform: translateY(-2px); box-shadow: 0 18px 40px rgba(124, 58, 237, .58); filter: brightness(1.06); }
+        .ld-btn-ghost {
+            color: #ddd6ff; background: rgba(255, 255, 255, .035);
+            border-color: rgba(168, 150, 255, .28);
+        }
+        .ld-btn-ghost:hover { background: rgba(168, 150, 255, .12); transform: translateY(-2px); }
+        .ld-btn-white { color: #38117f; background: #fff; box-shadow: 0 12px 30px rgba(0,0,0,.28); }
+        .ld-btn-white:hover { transform: translateY(-2px); filter: brightness(1.02); }
+
+        /* ------------------------------ Hero ------------------------------- */
+        .ld-hero { padding: 70px 0 60px; }
+        .ld-hero-grid {
+            display: grid; grid-template-columns: 1.02fr .98fr;
+            gap: 40px; align-items: center;
+        }
+        .ld-badge {
+            display: inline-flex; align-items: center; gap: .5rem;
+            padding: .42rem .95rem; border-radius: 999px;
+            font-size: .76rem; font-weight: 600; color: #d8ccff;
+            background: rgba(124, 58, 237, .16);
+            border: 1px solid rgba(168, 85, 247, .38);
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, .06);
+        }
+        .ld-badge svg { width: 14px; height: 14px; color: #d8b4fe; }
+        .ld-hero h1 {
+            margin: 1.35rem 0 1.15rem;
+            font-family: var(--font-heading);
+            font-size: clamp(2.25rem, 4.7vw, 3.9rem);
+            line-height: 1.06; letter-spacing: -.045em; font-weight: 800;
+            color: #f4f1ff;
+        }
+        .ld-hero h1 .ld-grad-text { background: linear-gradient(100deg, #c084fc 0%, #a855f7 45%, #8b5cf6 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .ld-hero p.ld-lede {
+            margin: 0 0 1.9rem; max-width: 33rem;
+            font-size: 1.02rem; line-height: 1.72; color: var(--ld-muted);
+        }
+        .ld-cta-row { display: flex; flex-wrap: wrap; gap: .85rem; margin-bottom: 2.1rem; }
+        .ld-features {
+            display: flex; flex-wrap: wrap; gap: 1rem 1.9rem;
+            padding-top: 1.5rem; border-top: 1px solid rgba(139, 124, 246, .14);
+        }
+        .ld-feature { display: inline-flex; align-items: center; gap: .5rem; font-size: .82rem; font-weight: 600; color: #b9b3d8; }
+        .ld-feature svg { width: 16px; height: 16px; color: #a78bfa; flex-shrink: 0; }
+
+        /* Hero art */
+        .ld-hero-art { position: relative; min-height: 460px; display: flex; align-items: center; justify-content: center; }
+        .ld-art-halo {
+            position: absolute; width: 520px; height: 520px; border-radius: 50%;
+            background: radial-gradient(circle, rgba(124, 58, 237, .34), rgba(76, 29, 149, .12) 46%, transparent 68%);
+            filter: blur(10px);
+        }
+        .ld-art-grid {
+            position: absolute; inset: 8% 0; border-radius: 28px;
+            background-image:
+                linear-gradient(rgba(139, 92, 246, .10) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(139, 92, 246, .10) 1px, transparent 1px);
+            background-size: 54px 54px;
+            -webkit-mask-image: radial-gradient(ellipse 62% 70% at 50% 50%, #000 24%, transparent 76%);
+            mask-image: radial-gradient(ellipse 62% 70% at 50% 50%, #000 24%, transparent 76%);
+        }
+        .ld-photo-frame {
+            position: relative; z-index: 2;
+            width: min(100%, 540px);
+            border-radius: 22px; overflow: hidden;
+            border: 1px solid rgba(168, 85, 247, .38);
+            background: #0b0720;
+            box-shadow:
+                0 34px 80px rgba(0, 0, 0, .6),
+                0 0 70px rgba(124, 58, 237, .32),
+                inset 0 1px 0 rgba(255, 255, 255, .08);
+            animation: ldFloat 6s ease-in-out infinite;
+        }
+        .ld-photo-frame::after {
+            content: ''; position: absolute; inset: 0; pointer-events: none;
+            background: linear-gradient(180deg, rgba(10, 6, 26, 0) 58%, rgba(10, 6, 26, .34) 100%);
+        }
+        .ld-hero-photo { display: block; width: 100%; height: auto; }
+        @keyframes ldFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+
+        /* ---------------------------- Sections ----------------------------- */
+        .ld-sec { padding: 76px 0; position: relative; }
+        .ld-sec-alt { background: linear-gradient(180deg, rgba(11, 7, 26, .85), rgba(7, 4, 18, .9)); border-top: 1px solid rgba(139, 124, 246, .1); border-bottom: 1px solid rgba(139, 124, 246, .1); }
+        .ld-sec-head { max-width: 720px; margin: 0 auto 46px; text-align: center; }
+        .ld-eyebrow {
+            display: inline-flex; align-items: center; gap: .4rem;
+            padding: .3rem .8rem; border-radius: 999px; margin-bottom: 1rem;
+            font-size: .68rem; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+            color: #c4b5fd; background: rgba(124, 58, 237, .12); border: 1px solid rgba(139, 92, 246, .26);
+        }
+        .ld-h2 {
+            margin: 0 0 .7rem; font-family: var(--font-heading);
+            font-size: clamp(1.65rem, 3.4vw, 2.55rem); line-height: 1.14;
+            letter-spacing: -.035em; font-weight: 800; color: #f4f1ff;
+        }
+        .ld-h2 .ld-grad-text { background: linear-gradient(100deg, #c084fc, #8b5cf6); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .ld-sec-head p { margin: 0; font-size: .98rem; line-height: 1.7; color: var(--ld-muted); }
+
+        /* Round cards */
+        .ld-rounds-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(212px, 1fr)); gap: 18px; }
+        .ld-round-card {
+            position: relative; display: flex; flex-direction: column;
+            padding: 1.45rem 1.25rem 1.3rem; border-radius: 18px;
+            background: linear-gradient(165deg, rgba(24, 18, 50, .82), rgba(12, 8, 28, .9));
+            border: 1px solid rgba(139, 124, 246, .16);
+            box-shadow: 0 18px 44px rgba(0, 0, 0, .32), inset 0 1px 0 rgba(255, 255, 255, .04);
+            transition: transform .22s, border-color .22s, box-shadow .22s;
+            overflow: hidden;
+        }
+        .ld-round-card::before {
+            content: ''; position: absolute; inset: 0 0 auto; height: 3px;
+            background: linear-gradient(90deg, transparent, var(--rc), transparent);
+            opacity: .75;
+        }
+        .ld-round-card:hover {
+            transform: translateY(-5px);
+            border-color: color-mix(in srgb, var(--rc) 45%, transparent);
+            box-shadow: 0 26px 60px rgba(0, 0, 0, .45), 0 0 0 1px color-mix(in srgb, var(--rc) 20%, transparent);
+        }
+        .ld-round-icon {
+            width: 54px; height: 54px; border-radius: 15px; margin-bottom: 1.05rem;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; flex-shrink: 0;
+            background: linear-gradient(135deg, color-mix(in srgb, var(--rc) 82%, #fff 8%), color-mix(in srgb, var(--rc) 70%, #000 18%));
+            box-shadow: 0 10px 24px color-mix(in srgb, var(--rc) 38%, transparent), inset 0 1px 0 rgba(255,255,255,.3);
+        }
+        .ld-round-icon svg { width: 26px; height: 26px; }
+        .ld-round-card h3 { margin: 0 0 .5rem; font-family: var(--font-heading); font-size: 1.05rem; font-weight: 700; letter-spacing: -.02em; color: #f3efff; }
+        .ld-round-card p { margin: 0 0 .95rem; font-size: .8rem; line-height: 1.6; color: #a9a3ca; }
+        .ld-round-list { list-style: none; margin: 0 0 1.25rem; padding: 0; display: grid; gap: .42rem; }
+        .ld-round-list li { display: flex; align-items: flex-start; gap: .45rem; font-size: .76rem; line-height: 1.4; color: #bdb7db; }
+        .ld-round-list svg { width: 13px; height: 13px; margin-top: 1px; flex-shrink: 0; color: var(--rc); }
+        .ld-round-btn {
+            margin-top: auto; display: flex; align-items: center; justify-content: center; gap: .45rem;
+            width: 100%; padding: .68rem .8rem; border-radius: 10px; cursor: pointer;
+            font-family: var(--font-heading); font-size: .78rem; font-weight: 700;
+            color: #fff; border: 1px solid color-mix(in srgb, var(--rc) 55%, transparent);
+            background: linear-gradient(135deg, color-mix(in srgb, var(--rc) 92%, #000 4%), color-mix(in srgb, var(--rc) 72%, #000 16%));
+            box-shadow: 0 8px 20px color-mix(in srgb, var(--rc) 26%, transparent);
+            transition: filter .18s, transform .18s;
+        }
+        .ld-round-btn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+        .ld-round-btn svg { width: 14px; height: 14px; }
+
+        /* How it works */
+        .ld-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 26px; align-items: start; }
+        .ld-step { position: relative; text-align: center; padding: 0 8px; }
+        .ld-step-top { display: flex; align-items: center; justify-content: center; gap: 1rem; margin-bottom: 1.3rem; }
+        .ld-step-num {
+            width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-heading); font-size: .9rem; font-weight: 800; color: #e9d5ff;
+            background: rgba(124, 58, 237, .16); border: 1px solid rgba(168, 85, 247, .5);
+            box-shadow: 0 0 0 6px rgba(124, 58, 237, .05);
+        }
+        .ld-step-icon {
+            width: 74px; height: 74px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #d8ccff;
+            background: radial-gradient(circle at 30% 25%, rgba(168, 85, 247, .32), rgba(76, 29, 149, .18));
+            border: 1px solid rgba(168, 85, 247, .3);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.12), 0 12px 30px rgba(0,0,0,.3);
+        }
+        .ld-step-icon svg { width: 30px; height: 30px; }
+        .ld-step h3 { margin: 0 0 .5rem; font-family: var(--font-heading); font-size: 1.08rem; font-weight: 700; color: #f3efff; }
+        .ld-step p { margin: 0 auto; max-width: 260px; font-size: .84rem; line-height: 1.65; color: var(--ld-muted); }
+        .ld-step-arrow { position: absolute; top: 30px; right: -18px; color: #6d5aa8; }
+        .ld-step-arrow svg { width: 30px; height: 30px; }
+        .ld-step:last-child .ld-step-arrow { display: none; }
+
+        /* Progress / dashboard preview */
+        .ld-progress-grid { display: grid; grid-template-columns: 1.08fr .92fr; gap: 46px; align-items: center; }
+        .ld-dash {
+            display: grid; grid-template-columns: 150px 1fr;
+            background: linear-gradient(165deg, rgba(22, 16, 47, .95), rgba(10, 7, 24, .98));
+            border: 1px solid rgba(139, 124, 246, .22); border-radius: 18px;
+            box-shadow: 0 34px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+            overflow: hidden; font-size: .72rem;
+        }
+        .ld-dash-side { padding: 1rem .75rem; border-right: 1px solid rgba(139, 124, 246, .14); background: rgba(9, 6, 22, .6); }
+        .ld-dash-logo { display: flex; align-items: center; gap: .4rem; margin-bottom: 1rem; font-family: var(--font-heading); font-weight: 800; font-size: .78rem; color: #f0ecff; }
+        .ld-dash-logo span { width: 20px; height: 20px; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: linear-gradient(135deg,#a855f7,#6d28d9); }
+        .ld-dash-logo svg { width: 12px; height: 12px; color: #fff; }
+        .ld-dash-nav { display: grid; gap: .18rem; }
+        .ld-dash-nav span { display: flex; align-items: center; gap: .4rem; padding: .4rem .5rem; border-radius: 7px; color: #8f89b4; font-weight: 600; }
+        .ld-dash-nav span svg { width: 11px; height: 11px; }
+        .ld-dash-nav span.active { color: #fff; background: linear-gradient(135deg, rgba(168, 85, 247, .85), rgba(124, 58, 237, .85)); box-shadow: 0 6px 16px rgba(124,58,237,.35); }
+        .ld-dash-main { padding: 1rem; }
+        .ld-dash-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: .8rem; }
+        .ld-dash-head b { font-family: var(--font-heading); font-size: .8rem; color: #f2eeff; }
+        .ld-dash-head small { display: block; font-size: .6rem; color: #918bb5; font-weight: 400; margin-top: 2px; }
+        .ld-avatar { width: 24px; height: 24px; border-radius: 50%; background: linear-gradient(135deg,#c084fc,#6d28d9); display: inline-flex; align-items: center; justify-content: center; color: #fff; }
+        .ld-avatar svg { width: 12px; height: 12px; }
+        .ld-stat-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: .5rem; margin-bottom: .85rem; }
+        .ld-stat-tile { background: rgba(255,255,255,.035); border: 1px solid rgba(139,124,246,.15); border-radius: 9px; padding: .55rem .6rem; }
+        .ld-stat-tile small { display: flex; align-items: center; gap: .3rem; font-size: .55rem; color: #9d97c0; font-weight: 600; }
+        .ld-stat-tile small svg { width: 9px; height: 9px; color: #a78bfa; }
+        .ld-stat-tile b { display: block; margin-top: .25rem; font-family: var(--font-heading); font-size: .95rem; color: #f0ecff; }
+        .ld-dash-cols { display: grid; grid-template-columns: 1.18fr .82fr; gap: .65rem; }
+        .ld-panel { background: rgba(255,255,255,.03); border: 1px solid rgba(139,124,246,.14); border-radius: 9px; padding: .6rem .65rem; }
+        .ld-panel h5 { margin: 0 0 .55rem; font-size: .62rem; font-weight: 700; color: #cfc8ec; }
+        .ld-bar { margin-bottom: .45rem; }
+        .ld-bar:last-child { margin-bottom: 0; }
+        .ld-bar-label { display: flex; justify-content: space-between; font-size: .55rem; font-weight: 600; color: #a9a3ca; margin-bottom: .22rem; }
+        .ld-bar-track { height: 5px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+        .ld-bar-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #a855f7, #7c3aed); }
+        .ld-weak li { list-style: none; display: flex; align-items: center; gap: .4rem; padding: .3rem 0; font-size: .56rem; color: #a9a3ca; }
+        .ld-weak { margin: 0; padding: 0; }
+        .ld-weak .dot { width: 6px; height: 6px; border-radius: 50%; background: #f472b6; flex-shrink: 0; }
+        .ld-weak .dot.blue { background: #60a5fa; }
+        .ld-weak .dot.amber { background: #fbbf24; }
+
+        .ld-progress-copy .ld-h2 { text-align: left; font-size: clamp(1.7rem, 3.2vw, 2.45rem); }
+        .ld-progress-copy p { margin: 0 0 1.6rem; font-size: .96rem; line-height: 1.75; color: var(--ld-muted); }
+        .ld-progress-copy .ld-eyebrow { margin-bottom: 1.1rem; }
+        .ld-arrow-doodle { display: block; margin-top: 1.4rem; color: #7c5ac9; opacity: .8; }
+
+        /* Big gradient CTA */
+        .ld-cta-banner {
+            position: relative; overflow: hidden; border-radius: 22px;
+            padding: 44px 48px;
+            display: flex; align-items: center; justify-content: space-between; gap: 26px;
+            background:
+                radial-gradient(600px 260px at 88% 10%, rgba(255,255,255,.18), transparent 60%),
+                linear-gradient(100deg, #6d28d9 0%, #7c3aed 42%, #a855f7 100%);
+            border: 1px solid rgba(233, 213, 255, .3);
+            box-shadow: 0 34px 80px rgba(76, 29, 149, .45), inset 0 1px 0 rgba(255,255,255,.25);
+        }
+        .ld-cta-banner h2 { margin: 0 0 .4rem; font-family: var(--font-heading); font-size: clamp(1.5rem, 3vw, 2.15rem); font-weight: 800; letter-spacing: -.03em; color: #fff; }
+        .ld-cta-banner p { margin: 0; font-size: .94rem; color: rgba(255,255,255,.82); }
+        .ld-cta-left { display: flex; align-items: center; gap: 20px; position: relative; z-index: 2; }
+        .ld-rocket {
+            width: 66px; height: 66px; border-radius: 20px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+            background: rgba(255,255,255,.14); border: 1px solid rgba(255,255,255,.3);
+            box-shadow: inset 0 1px 0 rgba(255,255,255,.3);
+        }
+        .ld-rocket svg { width: 32px; height: 32px; }
+        .ld-cta-banner .ld-btn-white { position: relative; z-index: 2; flex-shrink: 0; }
+        .ld-cta-mtn { position: absolute; left: 0; right: 0; bottom: -1px; height: 78px; opacity: .5; pointer-events: none; }
+
+        /* Footer */
+        .ld-footer { position: relative; z-index: 1; margin-top: 30px; border-top: 1px solid rgba(139, 124, 246, .14); background: rgba(5, 3, 14, .7); }
+        .ld-footer-inner { max-width: 1220px; margin: 0 auto; padding: 34px 24px 26px; display: flex; flex-wrap: wrap; align-items: center; gap: 22px 34px; }
+        .ld-footer-links { display: flex; flex-wrap: wrap; align-items: center; gap: 1.4rem; margin-left: auto; }
+        .ld-footer-links a { font-size: .82rem; color: #a9a3ca; text-decoration: none; transition: color .18s; }
+        .ld-footer-links a:hover { color: #e9d5ff; }
+        .ld-social { display: flex; gap: .6rem; margin-left: .4rem; }
+        .ld-social a { width: 34px; height: 34px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; color: #c4b5fd; background: rgba(168,150,255,.08); border: 1px solid rgba(168,150,255,.18); }
+        .ld-social a:hover { background: rgba(168,150,255,.18); color: #fff; }
+        .ld-social svg { width: 15px; height: 15px; }
+        .ld-footer-bottom { max-width: 1220px; margin: 0 auto; padding: 0 24px 30px; display: flex; flex-wrap: wrap; gap: .6rem 1.4rem; justify-content: space-between; align-items: center; }
+        .ld-footer-bottom p { margin: 0; font-size: .74rem; color: #6f6a92; }
+        .ld-footer-bottom .ld-made { color: #8b7fc4; }
+
+        /* ------------------------- Registration modal ----------------------- */
+        #start.ld-modal {
+            position: fixed; inset: 0; z-index: 300; overflow-y: auto;
+            padding: 28px 16px; max-width: none;
+            background: rgba(4, 2, 12, .84);
+            -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+            animation: ldFade .2s ease both;
+        }
+        #start.ld-modal.hidden { display: none !important; }
+        @keyframes ldFade { from { opacity: 0; } to { opacity: 1; } }
+        .ld-modal-inner { width: 100%; max-width: 660px; margin: 0 auto; position: relative; animation: ldPop .24s ease both; }
+        @keyframes ldPop { from { opacity: 0; transform: translateY(14px) scale(.985); } to { opacity: 1; transform: none; } }
+        .ld-close {
+            position: absolute; top: 12px; right: 12px; z-index: 5;
+            width: 34px; height: 34px; border-radius: 9px; cursor: pointer;
+            display: inline-flex; align-items: center; justify-content: center;
+            color: #c4b5fd; background: rgba(255,255,255,.05); border: 1px solid rgba(168,150,255,.22);
+        }
+        .ld-close:hover { background: rgba(168,150,255,.16); color: #fff; }
+        .ld-close svg { width: 16px; height: 16px; }
+        .ld-auth-card {
+            padding: 1.7rem 1.7rem 1.35rem;
+            background: linear-gradient(165deg, rgba(22, 17, 46, .98), rgba(10, 7, 24, .99));
+            border: 1px solid rgba(168, 85, 247, .26);
+            border-radius: 20px;
+            box-shadow: 0 40px 100px rgba(0,0,0,.7), inset 0 1px 0 rgba(255,255,255,.06);
+        }
+        .ld-card-head { margin-bottom: 1.1rem; padding-right: 2.2rem; }
+        .ld-card-head h2 { margin: 0 0 .35rem; font-family: var(--font-heading); font-size: 1.34rem; font-weight: 800; letter-spacing: -.02em; color: #f7f4ff; }
+        .ld-card-head p { margin: 0; font-size: .82rem; color: #a9a3ca; line-height: 1.55; }
+        #start .auth-footer { color: #918bb5; }
+        #start #error-msg { margin-bottom: .9rem; }
+        #start .alert {
+            display: flex; gap: .5rem; align-items: flex-start;
+            padding: .7rem .85rem; border-radius: 10px;
+            font-size: .82rem; font-weight: 500; line-height: 1.45;
+        }
+        #start .alert-error { color: #fecdd3; background: rgba(244,63,94,.10); border: 1px solid rgba(244,63,94,.28); }
+        #start .alert-success { color: #a7f3d0; background: rgba(16,185,129,.10); border: 1px solid rgba(16,185,129,.28); }
+        #start .skills-container { display: flex; flex-wrap: wrap; margin-bottom: .9rem; }
+        #start .skill-tag {
+            display: inline-flex; align-items: center; margin: .2rem .25rem 0 0;
+            padding: .24rem .6rem; border-radius: 7px;
+            font-size: .72rem; font-weight: 600;
+            color: #c4b5fd; background: rgba(139,92,246,.12); border: 1px solid rgba(139,92,246,.24);
+        }
+        #start #ats-display { margin-bottom: .9rem; }
+        #start .form-group { margin-bottom: .85rem; }
+        #start .form-group label { font-weight: 600; }
+        #start .mode-selector { gap: .5rem; }
+        #start .mode-option { border-radius: 10px; padding: .6rem .55rem; gap: .35rem; align-items: center; }
+        #start .mode-icon { width: 30px; height: 30px; border-radius: 8px; }
+        #start .mode-icon svg { width: 18px; height: 18px; }
+        #start .mode-name { font-size: .72rem; text-align: center; }
+        #start .lp-back { display: none; }
+        .ld-download { margin-top: .9rem; text-align: center; }
+        .ld-download a {
+            display: inline-flex; align-items: center; justify-content: center; gap: .45rem;
+            width: 100%; padding: .58rem; border-radius: 10px; text-decoration: none;
+            font-size: .78rem; font-weight: 600; color: #c4b5fd;
+            background: rgba(255,255,255,.035); border: 1px solid rgba(168,150,255,.22);
+        }
+        .ld-download a:hover { background: rgba(168,150,255,.12); color: #fff; }
+
+        /* Quick practice modal */
+        .ld-quick-inner { max-width: 480px; }
+        .ld-quick-head { display: flex; align-items: flex-start; gap: .95rem; margin-bottom: 1.3rem; padding-right: 1.8rem; }
+        .ld-quick-icon {
+            width: 52px; height: 52px; border-radius: 15px; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center; color: #fff;
+            background: linear-gradient(135deg, var(--qc, #8b5cf6), #6d28d9);
+            box-shadow: 0 12px 28px rgba(124, 58, 237, .4), inset 0 1px 0 rgba(255,255,255,.28);
+        }
+        .ld-quick-icon svg { width: 25px; height: 25px; }
+        .ld-quick-head h2 { margin: 0 0 .35rem; font-family: var(--font-heading); font-size: 1.22rem; font-weight: 800; letter-spacing: -.02em; color: #f7f4ff; }
+        .ld-quick-head p { margin: 0; font-size: .8rem; line-height: 1.5; color: #a9a3ca; }
+        .ld-quick-card .form-group { margin-bottom: .9rem; }
+        #qs-error { margin-bottom: .85rem; }
+        .ld-quick-card .alert {
+            display: flex; gap: .5rem; align-items: flex-start;
+            padding: .7rem .85rem; border-radius: 10px;
+            font-size: .82rem; font-weight: 500; line-height: 1.45;
+        }
+        .ld-quick-card .alert-error { color: #fecdd3; background: rgba(244,63,94,.10); border: 1px solid rgba(244,63,94,.28); }
+        .ld-btn-block { width: 100%; }
+        .ld-quick-note { margin: .9rem 0 0; font-size: .72rem; line-height: 1.5; color: #8f89b4; text-align: center; }
+        #qs-submit .btn-spinner { width: 15px; height: 15px; }
+
+        /* Reveal on scroll */
+        .ld-reveal { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s ease; }
+        .ld-reveal.in { opacity: 1; transform: none; }
+
+        /* ----------------------------- Responsive --------------------------- */
+        @media (max-width: 1080px) {
+            .ld-hero-grid { grid-template-columns: 1fr; gap: 24px; }
+            .ld-hero { padding: 48px 0 30px; }
+            .ld-hero-art { min-height: 400px; order: -1; }
+            .ld-progress-grid { grid-template-columns: 1fr; gap: 34px; }
+            .ld-progress-copy { text-align: center; }
+            .ld-progress-copy .ld-h2, .ld-progress-copy .ld-eyebrow { text-align: center; }
+            .ld-progress-copy .ld-eyebrow { margin-left: auto; margin-right: auto; }
+            .ld-arrow-doodle { margin: 1.4rem auto 0; }
+        }
+        @media (max-width: 860px) {
+            .ld-menu { display: none; }
+            .ld-nav-actions { margin-left: auto; }
+            .ld-steps { grid-template-columns: 1fr; gap: 30px; max-width: 420px; margin: 0 auto; }
+            .ld-step-arrow { display: none; }
+            .ld-cta-banner { flex-direction: column; align-items: flex-start; padding: 34px 28px; }
+        }
+        @media (max-width: 640px) {
+            .ld-shell, .ld-nav-inner, .ld-footer-inner, .ld-footer-bottom { padding-left: 16px; padding-right: 16px; }
+            .ld-hero h1 { font-size: clamp(1.95rem, 8.4vw, 2.7rem); }
+            .ld-hero-art { min-height: 0; }
+            .ld-art-halo { width: 340px; height: 340px; }
+            .ld-cta-row .ld-btn { width: 100%; }
+            .ld-features { gap: .7rem 1.2rem; }
+            .ld-dash { grid-template-columns: 1fr; }
+            .ld-dash-side { display: none; }
+            .ld-stat-row { grid-template-columns: 1fr; }
+            .ld-dash-cols { grid-template-columns: 1fr; }
+            .ld-auth-card { padding: 1.4rem 1.1rem 1.15rem; }
+            .ld-cta-left { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .ld-brand-tag { display: none; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            html { scroll-behavior: auto; }
+            .ld-photo-frame { animation: none !important; }
+            .ld-reveal { opacity: 1; transform: none; transition: none; }
+            #start.ld-modal, .ld-modal-inner { animation: none; }
+        }
+    </style>
 </head>
-<body class="page-register">
-    <div class="auth-page">
-        <div class="auth-container">
-            <div class="auth-card shadow-elevated">
-                <div class="auth-header">
-                    <div style="margin-bottom:0.85rem;">
-                        <span class="pill-badge pill-gradient">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
-                            REAL-TIME BEHAVIOR ENGINE
+<body class="page-register ld-body">
+    <a class="sr-only" href="#rounds">Skip to practice rounds</a>
+    <div class="ld-stars" aria-hidden="true"></div>
+
+    <header class="ld-nav">
+        <div class="ld-nav-inner">
+            <a class="ld-brand" href="#home" aria-label="InterviewIQ home">
+                <span class="ld-brand-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                </span>
+                <span>
+                    <span class="ld-brand-name">Interview<em>IQ</em></span>
+                    <span class="ld-brand-tag">Learn · Practice · Crack</span>
+                </span>
+            </a>
+            <nav class="ld-menu" aria-label="Main navigation">
+                <a href="#home">Home</a>
+                <a href="#rounds">Practice Rounds</a>
+                <a href="#how">Mock Tests</a>
+                <a href="#progress">Progress</a>
+                <a href="#about">About</a>
+            </nav>
+            <div class="ld-nav-actions">
+                <button type="button" class="ld-btn ld-btn-ghost ld-btn-sm" onclick="openForm(event)">Login</button>
+                <button type="button" class="ld-btn ld-btn-primary ld-btn-sm" onclick="openForm(event)">Sign Up</button>
+            </div>
+        </div>
+    </header>
+
+    <main id="home">
+        <div class="ld-shell">
+            <!-- Hero -->
+            <section class="ld-hero">
+                <div class="ld-hero-grid">
+                    <div class="ld-hero-copy">
+                        <span class="ld-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4"/><path d="m6.4 6.4 2.8 2.8"/><path d="M2 12h4"/><path d="m18 9.2 2.8-2.8"/><path d="M18 12h4"/><circle cx="12" cy="14" r="5"/></svg>
+                            Your Placement Preparation Partner
+                        </span>
+                        <h1>
+                            Ace Every Round.<br>
+                            Crack Your <span class="ld-grad-text">Dream Job.</span>
+                        </h1>
+                        <p class="ld-lede">
+                            Prepare for campus placements with interactive practice, mock tests, coding
+                            challenges and interview preparation — all in one AI-powered place.
+                        </p>
+                        <div class="ld-cta-row">
+                            <button type="button" class="ld-btn ld-btn-primary" onclick="openForm(event)">
+                                Start Practicing
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                            </button>
+                            <a href="#rounds" class="ld-btn ld-btn-ghost">Explore Rounds</a>
+                        </div>
+                        <div class="ld-features">
+                            <span class="ld-feature">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                5 Practice Rounds
+                            </span>
+                            <span class="ld-feature">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6"/><path d="M9 16h4"/></svg>
+                                Mock Tests
+                            </span>
+                            <span class="ld-feature">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><rect x="5" y="12" width="3" height="6" rx="1"/><rect x="10.5" y="8" width="3" height="10" rx="1"/><rect x="16" y="4" width="3" height="14" rx="1"/></svg>
+                                Performance Tracking
+                            </span>
+                            <span class="ld-feature">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/></svg>
+                                100% Free Access
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="ld-hero-art">
+                        <div class="ld-art-halo"></div>
+                        <div class="ld-art-grid"></div>
+                        <div class="ld-photo-frame">
+                            <img class="ld-hero-photo" src="/static/hero.png"
+                                 alt="A learner practising an AI interview on a laptop"
+                                 width="502" height="330">
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- Rounds -->
+        <section class="ld-sec ld-sec-alt" id="rounds">
+            <div class="ld-shell">
+                <div class="ld-sec-head ld-reveal">
+                    <h2 class="ld-h2">Everything You Need to <span class="ld-grad-text">Crack Placements</span></h2>
+                    <p>Choose a round, practice, improve and get one step closer to your dream job.</p>
+                </div>
+
+                <div class="ld-rounds-grid">
+                    <article class="ld-round-card ld-reveal" style="--rc:#8b5cf6;">
+                        <div class="ld-round-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                        </div>
+                        <h3>Group Discussion (GD)</h3>
+                        <p>Improve your communication, confidence and ability to express ideas.</p>
+                        <ul class="ld-round-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Trending GD topics</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Sample arguments</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Feedback on speaking</li>
+                        </ul>
+                        <button type="button" class="ld-round-btn" onclick="startRound('gd')">Practice GD
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </article>
+
+                    <article class="ld-round-card ld-reveal" style="--rc:#14b8a6;">
+                        <div class="ld-round-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.4 1 2.3h6c0-.9.4-1.8 1-2.3A7 7 0 0 0 12 2z"/></svg>
+                        </div>
+                        <h3>Aptitude Round</h3>
+                        <p>Strengthen your logical reasoning, quantitative aptitude and verbal ability.</p>
+                        <ul class="ld-round-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Quantitative Aptitude</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Logical Reasoning</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Verbal Ability</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Timed Mock Tests</li>
+                        </ul>
+                        <button type="button" class="ld-round-btn" onclick="startRound('aptitude')">Start Aptitude Test
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </article>
+
+                    <article class="ld-round-card ld-reveal" style="--rc:#3b82f6;">
+                        <div class="ld-round-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                        </div>
+                        <h3>Technical Interview</h3>
+                        <p>Prepare for technical interviews with subject-wise questions and simulations.</p>
+                        <ul class="ld-round-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>DSA &amp; Algorithms</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>OOPs Concepts</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>DBMS &amp; SQL</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Operating Systems</li>
+                        </ul>
+                        <button type="button" class="ld-round-btn" onclick="startRound('technical')">Practice Technical
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </article>
+
+                    <article class="ld-round-card ld-reveal" style="--rc:#f59e0b;">
+                        <div class="ld-round-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        </div>
+                        <h3>HR Interview</h3>
+                        <p>Build confidence and prepare strong answers to common HR questions.</p>
+                        <ul class="ld-round-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Tell Me About Yourself</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Strengths &amp; Weaknesses</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Career Goals</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Resume-Based Questions</li>
+                        </ul>
+                        <button type="button" class="ld-round-btn" onclick="startRound('hr')">Start HR Practice
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </article>
+
+                    <article class="ld-round-card ld-reveal" style="--rc:#ec4899;">
+                        <div class="ld-round-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        </div>
+                        <h3>Coding Round</h3>
+                        <p>Improve your problem-solving skills through coding challenges.</p>
+                        <ul class="ld-round-list">
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Easy, Medium, Hard</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Arrays &amp; Strings</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Trees &amp; Graphs</li>
+                            <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>Test Cases &amp; Practice</li>
+                        </ul>
+                        <button type="button" class="ld-round-btn" onclick="startRound('coding')">Start Coding
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <!-- How it works -->
+        <section class="ld-sec" id="how">
+            <div class="ld-shell">
+                <div class="ld-sec-head ld-reveal">
+                    <h2 class="ld-h2">How It Works</h2>
+                    <p>A simple 3-step process to help you prepare better.</p>
+                </div>
+                <div class="ld-steps">
+                    <div class="ld-step ld-reveal">
+                        <div class="ld-step-top">
+                            <span class="ld-step-num">01</span>
+                            <span class="ld-step-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>
+                            </span>
+                        </div>
+                        <h3>Choose Your Round</h3>
+                        <p>Select GD, Aptitude, Technical, HR or Coding based on your preparation needs.</p>
+                        <span class="ld-step-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg>
                         </span>
                     </div>
-                    <div class="logo">
-                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:48px;height:48px;color:var(--accent-indigo);">
-                            <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 17L12 22L22 17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                            <path d="M2 12L12 17L22 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <div class="ld-step ld-reveal">
+                        <div class="ld-step-top">
+                            <span class="ld-step-num">02</span>
+                            <span class="ld-step-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="14" y2="17"/></svg>
+                            </span>
+                        </div>
+                        <h3>Practice &amp; Improve</h3>
+                        <p>Solve questions, attempt mock tests and practice interview scenarios.</p>
+                        <span class="ld-step-arrow" aria-hidden="true">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="12" x2="20" y2="12"/><polyline points="14 6 20 12 14 18"/></svg>
+                        </span>
+                    </div>
+                    <div class="ld-step ld-reveal">
+                        <div class="ld-step-top">
+                            <span class="ld-step-num">03</span>
+                            <span class="ld-step-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><rect x="5" y="12" width="3" height="6" rx="1"/><rect x="10.5" y="8" width="3" height="10" rx="1"/><rect x="16" y="4" width="3" height="14" rx="1"/></svg>
+                            </span>
+                        </div>
+                        <h3>Track Your Progress</h3>
+                        <p>Review your scores, identify weak areas and focus on improvement.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress -->
+        <section class="ld-sec ld-sec-alt" id="progress">
+            <div class="ld-shell">
+                <div class="ld-progress-grid">
+                    <div class="ld-dash ld-reveal" aria-hidden="true">
+                        <aside class="ld-dash-side">
+                            <div class="ld-dash-logo">
+                                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg></span>
+                                InterviewIQ
+                            </div>
+                            <nav class="ld-dash-nav">
+                                <span class="active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard</span>
+                                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Practice Rounds</span>
+                                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg>Mock Tests</span>
+                                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="3" y1="21" x2="21" y2="21"/><rect x="5" y="12" width="3" height="6" rx="1"/><rect x="10.5" y="8" width="3" height="10" rx="1"/><rect x="16" y="4" width="3" height="14" rx="1"/></svg>Progress</span>
+                                <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09A1.65 1.65 0 0 0 15 4.6a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Settings</span>
+                            </nav>
+                        </aside>
+                        <div class="ld-dash-main">
+                            <div class="ld-dash-head">
+                                <div>
+                                    <b>Welcome Back, Learner!</b>
+                                    <small>Keep going — you're doing great.</small>
+                                </div>
+                                <span class="ld-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                            </div>
+                            <div class="ld-stat-row">
+                                <div class="ld-stat-tile">
+                                    <small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Total Tests</small>
+                                    <b>12</b>
+                                </div>
+                                <div class="ld-stat-tile">
+                                    <small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Avg. ATS Score</small>
+                                    <b>78%</b>
+                                </div>
+                                <div class="ld-stat-tile">
+                                    <small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Practice Time</small>
+                                    <b>18.5 <span style="font-size:.55rem;color:#9d97c0;">hrs</span></b>
+                                </div>
+                            </div>
+                            <div class="ld-dash-cols">
+                                <div class="ld-panel">
+                                    <h5>Your Progress</h5>
+                                    <div class="ld-bar">
+                                        <div class="ld-bar-label"><span>GD</span><span>70%</span></div>
+                                        <div class="ld-bar-track"><div class="ld-bar-fill" style="width:70%;background:linear-gradient(90deg,#a855f7,#7c3aed);"></div></div>
+                                    </div>
+                                    <div class="ld-bar">
+                                        <div class="ld-bar-label"><span>Aptitude</span><span>85%</span></div>
+                                        <div class="ld-bar-track"><div class="ld-bar-fill" style="width:85%;background:linear-gradient(90deg,#2dd4bf,#0d9488);"></div></div>
+                                    </div>
+                                    <div class="ld-bar">
+                                        <div class="ld-bar-label"><span>Technical</span><span>65%</span></div>
+                                        <div class="ld-bar-track"><div class="ld-bar-fill" style="width:65%;background:linear-gradient(90deg,#60a5fa,#2563eb);"></div></div>
+                                    </div>
+                                    <div class="ld-bar">
+                                        <div class="ld-bar-label"><span>HR</span><span>75%</span></div>
+                                        <div class="ld-bar-track"><div class="ld-bar-fill" style="width:75%;background:linear-gradient(90deg,#fbbf24,#d97706);"></div></div>
+                                    </div>
+                                    <div class="ld-bar">
+                                        <div class="ld-bar-label"><span>Coding</span><span>80%</span></div>
+                                        <div class="ld-bar-track"><div class="ld-bar-fill" style="width:80%;background:linear-gradient(90deg,#f472b6,#db2777);"></div></div>
+                                    </div>
+                                </div>
+                                <div class="ld-panel">
+                                    <h5>Weak Topics</h5>
+                                    <ul class="ld-weak">
+                                        <li><span class="dot"></span>Data Structures (Coding)</li>
+                                        <li><span class="dot blue"></span>Logical Reasoning (Aptitude)</li>
+                                        <li><span class="dot amber"></span>DBMS (Technical)</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="ld-progress-copy ld-reveal">
+                        <span class="ld-eyebrow">Track · Improve · Grow</span>
+                        <h2 class="ld-h2">Your Progress <span class="ld-grad-text">Matters</span></h2>
+                        <p>
+                            Get detailed insights, track your scores, identify weak areas and see
+                            your improvement over time with an AI-powered dashboard built for you.
+                        </p>
+                        <button type="button" class="ld-btn ld-btn-primary" onclick="openForm(event)">
+                            View Dashboard
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                        <svg class="ld-arrow-doodle" width="120" height="42" viewBox="0 0 120 42" fill="none" aria-hidden="true">
+                            <path d="M4 8c26 26 62 30 88 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-dasharray="4 5"/>
+                            <path d="M84 19l10 7-11 5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
                     </div>
-                    <h1>Master Every Round with <span class="text-gradient">AI That Learns You</span></h1>
-                    <p>Simulate high-stakes technical and behavioral interviews with real-time adaptive AI feedback. Build the confidence to ace every round, from screening to offer.</p>
                 </div>
+            </div>
+        </section>
 
-                <div id="groq-status" class="status-bar-premium" style="justify-content:center;">
-                    <span class="status-dot-pulse"></span>
-                    <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;flex-shrink:0;color:var(--accent-indigo);"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
-                    <span id="provider-status-text" style="font-size:0.85rem;font-weight:600;color:var(--text-primary);">AI Personalisation Engine <span style="font-size:0.8rem;color:var(--text-muted);font-weight:400;">&bull; Connecting to AI engine...</span></span>
-                </div>
-
-                <div id="error-msg" class="hidden"></div>
-                <div id="skills-display" class="skills-container hidden"></div>
-                <div id="ats-display" class="hidden" style="margin-top:1rem;"></div>
-
-                <form id="registration-form" enctype="multipart/form-data">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="name">Full Name</label>
-                            <input type="text" id="name" name="name" class="form-input" placeholder="e.g., Jane Doe" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="email">Email Address</label>
-                            <input type="email" id="email" name="email" class="form-input" placeholder="e.g., jane.doe@example.com" required>
+        <!-- CTA banner -->
+        <section class="ld-sec" id="about">
+            <div class="ld-shell">
+                <div class="ld-cta-banner ld-reveal">
+                    <svg class="ld-cta-mtn" viewBox="0 0 1200 80" preserveAspectRatio="none" aria-hidden="true">
+                        <path d="M0,80 L150,34 L280,66 L430,18 L560,58 L700,12 L830,60 L980,26 L1120,62 L1200,40 L1200,80 Z" fill="#2b1166"/>
+                    </svg>
+                    <div class="ld-cta-left">
+                        <span class="ld-rocket">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="m12 15-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 0 5 0"/><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"/></svg>
+                        </span>
+                        <div>
+                            <h2>Your Placement Journey Starts Here</h2>
+                            <p>One platform. Five rounds. One goal: your dream job.</p>
                         </div>
                     </div>
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="role">Target Role</label>
-                            <select id="role" name="role" class="form-select" required>
-                                <option value="">Select your target role...</option>
-                                <option value="Python Developer">Python Developer</option>
-                                <option value="Full Stack Developer">Full Stack Developer</option>
-                                <option value="Frontend Developer">Frontend Developer</option>
-                                <option value="Backend Developer">Backend Developer</option>
-                                <option value="Data Scientist">Data Scientist</option>
-                                <option value="Machine Learning Engineer">Machine Learning Engineer</option>
-                                <option value="DevOps Engineer">DevOps Engineer</option>
-                                <option value="Software Engineer">Software Engineer</option>
-                                <option value="React Developer">React Developer</option>
-                                <option value="Node.js Developer">Node.js Developer</option>
-                                <option value="Java Developer">Java Developer</option>
-                                <option value="Cloud Engineer">Cloud Engineer</option>
-                                <option value="Product Manager">Product Manager</option>
-                                <option value="Data Analyst">Data Analyst</option>
-                                <option value="QA Engineer">QA Engineer</option>
-                            </select>
+                    <button type="button" class="ld-btn ld-btn-white" onclick="openForm(event)">
+                        Start Your Preparation Today
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="ld-footer">
+        <div class="ld-footer-inner">
+            <a class="ld-brand" href="#home" aria-label="InterviewIQ home">
+                <span class="ld-brand-mark">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                </span>
+                <span>
+                    <span class="ld-brand-name">Interview<em>IQ</em></span>
+                    <span class="ld-brand-tag">Learn · Practice · Crack</span>
+                </span>
+            </a>
+            <div class="ld-footer-links">
+                <a href="#home">Home</a>
+                <a href="#rounds">Practice Rounds</a>
+                <a href="#how">Mock Tests</a>
+                <a href="#progress">Progress</a>
+                <a href="/download-ppt">About</a>
+                <span class="ld-social">
+                    <a href="#home" aria-label="GitHub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg></a>
+                    <a href="#home" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4V9h4v1.3A6 6 0 0 1 16 8z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg></a>
+                    <a href="mailto:hello@example.com" aria-label="Email"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,6 12,13 2,6"/></svg></a>
+                </span>
+            </div>
+        </div>
+        <div class="ld-footer-bottom">
+            <p>&copy; 2026 InterviewIQ. All rights reserved.</p>
+            <p class="ld-made">Dream · Prepare · Achieve ♥</p>
+        </div>
+    </footer>
+
+    <!-- Registration modal (kept intact for existing JS hooks) -->
+    <div id="start" class="ld-modal hidden" role="dialog" aria-modal="true" aria-labelledby="start-title">
+        <div class="ld-modal-inner">
+            <button type="button" class="ld-close" onclick="hideStart(event)" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div class="auth-container">
+                <div class="auth-card ld-auth-card">
+                    <div class="ld-card-head">
+                        <h2 id="start-title">Start your mock interview</h2>
+                        <p>Pick a round, add your resume and let the AI coach take over.</p>
+                    </div>
+
+                    <div id="groq-status" class="status-bar-premium">
+                        <span class="status-dot-pulse"></span>
+                        <svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                        <span id="provider-status-text">Connecting to AI engine...</span>
+                    </div>
+
+                    <div id="error-msg" class="hidden"></div>
+                    <div id="skills-display" class="skills-container hidden"></div>
+                    <div id="ats-display" class="hidden"></div>
+
+                    <form id="registration-form" enctype="multipart/form-data">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="name">Full Name <span style="font-weight:400; color:var(--text-muted); font-size:0.8rem;">(optional)</span></label>
+                                <input type="text" id="name" name="name" class="form-input" placeholder="Guest" autocomplete="name">
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address <span style="font-weight:400; color:var(--text-muted); font-size:0.8rem;">(optional)</span></label>
+                                <input type="email" id="email" name="email" class="form-input" placeholder="No account needed" autocomplete="email">
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <label for="company">Target Company</label>
-                            <select id="company" name="company" class="form-select">
-                                <option value="General">General (Standard Interview)</option>
-                                <optgroup label="FAANG / Top Tech">
+                        <div class="form-grid">
+                            <div class="form-group">
+                                <label for="role">Target Role</label>
+                                <select id="role" name="role" class="form-select" required>
+                                    <option value="">Choose role...</option>
+                                    <option value="Python Developer">Python Developer</option>
+                                    <option value="Full Stack Developer">Full Stack Developer</option>
+                                    <option value="Frontend Developer">Frontend Developer</option>
+                                    <option value="Backend Developer">Backend Developer</option>
+                                    <option value="Data Scientist">Data Scientist</option>
+                                    <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                                    <option value="DevOps Engineer">DevOps Engineer</option>
+                                    <option value="Software Engineer">Software Engineer</option>
+                                    <option value="React Developer">React Developer</option>
+                                    <option value="Node.js Developer">Node.js Developer</option>
+                                    <option value="Java Developer">Java Developer</option>
+                                    <option value="Cloud Engineer">Cloud Engineer</option>
+                                    <option value="Product Manager">Product Manager</option>
+                                    <option value="Data Analyst">Data Analyst</option>
+                                    <option value="QA Engineer">QA Engineer</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="company">Target Company</label>
+                                <select id="company" name="company" class="form-select">
+                                    <option value="">Choose company...</option>
                                     <option value="Google">Google</option>
                                     <option value="Amazon">Amazon</option>
                                     <option value="Meta">Meta</option>
                                     <option value="Microsoft">Microsoft</option>
                                     <option value="Apple">Apple</option>
-                                </optgroup>
-                                <optgroup label="Enterprise & IT">
                                     <option value="Flipkart">Flipkart</option>
                                     <option value="TCS">TCS</option>
                                     <option value="Infosys">Infosys</option>
                                     <option value="Wipro">Wipro</option>
                                     <option value="HCL">HCL</option>
-                                </optgroup>
-                                <option value="Startup">Early Stage Startup</option>
+                                    <option value="Startup">Startup</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="experience">Experience Level</label>
+                            <select id="experience" name="experience" class="form-select" required>
+                                <option value="">Choose level...</option>
+                                <option value="0-1">0-1 years</option>
+                                <option value="1-2">1-2 years</option>
+                                <option value="2-4">2-4 years</option>
+                                <option value="4-7">4-7 years</option>
+                                <option value="7-10">7-10 years</option>
+                                <option value="10+">10+ years</option>
                             </select>
                         </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="experience">Experience Level</label>
-                        <select id="experience" name="experience" class="form-select">
-                            <option value="0-1">0-1 years (Entry Level)</option>
-                            <option value="1-2">1-2 years (Junior)</option>
-                            <option value="2-4" selected>2-4 years (Mid-Level)</option>
-                            <option value="4-7">4-7 years (Senior)</option>
-                            <option value="7-10">7-10 years (Lead / Staff)</option>
-                            <option value="10+">10+ years (Principal / Architect)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label for="jd_text">Job Description <span style="font-weight:400; color:var(--text-muted); font-size:0.8rem;">(optional)</span></label>
-                        <details style="background:var(--bg-surface); border:1px solid var(--border); border-radius:8px; padding:0.6rem 0.75rem;">
-                            <summary style="cursor:pointer; font-size:0.85rem; font-weight:600; color:var(--accent-indigo); list-style:none; display:flex; align-items:center; gap:0.4rem;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-                                Paste Job Description to tailor questions
-                            </summary>
-                            <textarea id="jd_text" name="jd_text" class="form-input" placeholder="Paste Job Description (optional) — e.g. Must have Kubernetes, AWS, Docker, microservices..." rows="4" maxlength="5000" style="margin-top:0.6rem; resize:vertical; font-size:0.85rem;"></textarea>
-                            <div style="font-size:0.72rem; color:var(--text-muted); margin-top:0.3rem;">AI will prioritize skills & tools mentioned here over generic role questions. Leave empty for standard interview.</div>
-                        </details>
-                    </div>
-                    <div class="form-group">
-                        <label>Interview Mode Focus</label>
-                        <div class="mode-selector">
-                            <div class="mode-option selected" data-mode="technical">
-                                <div class="mode-icon icon-box-indigo">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        <div class="form-group">
+                            <label for="jd_text">Job Description <span style="font-weight:400; color:var(--text-muted); font-size:0.8rem;">(optional)</span></label>
+                            <details style="background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.08); border-radius:8px; padding:0.6rem 0.75rem;">
+                                <summary style="cursor:pointer; font-size:0.85rem; font-weight:600; color:var(--accent-indigo); list-style:none; display:flex; align-items:center; gap:0.4rem;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                                    Paste Job Description
+                                </summary>
+                                <textarea id="jd_text" name="jd_text" class="form-input" placeholder="Paste Job Description (optional)" rows="4" maxlength="5000" style="margin-top:0.6rem; resize:vertical; font-size:0.85rem;"></textarea>
+                            </details>
+                        </div>
+                        <div class="form-group">
+                            <label>Practice round</label>
+                            <div class="mode-selector">
+                                <div class="mode-option selected" data-mode="technical" data-round="full">
+                                    <div class="mode-icon icon-box-indigo">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                                    </div>
+                                    <div class="mode-name">Full</div>
                                 </div>
-                                <div class="mode-info-block">
-                                    <span class="pill-badge badge-indigo pill-badge-sm mode-badge">POPULAR</span>
+                                <div class="mode-option" data-mode="technical" data-round="technical">
+                                    <div class="mode-icon icon-box-indigo">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                                    </div>
                                     <div class="mode-name">Technical</div>
-                                    <div class="mode-desc">System design, APIs & core architecture</div>
                                 </div>
-                            </div>
-                            <div class="mode-option" data-mode="hr">
-                                <div class="mode-icon icon-box-violet">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                <div class="mode-option" data-mode="hr" data-round="hr">
+                                    <div class="mode-icon icon-box-violet">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                                    </div>
+                                    <div class="mode-name">HR</div>
                                 </div>
-                                <div class="mode-info-block">
-                                    <span class="pill-badge badge-violet pill-badge-sm mode-badge">RECOMMENDED</span>
-                                    <div class="mode-name">HR Round</div>
-                                    <div class="mode-desc">STAR behavioral & core leadership skills</div>
-                                </div>
-                            </div>
-                            <div class="mode-option" data-mode="coding">
-                                <div class="mode-icon icon-box-cyan">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-                                </div>
-                                <div class="mode-info-block">
-                                    <span class="pill-badge badge-cyan pill-badge-sm mode-badge">DSA FOCUS</span>
+                                <div class="mode-option" data-mode="coding" data-round="coding">
+                                    <div class="mode-icon icon-box-cyan">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+                                    </div>
                                     <div class="mode-name">Coding</div>
-                                    <div class="mode-desc">DSA algorithms & timed aptitude MCQs</div>
+                                </div>
+                                <div class="mode-option" data-mode="technical" data-round="aptitude">
+                                    <div class="mode-icon icon-box-indigo">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                                    </div>
+                                    <div class="mode-name">Aptitude</div>
+                                </div>
+                                <div class="mode-option" data-mode="technical" data-round="gd">
+                                    <div class="mode-icon icon-box-violet">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                                    </div>
+                                    <div class="mode-name">GD</div>
                                 </div>
                             </div>
+                            <input type="hidden" id="interview-mode" name="mode" value="technical">
                         </div>
-                        <input type="hidden" id="interview-mode" name="mode" value="technical">
-                    </div>
-                    <div class="form-group">
-                        <label>Resume Upload</label>
-                        <div class="file-upload-card" id="file-upload-card" tabindex="0" role="button" aria-label="Upload your resume">
-                            <input type="file" id="resume-file" name="resume" accept=".pdf,.docx" style="display:none;">
-                            <div class="upload-icon icon-box-indigo" style="width:48px;height:48px;margin:0 auto 0.75rem auto;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:24px;height:24px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                        <div class="form-group">
+                            <label>Resume Upload</label>
+                            <div class="file-upload-card" id="file-upload-card" tabindex="0" role="button" aria-label="Upload your resume">
+                                <input type="file" id="resume-file" name="resume" accept=".pdf,.docx" style="display:none;">
+                                <div class="upload-icon icon-box-indigo" style="width:44px;height:44px;margin:0 auto 0.6rem auto;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                                </div>
+                                <div class="upload-text">Click or drag resume here</div>
                             </div>
-                            <div class="upload-text">Click or drag resume here</div>
-                            <div class="upload-hint">Supports PDF and DOCX (AI parses skills automatically)</div>
+                            <div id="file-name" class="hidden file-selected-badge"></div>
                         </div>
-                        <div id="file-name" class="hidden file-selected-badge"></div>
+                        <button type="submit" id="submit-btn" class="btn btn-primary btn-lg btn-block shadow-md">
+                            <span>Start my interview</span>
+                            <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </form>
+
+                    <div class="ld-download">
+                        <a href="/download-ppt">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            Download presentation
+                        </a>
                     </div>
-                    <button type="submit" id="submit-btn" class="btn btn-primary btn-lg btn-block shadow-md">
-                        <span>Launch Your Personal AI Coach</span>
-                        <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;display:inline-block;vertical-align:middle;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </button>
-                </form>
-                <div style="text-align:center;margin-top:1rem;">
-                    <a href="/download-ppt" class="btn btn-secondary btn-block" style="display:inline-flex;align-items:center;justify-content:center;gap:0.5rem;text-decoration:none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        <span>Download System Presentation (PPT)</span>
-                    </a>
-                </div>
-                <div class="auth-footer" id="provider-footer">
-                    AI-powered mock interviews with real-time adaptive feedback.
+                    <div class="auth-footer" id="provider-footer">Real-time adaptive feedback.</div>
                 </div>
             </div>
         </div>
     </div>
 
+    <!-- Quick practice start: company + role only, no profile -->
+    <div id="quick-start" class="ld-modal hidden" role="dialog" aria-modal="true" aria-labelledby="qs-title">
+        <div class="ld-modal-inner ld-quick-inner">
+            <button type="button" class="ld-close" onclick="closeQuick(event)" aria-label="Close">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+            <div class="auth-card ld-auth-card ld-quick-card">
+                <div class="ld-quick-head">
+                    <span class="ld-quick-icon" id="qs-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7L12 12L22 7L12 2Z"/><path d="M2 17L12 22L22 17"/><path d="M2 12L12 17L22 12"/></svg>
+                    </span>
+                    <div>
+                        <h2 id="qs-title">Start practice</h2>
+                        <p>Pick your company and role — practice starts instantly. No profile needed.</p>
+                    </div>
+                </div>
+                <form id="quick-start-form">
+                    <div class="form-group">
+                        <label for="qs-company">Target Company</label>
+                        <select id="qs-company" class="form-select" required>
+                            <option value="">Choose company...</option>
+                            <option value="General">General (no specific company)</option>
+                            <option value="Google">Google</option>
+                            <option value="Amazon">Amazon</option>
+                            <option value="Meta">Meta</option>
+                            <option value="Microsoft">Microsoft</option>
+                            <option value="Apple">Apple</option>
+                            <option value="Flipkart">Flipkart</option>
+                            <option value="TCS">TCS</option>
+                            <option value="Infosys">Infosys</option>
+                            <option value="Wipro">Wipro</option>
+                            <option value="HCL">HCL</option>
+                            <option value="Startup">Startup</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="qs-role">Target Role</label>
+                        <select id="qs-role" class="form-select" required>
+                            <option value="">Choose role...</option>
+                            <option value="Python Developer">Python Developer</option>
+                            <option value="Full Stack Developer">Full Stack Developer</option>
+                            <option value="Frontend Developer">Frontend Developer</option>
+                            <option value="Backend Developer">Backend Developer</option>
+                            <option value="Data Scientist">Data Scientist</option>
+                            <option value="Machine Learning Engineer">Machine Learning Engineer</option>
+                            <option value="DevOps Engineer">DevOps Engineer</option>
+                            <option value="Software Engineer">Software Engineer</option>
+                            <option value="React Developer">React Developer</option>
+                            <option value="Node.js Developer">Node.js Developer</option>
+                            <option value="Java Developer">Java Developer</option>
+                            <option value="Cloud Engineer">Cloud Engineer</option>
+                            <option value="Product Manager">Product Manager</option>
+                            <option value="Data Analyst">Data Analyst</option>
+                            <option value="QA Engineer">QA Engineer</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="qs-experience">Experience Level</label>
+                        <select id="qs-experience" class="form-select">
+                            <option value="0-1" selected>0-1 years</option>
+                            <option value="1-2">1-2 years</option>
+                            <option value="2-4">2-4 years</option>
+                            <option value="4-7">4-7 years</option>
+                            <option value="7-10">7-10 years</option>
+                            <option value="10+">10+ years</option>
+                        </select>
+                    </div>
+                    <div id="qs-error" class="hidden"></div>
+                    <button type="submit" id="qs-submit" class="ld-btn ld-btn-primary ld-btn-block">
+                        <span id="qs-submit-text">Start Practice</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                    <p class="ld-quick-note">Questions are generated for the company and role you choose.</p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openForm(e, focus) {
+            if (e) e.preventDefault();
+            var modal = document.getElementById('start');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+            document.body.classList.add('ld-modal-open');
+            if (window.history && history.replaceState) history.replaceState(null, '', '#start');
+
+            var target = focus === 'profile'
+                ? document.getElementById('name')
+                : document.getElementById('role');
+            if (target) {
+                setTimeout(function () {
+                    try { target.focus({ preventScroll: true }); } catch (err) {}
+                }, 120);
+            }
+        }
+
+        function revealStart(e, focus) {
+            openForm(e, focus);
+        }
+
+        function hideStart(e) {
+            if (e) e.preventDefault();
+            var modal = document.getElementById('start');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.classList.remove('ld-modal-open');
+            if (window.history && history.replaceState) history.replaceState(null, '', window.location.pathname);
+        }
+
+        // Round-specific quick start: ask company + role, then begin that round.
+        var ROUND_META = {
+            gd:        { title: 'Group Discussion (GD)', mode: 'technical', color: '#8b5cf6' },
+            aptitude:  { title: 'Aptitude Round',        mode: 'technical', color: '#14b8a6' },
+            technical: { title: 'Technical Interview',   mode: 'technical', color: '#3b82f6' },
+            hr:        { title: 'HR Interview',          mode: 'hr',        color: '#f59e0b' },
+            coding:    { title: 'Coding Round',          mode: 'coding',    color: '#ec4899' }
+        };
+        var quickRound = null;
+
+        function startRound(round) {
+            var meta = ROUND_META[round] || ROUND_META.technical;
+            quickRound = { id: round, mode: meta.mode };
+
+            var modal = document.getElementById('quick-start');
+            if (!modal) return;
+            document.getElementById('qs-title').textContent = 'Practice ' + meta.title;
+            modal.style.setProperty('--qc', meta.color);
+            document.getElementById('qs-error').classList.add('hidden');
+            modal.classList.remove('hidden');
+            document.body.classList.add('ld-modal-open');
+            setTimeout(function () {
+                var c = document.getElementById('qs-company');
+                if (c) { try { c.focus({ preventScroll: true }); } catch (err) {} }
+            }, 120);
+        }
+
+        function closeQuick(e) {
+            if (e) e.preventDefault();
+            var modal = document.getElementById('quick-start');
+            if (!modal) return;
+            modal.classList.add('hidden');
+            document.body.classList.remove('ld-modal-open');
+        }
+
+        var quickForm = document.getElementById('quick-start-form');
+        if (quickForm) {
+            quickForm.addEventListener('submit', async function (e) {
+                e.preventDefault();
+                if (!quickRound) return;
+
+                var errBox = document.getElementById('qs-error');
+                var btn = document.getElementById('qs-submit');
+                var company = document.getElementById('qs-company').value;
+                var role = document.getElementById('qs-role').value;
+                var experience = document.getElementById('qs-experience').value || '0-1';
+
+                errBox.classList.add('hidden');
+                if (!company || !role) {
+                    errBox.innerHTML = '<div class="alert alert-error">Please choose both a company and a role.</div>';
+                    errBox.classList.remove('hidden');
+                    return;
+                }
+
+                btn.disabled = true;
+                btn.innerHTML = '<span>Starting practice...</span>';
+
+                try {
+                    var fd = new FormData();
+                    fd.append('role', role);
+                    fd.append('company', company);
+                    fd.append('experience', experience);
+                    fd.append('mode', quickRound.mode);
+
+                    var resp = await fetch('/register', { method: 'POST', body: fd });
+                    var data = await resp.json();
+                    if (!resp.ok) throw new Error(data.error || 'Could not start practice.');
+
+                    window.location.href = '/interview?mode=' + encodeURIComponent(quickRound.mode)
+                        + '&round=' + encodeURIComponent(quickRound.id);
+                } catch (err) {
+                    errBox.innerHTML = '<div class="alert alert-error">' +
+                        (err.message || 'Something went wrong. Please try again.') + '</div>';
+                    errBox.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.innerHTML = '<span>Start Practice</span>';
+                }
+            });
+        }
+
+        document.addEventListener('keydown', function (e) {
+            if (e.key !== 'Escape') return;
+            var quick = document.getElementById('quick-start');
+            if (quick && !quick.classList.contains('hidden')) { closeQuick(e); return; }
+            var modal = document.getElementById('start');
+            if (modal && !modal.classList.contains('hidden')) hideStart(e);
+        });
+
+        document.getElementById('start').addEventListener('click', function (e) {
+            if (e.target === this) hideStart(e);
+        });
+        document.getElementById('quick-start').addEventListener('click', function (e) {
+            if (e.target === this) closeQuick(e);
+        });
+
+        if (location.hash === '#start') {
+            var s0 = document.getElementById('start');
+            if (s0) {
+                s0.classList.remove('hidden');
+                document.body.classList.add('ld-modal-open');
+            }
+        }
+
+        // Scroll reveal
+        (function () {
+            var els = document.querySelectorAll('.ld-reveal');
+            if (!('IntersectionObserver' in window) ||
+                window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                els.forEach(function (el) { el.classList.add('in'); });
+                return;
+            }
+            var io = new IntersectionObserver(function (entries) {
+                entries.forEach(function (entry) {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in');
+                        io.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+            els.forEach(function (el) { io.observe(el); });
+        })();
+    </script>
     <script src="/static/script.js"></script>
 </body>
 </html>

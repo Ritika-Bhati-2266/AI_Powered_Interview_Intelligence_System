@@ -60,6 +60,27 @@ MAX_QUESTIONS = 20
 # Resume phase: number of resume-specific questions to ask in Round 0
 RESUME_PHASE_QUESTIONS = 3
 
+# Focused practice rounds a candidate can pick after uploading resume + JD
+PRACTICE_ROUND_TYPES = ("full", "technical", "hr", "coding", "aptitude", "gd")
+
+# Fallback definitions when the selected company has no such round in its process
+PRACTICE_ROUND_DEFAULTS = {
+    "technical": {"name": "Technical Round", "type": "technical", "questions": 4, "duration_min": 30, "focus": "Role-relevant technical and project questions"},
+    "hr": {"name": "HR Round", "type": "hr", "questions": 4, "duration_min": 25, "focus": "Behavioral, situational and culture-fit questions"},
+    "coding": {"name": "Coding Round", "type": "coding", "questions": 3, "duration_min": 45, "focus": "DSA — write code, analyse complexity, handle edge cases"},
+    "aptitude": {"name": "Aptitude Practice", "type": "aptitude", "questions": 10, "duration_min": 30, "focus": "Quantitative, Logical Reasoning, Verbal Ability"},
+    "gd": {"name": "Group Discussion", "type": "gd", "questions": 1, "duration_min": 10, "focus": "Structure, listening, initiative and balanced participation"},
+}
+
+
+def get_practice_round(company: str, round_type: str) -> dict:
+    """Return the company's round of the requested type, or a sensible default."""
+    round_type = (round_type or "").lower().strip()
+    for rnd in get_rounds_for_company(company):
+        if (rnd.get("type") or "").lower() == round_type:
+            return dict(rnd)
+    return dict(PRACTICE_ROUND_DEFAULTS.get(round_type, PRACTICE_ROUND_DEFAULTS["technical"]))
+
 
 def _experience_to_difficulty(experience: str) -> int:
     """
@@ -126,7 +147,8 @@ class InterviewSession:
                  candidate_skills: list, resume_text: str, mode: str,
                  company: str = "General",
                  total_questions: int = DEFAULT_QUESTION_LIMIT,
-                 jd_text: str = ""):
+                 jd_text: str = "",
+                 practice_round: str = "full"):
         self.session_id = session_id
         self.candidate_id = candidate_id
         self.candidate_name = candidate_name
@@ -135,6 +157,10 @@ class InterviewSession:
         self.candidate_skills = candidate_skills or []
         self.resume_text = resume_text or ""
         self.jd_text = (jd_text or "")[:3000]
+        self.practice_round = (practice_round or "full").lower().strip()
+        if self.practice_round not in PRACTICE_ROUND_TYPES:
+            self.practice_round = "full"
+        self.is_focused_practice = self.practice_round not in ("full", "")
         self.mode = mode
         self.company = company
         self.status = "waiting"
@@ -153,9 +179,14 @@ class InterviewSession:
         # Load company rounds
         raw_rounds = get_rounds_for_company(company)
 
+        # ── Focused practice: run ONLY the round the candidate picked ──
+        # Resume + JD are still used as context for question generation.
+        if self.is_focused_practice:
+            raw_rounds = [get_practice_round(company, self.practice_round)]
+
         # ── Coding mode: only code (bs code de) ──
         # Keep only coding rounds; drop HR/aptitude/GD/technical so every question is DSA/coding
-        if (mode or "").lower() == "coding":
+        if (mode or "").lower() == "coding" and not self.is_focused_practice:
             coding_only = [r for r in raw_rounds if r.get("type") == "coding"]
             if coding_only:
                 raw_rounds = coding_only
@@ -169,6 +200,9 @@ class InterviewSession:
         # Skip for coding mode — pure coding, no resume discussion
         self.rounds = []
         if (mode or "").lower() == "coding":
+            self.rounds = list(raw_rounds)
+        elif self.is_focused_practice:
+            # No resume-discussion round for focused practice
             self.rounds = list(raw_rounds)
         elif self.resume_text and self.resume_text.strip():
             # Resume phase: first 2-3 questions about the candidate's resume
@@ -218,8 +252,12 @@ class InterviewSession:
         self.gd_ai_index = 0
         self.gd_scores = None
 
-        # Filter GD rounds if disabled or company not allowed
-        if not GD_ENABLED or self.company.lower() not in GD_ALLOWED_COMPANIES:
+        # Filter GD rounds if disabled or company not allowed.
+        # A candidate who explicitly picked GD practice is always allowed to run one.
+        if not GD_ENABLED or (
+            self.company.lower() not in GD_ALLOWED_COMPANIES
+            and self.practice_round != "gd"
+        ):
             self.rounds = [r for r in self.rounds if r.get("type") != "gd"]
 
         # Recalculate total questions as sum of all rounds
@@ -338,7 +376,8 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
                     candidate_role: str, candidate_experience: str,
                     candidate_skills: list, resume_text: str,
                     mode: str = "technical", total_questions: int = None,
-                    company: str = "General", jd_text: str = "") -> dict:
+                    company: str = "General", jd_text: str = "",
+                    practice_round: str = "full") -> dict:
     """
     Initialize a new interview session with company-specific round structure.
 
@@ -360,6 +399,7 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
         company=company,
         total_questions=total_questions,
         jd_text=jd_text,
+        practice_round=practice_round,
     )
 
     session.status = "in_progress"
@@ -393,6 +433,8 @@ def start_interview(session_id: str, candidate_id: int, candidate_name: str,
         "total_questions": session.total_questions,
         "difficulty": DIFFICULTY_LEVELS[session.current_difficulty],
         "mode": session.mode,
+        "company": session.company,
+        "practice_round": session.practice_round,
         "candidate_name": session.candidate_name,
         # Round info
         "rounds": session.rounds,

@@ -599,15 +599,15 @@ def register():
         name = request.form.get("name", "").strip()
         email = request.form.get("email", "").strip()
         role = request.form.get("role", "").strip()
-        experience = request.form.get("experience", "0").strip()
+        experience = request.form.get("experience", "0").strip() or "0"
 
-        # Validate required fields
-        if not all([name, email, role]):
-            return jsonify({"error": "Name, email, and role are required."}), 400
+        # Role is the only required field — lets people start without an account
+        if not role:
+            return jsonify({"error": "Please choose a target role."}), 400
 
-        # Email format validation
+        # Email format validation (only when provided)
         import re as _re
-        if not _re.match(r'^[\w\.\+\-]+@[\w\-]+\.[\w\.\-]+$', email):
+        if email and not _re.match(r'^[\w\.\+\-]+@[\w\-]+\.[\w\.\-]+$', email):
             return jsonify({"error": "Invalid email format."}), 400
 
         resume_text = ""
@@ -637,6 +637,12 @@ def register():
                     # Use parsed name if form name is generic
                     if parse_result.get("name") and name.lower() in ["", "candidate"]:
                         name = parse_result["name"]
+
+        # Guest mode — no account needed when name/email are left blank
+        if not name:
+            name = "Guest"
+        if not email:
+            email = f"guest_{uuid.uuid4().hex[:12]}@guest.local"
 
         # Calculate ATS score (always, even if no JD or no resume)
         jd_text = request.form.get("jd_text", "").strip()
@@ -668,10 +674,19 @@ def register():
         session["candidate_role"] = role
         session["candidate_experience"] = experience
         session["candidate_skills"] = skills[:15]
-        session["candidate_company"] = request.form.get("company", "General")
+        session["candidate_company"] = request.form.get("company", "General").strip() or "General"
         session["resume_text"] = resume_text[:400]  # tiny preview only, full text in DB
         session["jd_text"] = jd_text[:3000]
         session["ats_score"] = ats_result
+
+        has_resume = bool(resume_filename)
+        if has_resume:
+            message = (f"Registered successfully! {len(skills)} skills identified from resume. "
+                       f"ATS Score: {ats_result['score']}%")
+        elif jd_text:
+            message = f"Registered successfully! ATS Score: {ats_result['score']}%"
+        else:
+            message = "Registered successfully! Starting your interview..."
 
         return jsonify({
             "success": True,
@@ -680,7 +695,9 @@ def register():
             "skills_found": len(skills),
             "skills": skills[:20],  # Top 20 skills for display
             "ats_score": ats_result,
-            "message": f"Registered successfully! {len(skills)} skills identified from resume. ATS Score: {ats_result['score']}%"
+            "has_resume": has_resume,
+            "has_jd": bool(jd_text),
+            "message": message
         })
 
     except Exception as e:
@@ -694,10 +711,15 @@ def interview_page():
         return redirect(url_for("index"))
 
     mode = request.args.get("mode", "technical")
+    practice_round = (request.args.get("round") or "full").lower().strip()
+    if practice_round not in ("full", "technical", "hr", "coding", "aptitude", "gd"):
+        practice_round = "full"
     return render_template("interview.html",
                            candidate_name=session.get("candidate_name", "Candidate"),
                            candidate_role=session.get("candidate_role", ""),
-                           mode=mode)
+                           candidate_company=session.get("candidate_company", "General"),
+                           mode=mode,
+                           practice_round=practice_round)
 
 
 @app.route("/api/start_interview", methods=["POST"])
@@ -710,6 +732,18 @@ def api_start_interview():
         data = request.get_json() or {}
         mode = data.get("mode", "technical")
         total_questions = data.get("total_questions", None)  # None = auto from rounds
+
+        # Focused round practice: "full" runs the company's whole process,
+        # otherwise only the selected round type is conducted.
+        practice_round = (data.get("practice_round") or "full").lower().strip()
+        if practice_round not in ("full", "technical", "hr", "coding", "aptitude", "gd"):
+            practice_round = "full"
+        if practice_round == "hr":
+            mode = "hr"
+        elif practice_round == "coding":
+            mode = "coding"
+        elif practice_round in ("technical", "aptitude", "gd"):
+            mode = "technical"
 
         # Get company from session or default
         company = session.get("candidate_company", "General")
@@ -750,6 +784,7 @@ def api_start_interview():
             total_questions=total_questions,
             company=company,
             jd_text=_full_jd,
+            practice_round=practice_round,
         )
 
         if "error" in result:

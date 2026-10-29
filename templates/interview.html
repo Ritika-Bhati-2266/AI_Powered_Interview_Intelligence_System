@@ -29,8 +29,9 @@
     <div id="waiting-room" class="waiting-room-overlay">
         <div class="waiting-room-card">
             <div class="waiting-icon">🎯</div>
-            <h2>Ready for your <span class="text-gradient">{{ mode|capitalize }}</span> Interview?</h2>
-            <p class="waiting-subtitle">{{ candidate_name }} • {{ candidate_role }} • {{ mode|capitalize }} Round</p>
+            {% set round_label = {'gd': 'GD', 'hr': 'HR', 'technical': 'Technical', 'coding': 'Coding', 'aptitude': 'Aptitude'}.get(practice_round, practice_round|capitalize) %}
+            <h2>Ready for your {% if practice_round != 'full' %}<span class="text-gradient">{{ round_label }}</span> Round?{% else %}<span class="text-gradient">Full</span> Interview?{% endif %}</h2>
+            <p class="waiting-subtitle">{{ candidate_name }} • {{ candidate_role }} • {% if practice_round != 'full' %}{{ round_label }} Round{% else %}{{ candidate_company }} Full Process{% endif %}</p>
             <div class="waiting-checklist">
                 <div class="check-item" id="check-mic"><span class="check-icon">🎤</span><span>Microphone — <strong id="mic-status">Checking...</strong></span></div>
                 <div class="check-item" id="check-cam"><span class="check-icon">📷</span><span>Camera — <strong id="cam-status">Checking...</strong></span></div>
@@ -108,6 +109,7 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px;margin-right:6px;display:inline-block;vertical-align:middle;"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
                             Turn Camera On
                         </button>
+                        <select id="camera-select" class="form-select" aria-label="Choose camera" title="Choose camera" style="display:none;width:100%;margin-top:0.5rem;font-size:0.75rem;padding:0.4rem 2rem 0.4rem 0.6rem;min-height:34px;"></select>
                         <div id="camera-aptitude-note" class="camera-aptitude-note" style="display:none;">
                             Note: Aptitude rounds do not require camera/voice input
                         </div>
@@ -303,6 +305,7 @@
 
     <script>
         window.INTERVIEW_MODE = '{{ mode }}';
+        window.INTERVIEW_ROUND = '{{ practice_round }}';
     </script>
     <script src="/static/script.js"></script>
     <script src="/static/audio_input.js"></script>

@@ -6,9 +6,7 @@
   Server: http://127.0.0.1:5050
   Register: http://127.0.0.1:5050/
 
-  Make sure Ollama is running:
-  $ ollama serve
-  $ ollama pull llama3.2:latest
+  Groq API: ensure GROQ_API_KEY is set in .env
 
  * Serving Flask app 'app'
  * Debug mode: on

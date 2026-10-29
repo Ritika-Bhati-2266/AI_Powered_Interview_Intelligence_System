@@ -492,13 +492,15 @@ function initRegistrationForm() {
     const errorContainer = $('#error-msg');
     const modeOptions = $$('.mode-option');
 
-    // Mode selection
+    // Mode + practice-round selection
     let selectedMode = 'technical';
+    let selectedRound = 'full';
     modeOptions.forEach(opt => {
         opt.addEventListener('click', function() {
             modeOptions.forEach(o => o.classList.remove('selected'));
             this.classList.add('selected');
             selectedMode = this.dataset.mode || 'technical';
+            selectedRound = this.dataset.round || 'full';
         });
     });
 
@@ -598,7 +600,7 @@ function initRegistrationForm() {
             }
             // ATS Score — circular progress + breakdown + keyword chips
             const atsContainer = document.getElementById('ats-display');
-            if (atsContainer && data.ats_score) {
+            if (atsContainer && data.ats_score && (data.has_resume || data.has_jd)) {
                 const ats = data.ats_score;
                 const score = Math.max(0, Math.min(100, ats.score || 0));
                 const bd = ats.breakdown || {};
@@ -628,7 +630,8 @@ function initRegistrationForm() {
 
             // Redirect to interview after brief delay
             setTimeout(() => {
-                window.location.href = '/interview?mode=' + selectedMode;
+                window.location.href = '/interview?mode=' + encodeURIComponent(selectedMode)
+                    + '&round=' + encodeURIComponent(selectedRound);
             }, 1500);
 
         } catch (err) {
@@ -687,6 +690,7 @@ async function checkOllamaStatus() { return checkGroqStatus(); }
 
 let cameraStream = null;
 let cameraActive = false;
+let selectedCameraId = '';
 
 function toggleCamera() {
     const video = $('#camera-feed');
@@ -732,14 +736,16 @@ function toggleCamera() {
         video.setAttribute('autoplay', '');
     }
 
-    const constraints = {
-        video: {
-            width: { ideal: 640 },
-            height: { ideal: 480 },
-            facingMode: 'user'
-        },
-        audio: false
+    const videoConstraints = {
+        width: { ideal: 640 },
+        height: { ideal: 480 }
     };
+    if (selectedCameraId) {
+        videoConstraints.deviceId = { exact: selectedCameraId };
+    } else {
+        videoConstraints.facingMode = 'user';
+    }
+    const constraints = { video: videoConstraints, audio: false };
 
     console.log('[Camera] Constraints:', JSON.stringify(constraints));
 
@@ -750,6 +756,7 @@ function toggleCamera() {
 
             cameraStream = stream;
             video.srcObject = stream;
+            refreshCameraDevices();
 
             console.log('[Camera] Waiting for video to start playing...');
 
@@ -795,6 +802,38 @@ function toggleCamera() {
         });
 }
 
+// Camera device picker (front/back/external webcams)
+function getCameraSelectEl() {
+    return document.getElementById('camera-select');
+}
+
+async function refreshCameraDevices() {
+    const sel = getCameraSelectEl();
+    if (!sel || !navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) return;
+
+    try {
+        const devices = await navigator.mediaDevices.enumerateDevices();
+        const cams = devices.filter(d => d.kind === 'videoinput');
+        const previous = selectedCameraId || sel.value;
+
+        sel.innerHTML = '';
+        cams.forEach(function(cam, index) {
+            const opt = document.createElement('option');
+            opt.value = cam.deviceId;
+            opt.textContent = cam.label || ('Camera ' + (index + 1));
+            sel.appendChild(opt);
+        });
+
+        if (previous && cams.some(c => c.deviceId === previous)) {
+            sel.value = previous;
+        }
+        selectedCameraId = sel.value || '';
+        sel.style.display = cams.length > 1 ? 'block' : 'none';
+    } catch (err) {
+        console.warn('[Camera] enumerateDevices failed:', err);
+    }
+}
+
 // Initialize camera on page load for interview pages
 function initCamera() {
     const video = $('#camera-feed');
@@ -832,6 +871,22 @@ function initCamera() {
             e.preventDefault();
             toggleCamera();
         };
+    }
+
+    // Camera selection — switch device live if the camera is already on
+    const camSelect = getCameraSelectEl();
+    if (camSelect) {
+        camSelect.addEventListener('change', function() {
+            selectedCameraId = camSelect.value;
+            if (cameraActive) {
+                toggleCamera();          // stop current stream
+                setTimeout(toggleCamera, 150); // restart on the chosen device
+            }
+        });
+    }
+    refreshCameraDevices();
+    if (navigator.mediaDevices && navigator.mediaDevices.addEventListener) {
+        navigator.mediaDevices.addEventListener('devicechange', refreshCameraDevices);
     }
 }
 
@@ -1051,6 +1106,7 @@ function initInterview() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     mode: window.INTERVIEW_MODE || 'technical',
+                    practice_round: window.INTERVIEW_ROUND || 'full',
                 }),
             });
 
@@ -1966,6 +2022,8 @@ function switchToAptitudeMode(questionText) {
     // Disable camera toggle
     const camToggle = document.getElementById('camera-toggle-btn');
     if (camToggle) camToggle.disabled = true;
+    const camPick = document.getElementById('camera-select');
+    if (camPick) camPick.disabled = true;
 
     // Reset selection
     aptitudeSelectedOption = -1;
@@ -2030,6 +2088,8 @@ function switchToNormalMode() {
     // Enable camera toggle
     const camToggle = document.getElementById('camera-toggle-btn');
     if (camToggle) camToggle.disabled = false;
+    const camPick = document.getElementById('camera-select');
+    if (camPick) camPick.disabled = false;
 
     // Reset timer
     pauseAptitudeTimer();
