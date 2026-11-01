@@ -362,7 +362,7 @@ function buildVoiceFirstBlock(textForDisplay) {
                 '<button type="button" class="vf-btn" onclick="revealQuestionText(this)" title="Show this question as text">' + VF_EYE_SVG + 'Show question text</button>' +
                 '<button type="button" class="vf-btn" onclick="replayQuestion(this)" title="Hear this question again">' + VF_PLAY_SVG + 'Replay audio</button>' +
             '</div>' +
-            '<div class="voice-first-text" hidden>' + escapeHtml(textForDisplay) + '</div>';
+            '<div class="voice-first-text" hidden>' + escapeHtml(textForDisplay).replace(/\n/g, '<br>') + '</div>';
 }
 
 // The aptitude area shows its own question (the chat is hidden during MCQs).
@@ -370,15 +370,8 @@ function renderAptitudeQuestionText(questionText) {
     var qEl = document.getElementById('aptitude-question-text');
     if (!qEl) return;
     lastAIQuestionEl = null;
-    var showText = typingModeActive || !ttsSupported() || TTS.alwaysShowText;
-    if (showText) {
-        qEl.innerHTML = escapeHtml(questionText);
-        return;
-    }
-    qEl.innerHTML =
-        '<div class="voice-first-apt-block">' +
-            buildVoiceFirstBlock(questionText) +
-        '</div>';
+    // Aptitude: always show question text directly (no voice-first block).
+    qEl.innerHTML = escapeHtml(questionText).replace(/\n/g, '<br>');
 }
 
 window.revealAptitudeQuestion = revealAptitudeQuestion;
@@ -416,7 +409,7 @@ function addAIQuestionMessage(text, difficulty, companyContext) {
     }
 
     var displayText = cleanDisplayText(text);
-    var voiceFirst = !typingModeActive && ttsSupported() && !TTS.alwaysShowText;
+    var voiceFirst = !typingModeActive && ttsSupported() && !TTS.alwaysShowText && !isAptitudeRound;
 
     var bubbleHtml;
     if (voiceFirst) {
@@ -425,7 +418,7 @@ function addAIQuestionMessage(text, difficulty, companyContext) {
                 buildVoiceFirstBlock(displayText) +
             '</div>';
     } else {
-        bubbleHtml = '<div class="message-bubble">' + escapeHtml(displayText) + '</div>';
+        bubbleHtml = '<div class="message-bubble">' + escapeHtml(displayText).replace(/\n/g, '<br>') + '</div>';
     }
 
     div.innerHTML =
@@ -1239,6 +1232,8 @@ function initInterview() {
                 }
                 if (data.gd_complete) {
                     isGDRound = false;
+                    const gdVoiceToggleRestore = document.querySelector('#voice-section .toggle-input-mode');
+                    if (gdVoiceToggleRestore) gdVoiceToggleRestore.style.display = '';
                     // show GD scores
                     const sc = data.gd_scores || {};
                     setTimeout(() => {
@@ -1922,7 +1917,11 @@ function showGDTopic(topic, personas){
         });
     }
     banner.style.display = 'block';
-    if (choice) choice.style.display = 'flex';
+    if (choice) choice.style.display = 'none';
+    // GD is voice-only: force voice mode and hide keyboard toggle.
+    if (typeof switchToVoiceMode === 'function') switchToVoiceMode();
+    const gdVoiceToggle = document.querySelector('#voice-section .toggle-input-mode');
+    if (gdVoiceToggle) gdVoiceToggle.style.display = 'none';
 }
 function chooseGDMode(mode){
     const choice = document.getElementById('gd-input-choice');
@@ -2108,9 +2107,8 @@ function selectAptitudeOption(element, index) {
     element.classList.add('selected');
     aptitudeSelectedOption = index;
 
-    // Enable submit button
-    const submitBtn = document.getElementById('aptitude-submit-btn');
-    if (submitBtn) submitBtn.disabled = false;
+    // Auto-submit on selection (no separate Confirm button)
+    setTimeout(function() { submitAptitudeAnswer(); }, 0);
 }
 
 
@@ -2686,6 +2684,7 @@ function stopVoiceRecording() {
 }
 
 function switchToTypeMode() {
+    if (isGDRound) return; // GD is voice-only
     typingModeActive = true;
     stopSpeaking();
     revealCurrentQuestion();

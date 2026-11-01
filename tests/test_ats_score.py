@@ -7,7 +7,7 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from resume_parser import calculate_ats_score, extract_skills
-from app import app
+from app import app, init_db
 
 
 class TestCalculateATSScore:
@@ -119,6 +119,11 @@ class TestCalculateATSScore:
         assert isinstance(result["matched_keywords"], list)
 
 class TestATSIntegrationWithApp:
+    def setup_method(self):
+        app.config["TESTING"] = True
+        init_db()
+        self.client = app.test_client()
+
     def test_register_returns_ats_score(self):
         app.config["TESTING"] = True
         client = app.test_client()

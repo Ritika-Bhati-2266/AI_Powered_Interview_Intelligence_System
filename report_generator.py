@@ -85,7 +85,13 @@ def generate_pdf_report(candidate_data: dict, session_data: dict, ats_score: dic
     cand_email = _safe(candidate_data.get("email") or candidate_data.get("candidate_email"), "N/A")
     cand_role = _safe(candidate_data.get("role") or candidate_data.get("candidate_role"), "N/A")
     company = _safe(candidate_data.get("company") or session_data.get("company") or candidate_data.get("candidate_company"), "General")
-    date_str = _safe(session_data.get("created_at") or session_data.get("start_time") or now_str, now_str)
+    raw_date = session_data.get("created_at") or session_data.get("start_time") or now_str
+    if isinstance(raw_date, (int, float)):
+        try:
+            raw_date = datetime.fromtimestamp(raw_date).strftime("%Y-%m-%d %H:%M:%S")
+        except (ValueError, OSError, OverflowError):
+            raw_date = now_str
+    date_str = _safe(raw_date, now_str)
 
     header_data = [
         [Paragraph(f"<b>Candidate:</b> {_safe(cand_name)}", s_cell), Paragraph(f"<b>Role:</b> {_safe(cand_role)}", s_cell)],

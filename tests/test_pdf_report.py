@@ -87,17 +87,30 @@ class TestGeneratePdfDirect:
 
 
 class TestPdfApiRoute:
-    def test_invalid_session_404(self):
+    def test_invalid_session_404_for_authenticated_admin(self):
         app.config["TESTING"] = True
         client = app.test_client()
-        resp = client.get("/api/report/pdf/invalid-session-xyz-999")
+        import base64
+        cred = base64.b64encode(b"admin:secret123").decode()
+        with patch.dict(os.environ, {"ADMIN_USER": "admin", "ADMIN_PASSWORD": "secret123"}):
+            resp = client.get("/api/report/pdf/invalid-session-xyz-999",
+                              headers={"Authorization": f"Basic {cred}"})
         assert resp.status_code == 404
         j = resp.get_json()
         assert "error" in j
 
+    def test_invalid_session_403_for_anonymous(self):
+        app.config["TESTING"] = True
+        client = app.test_client()
+        os.environ.pop("ADMIN_USER", None)
+        resp = client.get("/api/report/pdf/invalid-session-xyz-999")
+        assert resp.status_code == 403
+
     def test_valid_session_returns_pdf(self):
         app.config["TESTING"] = True
         client = app.test_client()
+        with client.session_transaction() as sess:
+            sess["candidate_id"] = 1
         fake_report = {
             "candidate_info": {"name": "PDF Tester", "email": "pdf@example.com", "role": "Software Engineer", "company": "General"},
             "session_data": {
@@ -123,7 +136,8 @@ class TestPdfApiRoute:
                 {"question": "What is Python?", "answer": "Python is great.", "overall_score": 7, "feedback": "Nice"},
             ],
         }
-        with patch("app.generate_report", return_value=fake_report):
+        with patch("app.generate_report", return_value=fake_report), \
+                patch("app._session_owner_id", return_value=1):
             # Also mock ATS fetch to avoid DB hit
             with patch("app.get_db") as mock_db:
                 mock_conn = mock_db.return_value
@@ -164,13 +178,15 @@ class TestPdfApiRoute:
         }
         # Simulate ATS in session
         with client.session_transaction() as sess:
+            sess["candidate_id"] = 1
             sess["ats_score"] = {
                 "score": 85,
                 "breakdown": {"skills_match": 35, "experience_keywords": 16, "education": 12, "formatting": 9, "keyword_density": 13},
                 "matched_keywords": ["kubernetes", "docker"],
                 "missing_keywords": ["terraform"],
             }
-        with patch("app.generate_report", return_value=fake_report):
+        with patch("app.generate_report", return_value=fake_report), \
+                patch("app._session_owner_id", return_value=1):
             resp = client.get("/api/report/pdf/ATSPDF1")
             assert resp.status_code == 200
             assert resp.content_type == "application/pdf"

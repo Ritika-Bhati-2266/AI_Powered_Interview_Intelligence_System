@@ -138,6 +138,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "strings",
             "companies": ["tcs", "infosys", "wipro", "hcl", "microsoft", "amazon"],
             "company_style_notes": "Basic string manipulation — common at all levels",
+            "aliases": ["palindrome", "is_palindrome"],
             "test_cases": [
                 {"input": "racecar", "expected_output": "true"},
                 {"input": "hello", "expected_output": "false"},
@@ -151,6 +152,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "arrays",
             "companies": ["tcs", "infosys", "wipro", "hcl", "amazon", "google"],
             "company_style_notes": "Array traversal — tests basic iteration logic",
+            "aliases": ["second_largest", "second_largest_element"],
             "test_cases": [
                 {"input": "5\n1 2 3 4 5", "expected_output": "4"},
                 {"input": "3\n10 10 9", "expected_output": "9"},
@@ -164,6 +166,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "strings",
             "companies": ["tcs", "infosys", "wipro", "hcl", "amazon", "microsoft"],
             "company_style_notes": "Hash map / frequency counting — fundamental pattern",
+            "aliases": ["char_frequency", "character_count"],
             "test_cases": [
                 {"input": "hello", "expected_output": "h:1 e:1 l:2 o:1"},
                 {"input": "aabbcc", "expected_output": "a:2 b:2 c:2"},
@@ -176,6 +179,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "arrays",
             "companies": ["tcs", "infosys", "wipro", "hcl", "apple", "microsoft"],
             "company_style_notes": "In-place manipulation — tests pointer/swap understanding",
+            "aliases": ["reverse_array", "reverse_array_inplace"],
             "test_cases": [
                 {"input": "5\n1 2 3 4 5", "expected_output": "5 4 3 2 1"},
                 {"input": "3\n10 20 30", "expected_output": "30 20 10"},
@@ -212,6 +216,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "recursion",
             "companies": ["tcs", "infosys", "wipro", "hcl", "google", "microsoft"],
             "company_style_notes": "Recursion vs iteration — classic entry-level question",
+            "aliases": ["fibonacci", "fibonacci_series"],
             "test_cases": [
                 {"input": "5", "expected_output": "0 1 1 2 3"},
                 {"input": "1", "expected_output": "0"},
@@ -239,6 +244,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "arrays",
             "companies": ["google", "amazon", "meta", "microsoft", "flipkart"],
             "company_style_notes": "Two-sum pattern — Google/Amazon staple with hash map optimization",
+            "aliases": ["two_sum", "two sum", "pair_with_sum"],
             "test_cases": [
                 {"input": "4\n2 7 11 15\n9", "expected_output": "0 1"},
                 {"input": "3\n3 2 4\n6", "expected_output": "1 2"},
@@ -265,6 +271,7 @@ FALLBACK_CODING_QUESTIONS = {
             "category": "linked_lists",
             "companies": ["google", "microsoft", "amazon", "meta"],
             "company_style_notes": "Linked list manipulation — Microsoft and Google commonly ask this",
+            "aliases": ["merge_linked_lists", "merge_sorted_lists"],
             "test_cases": [
                 {"input": "3\n1 2 4\n3\n1 3 4", "expected_output": "1 1 2 3 4 4"},
                 {"input": "0\n\n3\n1 2 3", "expected_output": "1 2 3"},
@@ -422,10 +429,14 @@ FALLBACK_CODING_QUESTIONS = {
 
 
 def get_question_by_id(question_id: str) -> dict:
-    """Lookup a coding question by its id across all difficulties."""
+    """Lookup a coding question by its id or alias across all difficulties."""
     for diff_list in FALLBACK_CODING_QUESTIONS.values():
         for q in diff_list:
             if q.get("id") == question_id:
+                return q
+            # Also check aliases for meaningful names like 'two_sum', 'reverse_linked_list'
+            aliases = q.get("aliases", [])
+            if question_id in aliases:
                 return q
     return None
 
@@ -477,3 +488,32 @@ def get_coding_style_label(company: str) -> str:
     if config:
         return config["style_label"]
     return "Coding Question"
+
+
+def _format_coding_question_text(q: dict) -> str:
+    """Ensure a coding question includes Function Description / Input / Output sections."""
+    original = (q.get("question") or "").strip()
+    if "Function Description:" in original:
+        return original
+    tcs = q.get("test_cases") or []
+    sample = tcs[0] if tcs else {}
+    inp = (sample.get("input") or "").strip()
+    out = (sample.get("expected_output") or "").strip()
+    lines = [
+        f"Function Description: {original}",
+        "",
+        "Input Format: As described in the problem and shown in the sample cases.",
+        "Output Format: As described in the problem and shown in the sample cases.",
+        "Constraints: Standard constraints apply; handle edge cases.",
+    ]
+    if inp or out:
+        lines.append("")
+        lines.append(f"Sample Input: {inp if inp else '(none)'}")
+        lines.append(f"Sample Output: {out if out else '(none)'}")
+    return "\n".join(lines)
+
+
+# Apply formatting to all fallback coding questions at import time.
+for _diff, _lst in FALLBACK_CODING_QUESTIONS.items():
+    for _q in _lst:
+        _q["question"] = _format_coding_question_text(_q)

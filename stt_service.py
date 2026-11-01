@@ -6,7 +6,29 @@ Provides audio transcription and filler-word detection.
 import os
 import tempfile
 import warnings
+import shutil
 from typing import Dict, Any, Optional
+
+
+def _ensure_ffmpeg_on_path():
+    """Locate ffmpeg (e.g. winget install) and add it to PATH if missing."""
+    if shutil.which("ffmpeg"):
+        return
+    # Common winget install location
+    base = os.path.join(os.path.expanduser("~"), "AppData", "Local", "Microsoft", "WinGet", "Packages")
+    if os.path.isdir(base):
+        for root, _dirs, files in os.walk(base):
+            if "ffmpeg.exe" in files:
+                os.environ["PATH"] = root + os.pathsep + os.environ.get("PATH", "")
+                return
+    # Fallback: search PATH-like common dirs
+    for d in (r"C:\ffmpeg\bin", r"C:\Program Files\ffmpeg\bin"):
+        if os.path.exists(os.path.join(d, "ffmpeg.exe")):
+            os.environ["PATH"] = d + os.pathsep + os.environ.get("PATH", "")
+            return
+
+
+_ensure_ffmpeg_on_path()
 
 # Suppress Whisper warnings
 warnings.filterwarnings("ignore", category=FutureWarning)

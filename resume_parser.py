@@ -1,7 +1,7 @@
 """
 Resume Parser Module
 Extracts text content from PDF and DOCX resume files.
-Uses PyPDF2 for PDFs and python-docx for DOCX files.
+Uses pypdf for PDFs and python-docx for DOCX files.
 Provides basic skill extraction from text content.
 """
 
@@ -73,9 +73,13 @@ def extract_text_from_pdf(filepath: str) -> str:
         raise FileNotFoundError(f"Resume file not found: {filepath}")
 
     try:
-        from PyPDF2 import PdfReader
+        from pypdf import PdfReader
     except ImportError:
-        raise ImportError("PyPDF2 is required. Install with: pip install PyPDF2")
+        # Backward compatibility for environments still on the archived PyPDF2
+        try:
+            from PyPDF2 import PdfReader
+        except ImportError:
+            raise ImportError("pypdf is required. Install with: pip install pypdf")
 
     try:
         reader = PdfReader(filepath)

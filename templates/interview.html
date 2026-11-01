@@ -180,7 +180,6 @@
                     <div id="gd-input-choice" class="gd-input-choice" style="display:none;">
                         <span style="font-size:0.78rem;color:var(--text-muted);">How will you participate?</span>
                         <button class="btn btn-primary btn-sm" onclick="chooseGDMode('verbal')">🎤 Verbal — I will speak</button>
-                        <button class="btn btn-secondary btn-sm" onclick="chooseGDMode('written')">⌨️ Written — I will type</button>
                     </div>
                 </div>
 
@@ -206,8 +205,7 @@
                             <span class="aptitude-option-text" id="apt-opt-3"></span>
                         </div>
                     </div>
-                    <button id="aptitude-submit-btn" class="btn btn-primary btn-block aptitude-submit-btn" disabled style="width:100%;">
-                        Confirm Selection
+                    <!-- Confirm Selection button removed: answer auto-submits on option click -->
                         <svg class="btn-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                     </button>
                     <div id="aptitude-feedback" class="aptitude-feedback" style="display:none;">
@@ -276,9 +274,7 @@
                     <div id="type-section" class="type-section" style="display:none;">
                         <div class="input-row-premium">
                             <textarea id="answer-input" class="chat-textarea" placeholder="Type your answer here... (Enter to send, Shift+Enter for newline)" rows="1" disabled></textarea>
-                            <button id="send-btn" class="btn btn-primary send-btn" disabled>
-                                Send
-                            </button>
+                            <!-- Send button removed: Enter submits -->
                         </div>
                         <div class="toggle-input-mode" style="margin-top:0.5rem;">
                             <button id="type-mode-switch" class="btn-mode-toggle" onclick="switchToVoiceMode()">
@@ -289,9 +285,7 @@
                     <div id="voice-unsupported" class="voice-unsupported" style="display:none;">
                         <div class="input-row-premium">
                             <textarea id="answer-input-fallback" class="chat-textarea" placeholder="Type your answer here... (Enter to send, Shift+Enter for newline)" rows="1" disabled></textarea>
-                            <button id="send-btn-fallback" class="btn btn-primary send-btn" disabled>
-                                Send
-                            </button>
+                            <!-- Send button removed: Enter submits -->
                         </div>
                         <div class="toggle-input-mode" style="margin-top:0.5rem;">
                             <span class="unsupported-alert-text" style="font-size:0.8rem;color:var(--accent-amber);">Voice transcription is not available in this browser. Please use Google Chrome or Microsoft Edge.</span>

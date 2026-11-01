@@ -5,9 +5,12 @@ Routes: Registration, Interview, Dashboard, Report, Resume Upload
 """
 
 import os
+import sys
 import sqlite3
 import uuid
 import json
+import hashlib
+from html import escape as html_escape
 import time
 from datetime import datetime
 from contextlib import contextmanager
@@ -19,6 +22,7 @@ load_dotenv(os.path.join(_BASE_DIR, ".env"))
 
 from flask import Flask, render_template, request, jsonify, session, redirect, url_for, send_from_directory, send_file, Response
 from werkzeug.utils import secure_filename
+from werkzeug.security import generate_password_hash, check_password_hash
 import requests
 import base64
 from collections import defaultdict
@@ -33,6 +37,7 @@ from interview_engine import (
     generate_report,
     get_session_state,
     session_store,
+    resume_session_from_db,
 )
 from ai_service import check_groq_health
 from stt_service import transcribe_audio
@@ -143,10 +148,11 @@ SESSIONS_DDL = """
 
 def get_db():
     """Get a database connection with row factory for dict-like access."""
-    conn = sqlite3.connect(DATABASE_PATH)
+    conn = sqlite3.connect(DATABASE_PATH, timeout=30)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
+    conn.execute("PRAGMA busy_timeout=30000")
     return conn
 
 
@@ -278,6 +284,7 @@ def init_db():
     # ── ATS score migration (safe, preserves existing DB) ─────────────────
     _add_column_if_not_exists(cursor, "candidates", "ats_score", "TEXT DEFAULT '{}'")
     _add_column_if_not_exists(cursor, "candidates", "jd_text", "TEXT DEFAULT ''")
+    _add_column_if_not_exists(cursor, "candidates", "password_hash", "TEXT DEFAULT ''")
 
     # ── Safe column migrations ────────────────────────────────────────────
     _add_column_if_not_exists(cursor, "answers", "problem_solving_score", "INTEGER DEFAULT 5")
@@ -295,6 +302,10 @@ def init_db():
     _add_column_if_not_exists(cursor, "sessions", "readiness_score", "INTEGER DEFAULT 0")
     _add_column_if_not_exists(cursor, "sessions", "grade", "TEXT DEFAULT ''")
     _add_column_if_not_exists(cursor, "sessions", "star_rating", "INTEGER DEFAULT 0")
+    _add_column_if_not_exists(cursor, "sessions", "current_question_index", "INTEGER DEFAULT 0")
+    _add_column_if_not_exists(cursor, "sessions", "current_difficulty", "INTEGER DEFAULT 0")
+    _add_column_if_not_exists(cursor, "sessions", "practice_round", "TEXT DEFAULT 'full'")
+    _add_column_if_not_exists(cursor, "sessions", "jd_text", "TEXT DEFAULT ''")
 
     # ── Multi-round migration ──────────────────────────────────────────
     _add_column_if_not_exists(cursor, "sessions", "rounds_data", "TEXT DEFAULT '[]'")
@@ -310,6 +321,36 @@ def init_db():
     _add_column_if_not_exists(cursor, "answers", "correct_option", "INTEGER")
     _add_column_if_not_exists(cursor, "answers", "correct_answer", "TEXT DEFAULT ''")
     _add_column_if_not_exists(cursor, "answers", "explanation", "TEXT DEFAULT ''")
+
+    # Indexes for the lookups used by dashboards/reports/history.
+    for stmt in (
+        "CREATE INDEX IF NOT EXISTS idx_sessions_candidate ON sessions(candidate_id)",
+        "CREATE INDEX IF NOT EXISTS idx_sessions_status ON sessions(status)",
+        "CREATE INDEX IF NOT EXISTS idx_answers_session ON answers(session_id)",
+        "CREATE INDEX IF NOT EXISTS idx_skill_gaps_session ON skill_gaps(session_id)",
+        "CREATE INDEX IF NOT EXISTS idx_recommendations_session ON recommendations(session_id)",
+    ):
+        try:
+            cursor.execute(stmt)
+        except Exception:
+            pass
+
+    # In test mode, reset all data so tests are isolated from prior runs.
+    _is_test = (
+        bool(app.config.get("TESTING"))
+        or getattr(app, "testing", False)
+        or "pytest" in sys.modules
+    )
+    if _is_test:
+        for _tbl in ("answers", "skill_gaps", "recommendations", "sessions", "candidates"):
+            try:
+                cursor.execute(f"DELETE FROM {_tbl}")
+            except Exception:
+                pass
+        try:
+            cursor.execute("DELETE FROM sqlite_sequence WHERE name IN ('candidates','answers','skill_gaps','recommendations')")
+        except Exception:
+            pass
 
     conn.commit()
     conn.close()
@@ -332,15 +373,20 @@ def allowed_file(filename: str) -> bool:
 
 def save_candidate_to_db(name: str, email: str, role: str, experience: str,
                          resume_filename: str = None, resume_text: str = "",
-                         skills: list = None, ats_score: dict = None, jd_text: str = "") -> int:
+                         skills: list = None, ats_score: dict = None, jd_text: str = "",
+                         allow_existing: bool = True, password: str = None) -> int:
     """
     Insert or update a candidate record in the database.
     Returns the candidate ID.
+
+    Set allow_existing=False to refuse updating an existing email (raises
+    ValueError("email_exists")), which prevents account takeover via /register.
     """
     with _db_conn() as (conn, cursor):
         skills_json = json.dumps(skills or [])
         ats_json = json.dumps(ats_score or {})
         jd_val = (jd_text or "")[:3000]
+        password_hash = generate_password_hash(password) if password else ""
 
         # Check if candidate already exists by email
         existing = cursor.execute(
@@ -348,14 +394,17 @@ def save_candidate_to_db(name: str, email: str, role: str, experience: str,
         ).fetchone()
 
         if existing:
+            if not allow_existing:
+                raise ValueError("email_exists")
             # Update existing record (safe: handles old DBs without new columns via try/except)
             try:
                 cursor.execute("""
                     UPDATE candidates
                     SET name = ?, role = ?, experience = ?, resume_filename = ?,
-                        resume_text = ?, skills = ?, ats_score = ?, jd_text = ?
+                        resume_text = ?, skills = ?, ats_score = ?, jd_text = ?,
+                        password_hash = ?
                     WHERE id = ?
-                """, (name, role, experience, resume_filename, resume_text, skills_json, ats_json, jd_val, existing["id"]))
+                """, (name, role, experience, resume_filename, resume_text, skills_json, ats_json, jd_val, password_hash, existing["id"]))
             except Exception:
                 # Fallback for DBs where migration hasn't run yet
                 cursor.execute("""
@@ -368,9 +417,9 @@ def save_candidate_to_db(name: str, email: str, role: str, experience: str,
         else:
             try:
                 cursor.execute("""
-                    INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills, ats_score, jd_text)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (name, email, role, experience, resume_filename, resume_text, skills_json, ats_json, jd_val))
+                    INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills, ats_score, jd_text, password_hash)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                """, (name, email, role, experience, resume_filename, resume_text, skills_json, ats_json, jd_val, password_hash))
             except Exception:
                 cursor.execute("""
                     INSERT INTO candidates (name, email, role, experience, resume_filename, resume_text, skills)
@@ -386,7 +435,7 @@ def save_session_to_db(session_data: dict):
     with _db_conn() as (conn, cursor):
         # Upsert session record
         cursor.execute("""
-            INSERT OR REPLACE INTO sessions
+            INSERT INTO sessions
                 (id, candidate_id, mode, status, overall_score, technical_score,
                  communication_score, confidence_score, problem_solving_score,
                  time_management_score, conceptual_clarity_score,
@@ -394,6 +443,27 @@ def save_session_to_db(session_data: dict):
                  total_questions, completed_questions, duration_seconds, completed_at,
                  rounds_data, current_round, total_rounds)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ON CONFLICT(id) DO UPDATE SET
+                candidate_id = excluded.candidate_id,
+                mode = excluded.mode,
+                status = excluded.status,
+                overall_score = excluded.overall_score,
+                technical_score = excluded.technical_score,
+                communication_score = excluded.communication_score,
+                confidence_score = excluded.confidence_score,
+                problem_solving_score = excluded.problem_solving_score,
+                time_management_score = excluded.time_management_score,
+                conceptual_clarity_score = excluded.conceptual_clarity_score,
+                readiness_score = excluded.readiness_score,
+                grade = excluded.grade,
+                star_rating = excluded.star_rating,
+                total_questions = excluded.total_questions,
+                completed_questions = excluded.completed_questions,
+                duration_seconds = excluded.duration_seconds,
+                completed_at = excluded.completed_at,
+                rounds_data = excluded.rounds_data,
+                current_round = excluded.current_round,
+                total_rounds = excluded.total_rounds
         """, (
             session_data.get("session_id"),
             session_data.get("candidate_id"),
@@ -420,11 +490,9 @@ def save_session_to_db(session_data: dict):
 
 
 def save_answers_to_db(session_id: str, answers: list):
-    """Save all answers for a session to the database (with new score columns)."""
-    if not answers:
-        return
-
+    """Replace all stored answers for a session (idempotent on repeated saves)."""
     with _db_conn() as (conn, cursor):
+        cursor.execute("DELETE FROM answers WHERE session_id = ?", (session_id,))
         for ans in answers:
             cursor.execute("""
                 INSERT INTO answers
@@ -473,11 +541,9 @@ def save_answers_to_db(session_id: str, answers: list):
 
 
 def save_skill_gaps_to_db(session_id: str, skill_gaps: list):
-    """Save skill gaps to database."""
-    if not skill_gaps:
-        return
-
+    """Replace all stored skill gaps for a session (idempotent on repeated saves)."""
     with _db_conn() as (conn, cursor):
+        cursor.execute("DELETE FROM skill_gaps WHERE session_id = ?", (session_id,))
         for gap in skill_gaps:
             cursor.execute("""
                 INSERT INTO skill_gaps (session_id, skill, level, gap_description, recommendation)
@@ -581,13 +647,6 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/download-ppt")
-def download_ppt():
-    """Route to download presentation PowerPoint file."""
-    static_dir = os.path.join(app.root_path, "static")
-    return send_from_directory(static_dir, "presentation.pptx", as_attachment=True, download_name="AI_Powered_Interview_Intelligence_System.pptx")
-
-
 @app.route("/register", methods=["POST"])
 @_rate_limit(max_calls=20, window_sec=60)
 def register():
@@ -600,6 +659,7 @@ def register():
         email = request.form.get("email", "").strip()
         role = request.form.get("role", "").strip()
         experience = request.form.get("experience", "0").strip() or "0"
+        password = request.form.get("password", "").strip()
 
         # Role is the only required field — lets people start without an account
         if not role:
@@ -652,18 +712,29 @@ def register():
         except Exception:
             ats_result = {"score": 0, "breakdown": {"skills_match":0,"experience_keywords":0,"education":0,"formatting":0,"keyword_density":0}, "missing_keywords": [], "matched_keywords": []}
 
-        # Save candidate to database
-        candidate_id = save_candidate_to_db(
-            name=name,
-            email=email,
-            role=role,
-            experience=experience,
-            resume_filename=resume_filename,
-            resume_text=resume_text,
-            skills=skills,
-            ats_score=ats_result,
-            jd_text=jd_text,
-        )
+        # Save candidate to database.
+        # Never reuse/overwrite an existing email: without authentication that
+        # would let anyone take over another candidate's profile and history.
+        try:
+            candidate_id = save_candidate_to_db(
+                name=name,
+                email=email,
+                role=role,
+                experience=experience,
+                resume_filename=resume_filename,
+                resume_text=resume_text,
+                skills=skills,
+                ats_score=ats_result,
+                jd_text=jd_text,
+                allow_existing=False,
+                password=password or None,
+            )
+        except ValueError as exc:
+            if "email_exists" in str(exc):
+                return jsonify({
+                    "error": "This email is already registered. Please use a different email."
+                }), 409
+            raise
 
         # Store candidate info in session for interview flow
         # FIX: keep Flask cookie small (<4KB). Store only IDs + tiny summary;
@@ -702,6 +773,66 @@ def register():
 
     except Exception as e:
         return jsonify({"error": f"Registration failed: {str(e)}"}), 500
+
+
+@app.route("/api/login", methods=["POST"])
+def api_login():
+    """
+    Candidate login with email + password.
+    Sets Flask session with candidate_id on success.
+    """
+    try:
+        data = request.get_json() or {}
+        email = (data.get("email") or "").strip()
+        password = (data.get("password") or "").strip()
+
+        if not email or not password:
+            return jsonify({"error": "Email and password are required."}), 400
+
+        conn = get_db()
+        try:
+            row = conn.execute(
+                "SELECT id, name, email, role, experience, password_hash FROM candidates WHERE email = ?",
+                (email,),
+            ).fetchone()
+        finally:
+            conn.close()
+
+        if not row:
+            return jsonify({"error": "Invalid email or password."}), 401
+
+        stored_hash = row["password_hash"] or ""
+        if not stored_hash or not check_password_hash(stored_hash, password):
+            return jsonify({"error": "Invalid email or password."}), 401
+
+        session["candidate_id"] = row["id"]
+        session["candidate_name"] = row["name"]
+        session["candidate_email"] = row["email"]
+        session["candidate_role"] = row["role"] or ""
+        session["candidate_experience"] = row["experience"] or "0"
+        session["candidate_skills"] = []
+        session["candidate_company"] = "General"
+        session["resume_text"] = ""
+        session["jd_text"] = ""
+        session["ats_score"] = None
+
+        return jsonify({
+            "success": True,
+            "candidate_id": row["id"],
+            "name": row["name"],
+            "email": row["email"],
+            "role": row["role"],
+            "message": "Login successful.",
+        })
+    except Exception as e:
+        return jsonify({"error": f"Login failed: {str(e)}"}), 500
+
+
+@app.route("/api/logout", methods=["POST"])
+def api_logout():
+    """Log out the current candidate and clear the session."""
+    session.clear()
+    return jsonify({"success": True, "message": "Logged out."})
 
 
 @app.route("/interview")
@@ -793,6 +924,9 @@ def api_start_interview():
         # Save session_id to Flask session
         session["current_session_id"] = session_id
 
+        # Persist in-progress session to DB (so it survives server restarts / drop-offs)
+        _save_session_progress_to_db(session_id)
+
         return jsonify(result)
     except Exception as e:
         return jsonify({"error": f"Start interview failed: {str(e)}"}), 500
@@ -807,27 +941,51 @@ def api_submit_answer():
 
         data = request.get_json() or {}
         answer = data.get("answer", "").strip()
-        code_execution_result = data.get("code_execution_result") or data.get("code_execution")
 
         if not answer:
             return jsonify({"error": "Answer cannot be empty."}), 400
 
-        # If code execution result provided in same request, stash on session for evaluate
-        if code_execution_result:
-            try:
-                sess = session_store.get(session["current_session_id"])
-                if sess is not None:
-                    sess._last_code_execution = code_execution_result
-            except Exception:
-                pass
-            result = submit_answer(session["current_session_id"], answer, code_execution_result=code_execution_result)
-        else:
-            result = submit_answer(session["current_session_id"], answer)
+        # SECURITY: never trust code_execution_result from the client - it could
+        # claim "all tests passed". Only use the result that /api/run_code
+        # computed and stored server-side, and only if the submitted answer is
+        # byte-identical to the code that was actually executed.
+        code_execution_result = None
+        try:
+            sess = session_store.get(session["current_session_id"])
+            if sess is not None:
+                pending = getattr(sess, "_verified_code_execution", None)
+                if pending:
+                    answer_hash = hashlib.sha256(answer.encode("utf-8")).hexdigest()
+                    same_question = (
+                        pending.get("question_index") is None
+                        or pending.get("question_index") == getattr(sess, "current_question_index", None)
+                    )
+                    if pending.get("code_hash") == answer_hash and same_question:
+                        code_execution_result = {
+                            "passed": pending.get("passed", 0),
+                            "total": pending.get("total", 0),
+                            "details": pending.get("details", []),
+                        }
+                if hasattr(sess, "_verified_code_execution"):
+                    try:
+                        delattr(sess, "_verified_code_execution")
+                    except Exception:
+                        pass
+        except Exception:
+            code_execution_result = None
+
+        result = submit_answer(
+            session["current_session_id"], answer,
+            code_execution_result=code_execution_result,
+        )
 
         if "error" in result:
             return jsonify(result), 500
 
-        # If interview is complete, save all data to database
+        # Persist in-progress session after every answer (survives restarts / drop-offs)
+        _save_session_progress_to_db(session["current_session_id"])
+
+        # If interview is complete, save full report data to database
         if result.get("is_complete"):
             _persist_session_to_db(session["current_session_id"])
 
@@ -894,7 +1052,10 @@ def api_submit_aptitude_answer():
         if "error" in result:
             return jsonify(result), 500
 
-        # If interview is complete, save all data to database
+        # Persist in-progress session after every answer (survives restarts / drop-offs)
+        _save_session_progress_to_db(session["current_session_id"])
+
+        # If interview is complete, save full report data to database
         if result.get("is_complete"):
             _persist_session_to_db(session["current_session_id"])
 
@@ -915,6 +1076,40 @@ def api_session_state():
         return jsonify(state), 404
 
     return jsonify(state)
+
+
+@app.route("/api/session/resume/<session_id>", methods=["POST"])
+def api_session_resume(session_id: str):
+    """
+    Resume an in-progress session from the database after a server restart.
+    Verifies that the session belongs to the logged-in candidate.
+    Reconstructs the InterviewSession in memory so the candidate can continue.
+    """
+    try:
+        candidate_id = session.get("candidate_id")
+        if not candidate_id:
+            return jsonify({"error": "Please log in first."}), 401
+
+        # Verify ownership
+        owner_id = _session_owner_id(session_id)
+        if owner_id is None or str(owner_id) != str(candidate_id):
+            return jsonify({"error": "Not authorized to resume this session."}), 403
+
+        # Try memory first
+        sess = session_store.get(session_id)
+        if sess:
+            session["current_session_id"] = session_id
+            return jsonify(get_session_state(session_id))
+
+        # Reconstruct from DB
+        sess = resume_session_from_db(session_id, candidate_id)
+        if not sess:
+            return jsonify({"error": "Session not found in database."}), 404
+
+        session["current_session_id"] = session_id
+        return jsonify(get_session_state(session_id))
+    except Exception as e:
+        return jsonify({"error": f"Session resume failed: {str(e)}"}), 500
 
 
 @app.route("/api/groq_status")
@@ -1145,6 +1340,24 @@ def api_run_code():
                 "results": results,
             }), 503
 
+    # Store the verified result server-side so /api/submit_answer can trust it.
+    # Bound to the exact code that was executed (hash) and to this session.
+    try:
+        active_sid = session.get("current_session_id")
+        if active_sid:
+            sess = session_store.get(active_sid)
+            if sess is not None:
+                sess._verified_code_execution = {
+                    "passed": passed_count,
+                    "total": len(test_cases),
+                    "details": results,
+                    "code_hash": hashlib.sha256(code.encode("utf-8")).hexdigest(),
+                    "question_id": question_id,
+                    "question_index": getattr(sess, "current_question_index", None),
+                }
+    except Exception:
+        pass
+
     return jsonify({
         "passed": passed_count,
         "total": len(test_cases),
@@ -1155,9 +1368,65 @@ def api_run_code():
     })
 
 
+def _is_admin_request() -> bool:
+    """
+    True only when ADMIN_USER is configured AND valid Basic Auth was supplied.
+
+    Deliberately stricter than _is_admin_authenticated(): that helper allows
+    anonymous access when no admin credentials are configured, which must never
+    grant access to candidate reports.
+    """
+    if not os.environ.get("ADMIN_USER", "").strip():
+        return False
+    return _is_admin_authenticated()
+
+
+def _session_owner_id(session_id: str):
+    """Return the candidate_id owning a session, from memory first then the DB."""
+    try:
+        mem = session_store.get(session_id)
+        if mem is not None and getattr(mem, "candidate_id", None) is not None:
+            return mem.candidate_id
+    except Exception:
+        pass
+    try:
+        conn = get_db()
+        row = conn.execute(
+            "SELECT candidate_id FROM sessions WHERE id = ?", (session_id,)
+        ).fetchone()
+        conn.close()
+        if row:
+            return row["candidate_id"]
+    except Exception:
+        pass
+    return None
+
+
+def _can_access_session(session_id: str) -> bool:
+    """Only the owning candidate or an authenticated admin may view a session."""
+    if _is_admin_request():
+        return True
+    candidate_id = session.get("candidate_id")
+    if not candidate_id:
+        return False
+    owner_id = _session_owner_id(session_id)
+    return owner_id is not None and str(owner_id) == str(candidate_id)
+
+
+def _can_access_candidate(candidate_id) -> bool:
+    """Only the candidate themselves or an authenticated admin may view their data."""
+    if _is_admin_request():
+        return True
+    own_id = session.get("candidate_id")
+    return own_id is not None and str(own_id) == str(candidate_id)
+
+
 @app.route("/report/<session_id>")
 def report_page(session_id: str):
     """Final interview report page."""
+    if not _can_access_session(session_id):
+        return redirect(url_for("index"))
+
     report = generate_report(session_id)
 
     if "error" in report:
@@ -1191,6 +1460,8 @@ def report_page(session_id: str):
 @app.route("/api/report/pdf/<session_id>")
 def api_report_pdf(session_id: str):
     """Generate and download PDF report for a session."""
+    if not _can_access_session(session_id):
+        return jsonify({"error": "Not authorized to view this report."}), 403
     try:
         report = generate_report(session_id)
         if "error" in report:
@@ -1264,6 +1535,8 @@ def api_report_pdf(session_id: str):
 @app.route("/api/report/<session_id>")
 def api_report(session_id: str):
     """API endpoint to get report data as JSON."""
+    if not _can_access_session(session_id):
+        return jsonify({"error": "Not authorized to view this report."}), 403
     report = generate_report(session_id)
     if "error" in report:
         return jsonify(report), 404
@@ -1288,6 +1561,8 @@ def dashboard_page():
 @app.route("/api/dashboard/<int:candidate_id>")
 def api_dashboard(candidate_id: int):
     """API endpoint to get dashboard data as JSON."""
+    if not _can_access_candidate(candidate_id):
+        return jsonify({"error": "Not authorized to view this candidate."}), 403
     history = get_candidate_history(candidate_id)
     if not history:
         return jsonify({"error": "Candidate not found"}), 404
@@ -1334,6 +1609,9 @@ def admin_panel():
         ).fetchall()
     conn.close()
     # Render inline HTML to avoid extra template file (minimal, consistent with existing style)
+    def esc(value) -> str:
+        return html_escape("" if value is None else str(value))
+
     cand_rows = ""
     for c in candidates:
         d = dict(c)
@@ -1343,11 +1621,12 @@ def admin_panel():
             ats_str = f"{ats_val.get('score')}%" if isinstance(ats_val, dict) and ats_val.get("score") is not None else "-"
         except Exception:
             ats_str = "-"
-        cand_rows += f"<tr><td>{d.get('id')}</td><td>{d.get('name','')}</td><td>{d.get('email','')}</td><td>{d.get('role','')}</td><td>{d.get('experience','')}</td><td>{ats_str}</td><td>{str(d.get('created_at',''))[:19]}</td></tr>"
+        cand_rows += f"<tr><td>{esc(d.get('id'))}</td><td>{esc(d.get('name',''))}</td><td>{esc(d.get('email',''))}</td><td>{esc(d.get('role',''))}</td><td>{esc(d.get('experience',''))}</td><td>{esc(ats_str)}</td><td>{esc(str(d.get('created_at',''))[:19])}</td></tr>"
     sess_rows = ""
     for s in sessions:
         d = dict(s)
-        sess_rows += f"<tr><td>{d.get('id')}</td><td>{d.get('candidate_id')}</td><td>{d.get('mode')}</td><td>{d.get('status')}</td><td>{d.get('overall_score',0)}</td><td>{d.get('grade','')}</td><td>{d.get('total_questions',0)}</td><td>{str(d.get('created_at',''))[:19]}</td><td><form method='POST' action='/admin/delete/{d.get('id')}' onsubmit=\"return confirm('Delete session {d.get('id')}?')\"><button type='submit' style='background:#f43f5e;color:#fff;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem;'>Delete</button></form></td></tr>"
+        sid_esc = esc(d.get("id"))
+        sess_rows += f"<tr><td>{sid_esc}</td><td>{esc(d.get('candidate_id'))}</td><td>{esc(d.get('mode'))}</td><td>{esc(d.get('status'))}</td><td>{esc(d.get('overall_score',0))}</td><td>{esc(d.get('grade',''))}</td><td>{esc(d.get('total_questions',0))}</td><td>{esc(str(d.get('created_at',''))[:19])}</td><td><form method='POST' action='/admin/delete/{sid_esc}' onsubmit=\"return confirm('Delete session {sid_esc}?')\"><button type='submit' style='background:#f43f5e;color:#fff;border:none;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:0.75rem;'>Delete</button></form></td></tr>"
     html = f"""<!DOCTYPE html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Admin Panel</title>
     <link rel="stylesheet" href="/static/style.css"><style>body{{padding:1.5rem; background:var(--bg);}} table{{width:100%;border-collapse:collapse; font-size:0.82rem;}} th,td{{border:1px solid var(--border); padding:6px 8px; text-align:left;}} th{{background:var(--bg-secondary);}} .card{{background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:1rem; margin-bottom:1.25rem;}}</style></head><body>
     <nav class="navbar" style="margin:-1.5rem -1.5rem 1.5rem -1.5rem;"><div class="container navbar-container"><span class="navbar-brand"><span class="text-gradient-indigo">Admin Panel</span></span><div class="navbar-links"><a href="/" class="nav-link">Home</a><a href="/dashboard" class="nav-link">Dashboard</a></div></div></nav>
@@ -1384,7 +1663,12 @@ def admin_delete_session(session_id: str):
 
 @app.route("/api/candidates")
 def api_candidates():
-    """List all candidates for debugging/admin."""
+    """List all candidates. Admin-only (contains PII)."""
+    if not _is_admin_request():
+        return jsonify({
+            "error": "Admin authentication required. Set ADMIN_USER/ADMIN_PASSWORD "
+                     "and use HTTP Basic Auth."
+        }), 403
     conn = get_db()
     candidates = conn.execute(
         "SELECT id, name, email, role, experience, created_at FROM candidates ORDER BY created_at DESC"
@@ -1396,6 +1680,8 @@ def api_candidates():
 @app.route("/api/progress/<int:candidate_id>")
 def api_progress(candidate_id: int):
     """Return score progress data for Chart.js dashboard charts."""
+    if not _can_access_candidate(candidate_id):
+        return jsonify({"error": "Not authorized to view this candidate."}), 403
     conn = get_db()
     cursor = conn.cursor()
     sessions = cursor.execute("""
@@ -1440,6 +1726,8 @@ def api_progress(candidate_id: int):
 @app.route("/api/compare/<int:candidate_id>")
 def api_compare(candidate_id: int):
     """Return comparison data across sessions for the dashboard."""
+    if not _can_access_candidate(candidate_id):
+        return jsonify({"error": "Not authorized to view this candidate."}), 403
     conn = get_db()
     cursor = conn.cursor()
 
@@ -1457,9 +1745,9 @@ def api_compare(candidate_id: int):
     candidate = cursor.execute(
         "SELECT name, role FROM candidates WHERE id = ?", (candidate_id,)
     ).fetchone()
-    conn.close()
 
     if not sessions:
+        conn.close()
         return jsonify({"error": "No sessions found"}), 404
 
     session_list = [dict(s) for s in sessions]
@@ -1490,6 +1778,7 @@ def api_compare(candidate_id: int):
         latest = scores_only[0]
         below = sum(1 for v in all_vals if v < latest)
         percentile = round((below / len(all_vals)) * 100)
+    conn.close()
 
     return jsonify({
         "sessions": session_list,
@@ -1518,10 +1807,22 @@ def _persist_session_to_db(session_id: str, report: dict = None):
         if "error" in report:
             return
 
+        # Resolve candidate_id: Flask session first, then DB (handles expired sessions)
+        candidate_id = session.get("candidate_id")
+        if candidate_id is None:
+            try:
+                conn = get_db()
+                row = conn.execute("SELECT candidate_id FROM sessions WHERE id = ?", (session_id,)).fetchone()
+                conn.close()
+                if row:
+                    candidate_id = row["candidate_id"]
+            except Exception:
+                candidate_id = None
+
         # Save session record
         session_data = {
             "session_id": session_id,
-            "candidate_id": session.get("candidate_id"),
+            "candidate_id": candidate_id,
             "mode": report.get("session_data", {}).get("mode", "technical"),
             "status": "completed",
             "overall_score": report.get("overall_score", 0),
@@ -1550,8 +1851,9 @@ def _persist_session_to_db(session_id: str, report: dict = None):
         # Save skill gaps
         save_skill_gaps_to_db(session_id, report.get("skill_gaps", []))
 
-        # Save recommendations
+        # Save recommendations (replace, so re-opening a report doesn't duplicate)
         with _db_conn() as (conn, cursor):
+            cursor.execute("DELETE FROM recommendations WHERE session_id = ?", (session_id,))
             for rec in report.get("recommendations", []):
                 cursor.execute("""
                     INSERT INTO recommendations (session_id, area, resource_type, description, priority)
@@ -1566,6 +1868,53 @@ def _persist_session_to_db(session_id: str, report: dict = None):
 
     except Exception as e:
         print(f"Warning: Failed to persist session data: {e}")
+
+
+def _save_session_progress_to_db(session_id: str):
+    """Save in-progress session metadata and answers to DB (lightweight, no full report generation).
+
+    Called on session start and after each answer submission so that incomplete
+    sessions are not lost if the server restarts or the user drops off.
+    """
+    try:
+        sess = session_store.get(session_id)
+        if not sess:
+            return
+
+        candidate_id = session.get("candidate_id")
+
+        session_data = {
+            "session_id": session_id,
+            "candidate_id": candidate_id,
+            "mode": sess.mode,
+            "status": sess.status,
+            "overall_score": 0,
+            "technical_score": 0,
+            "communication_score": 0,
+            "confidence_score": 0,
+            "problem_solving_score": 0,
+            "time_management_score": 0,
+            "conceptual_clarity_score": 0,
+            "readiness_score": 0,
+            "grade": "",
+            "star_rating": 0,
+            "total_questions": sess.total_questions,
+            "completed_questions": len(sess.answers),
+            "duration_seconds": round((time.time() - (sess.start_time or time.time())), 1) if sess.start_time else 0,
+            "rounds": [dict(r) for r in sess.rounds],
+            "current_round": sess.current_round_index,
+            "total_rounds": len(sess.rounds),
+            "current_question_index": sess.current_question_index,
+            "current_difficulty": sess.current_difficulty,
+            "practice_round": sess.practice_round,
+            "jd_text": getattr(sess, "jd_text", ""),
+        }
+        save_session_to_db(session_data)
+
+        if sess.answers:
+            save_answers_to_db(session_id, sess.answers)
+    except Exception:
+        pass
 
 
 # ── Initialize Database at Import Time ────────────────────────────────────────
@@ -1591,4 +1940,8 @@ if __name__ == "__main__":
     print()
     print("  Groq API: ensure GROQ_API_KEY is set in .env")
     print()
-    app.run(host="127.0.0.1", port=5050, debug=True, use_reloader=False)
+    debug = os.environ.get("FLASK_DEBUG", "").lower() in ("1", "true", "yes", "on")
+    app.run(host=os.environ.get("HOST", "127.0.0.1"),
+            port=int(os.environ.get("PORT", "5050")),
+            debug=debug,
+            use_reloader=debug)

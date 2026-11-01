@@ -501,12 +501,12 @@ def submit_answer(session_id: str, answer: str, code_execution_result: dict = No
     # Evaluate the answer — inject code execution result for coding questions if provided
     # If not provided via param but stored on session (e.g., from /api/run_code), use that
     if code_execution_result is None:
-        # Check if caller stashed execution result on session (set via app.py if needed)
-        code_execution_result = getattr(session, '_last_code_execution', None)
+        # Check if caller stashed execution result on session (e.g., from /api/run_code), use that
+        code_execution_result = getattr(session, '_verified_code_execution', None)
         # Clear after use so it doesn't bleed to next question
-        if hasattr(session, '_last_code_execution'):
+        if hasattr(session, '_verified_code_execution'):
             try:
-                delattr(session, '_last_code_execution')
+                delattr(session, '_verified_code_execution')
             except Exception:
                 pass
 
@@ -913,7 +913,12 @@ def _load_session_from_db(session_id: str) -> dict:
             "candidate_company": session_row.get("company", "General"),
             "mode": session_row.get("mode", "technical"),
             "session_id": session_id,
+            "candidate_id": session_row.get("candidate_id"),
             "total_questions": session_row.get("total_questions", 0),
+            "current_question_index": session_row.get("current_question_index", 0),
+            "current_difficulty": session_row.get("current_difficulty", 0),
+            "practice_round": session_row.get("practice_round", "full"),
+            "jd_text": session_row.get("jd_text", ""),
             "answers": answers,
             "rounds": rounds,
             "start_time": session_row.get("created_at", ""),
@@ -927,6 +932,67 @@ def _load_session_from_db(session_id: str) -> dict:
 
     except Exception as e:
         return None
+
+
+def resume_session_from_db(session_id: str, candidate_id: int = None) -> InterviewSession:
+    """
+    Reconstruct an InterviewSession from SQLite after server restart.
+    Returns the InterviewSession object, or None if not found.
+    """
+    db_data = _load_session_from_db(session_id)
+    if db_data is None:
+        return None
+
+    session = InterviewSession(
+        session_id=session_id,
+        candidate_id=db_data.get("candidate_id", 0),
+        candidate_name=db_data.get("candidate_name", "Candidate"),
+        candidate_role=db_data.get("candidate_role", ""),
+        candidate_experience=db_data.get("candidate_experience", "0"),
+        candidate_skills=db_data.get("candidate_skills", []),
+        resume_text=db_data.get("resume_text", ""),
+        mode=db_data.get("mode", "technical"),
+        company=db_data.get("candidate_company", "General"),
+        total_questions=db_data.get("total_questions", 0),
+        jd_text=db_data.get("jd_text", ""),
+        practice_round=db_data.get("practice_round", "full"),
+    )
+
+    # Restore mutable state from DB data (best-effort; some fields may be defaults)
+    session.status = db_data.get("status", "waiting")
+    session.current_difficulty = db_data.get("current_difficulty", 0)
+    session.current_question_index = db_data.get("current_question_index", 0)
+    session.questions = db_data.get("questions", [])
+    session.questions_meta = db_data.get("questions_meta", [])
+    session.answers = db_data.get("answers", [])
+    session.recent_scores = db_data.get("recent_scores", [])
+    session.start_time = db_data.get("start_time")
+    session.end_time = db_data.get("end_time")
+    session.current_round_index = db_data.get("current_round_index", 0)
+    session.round_question_count = db_data.get("round_question_count", 0)
+    session.is_resume_phase = db_data.get("is_resume_phase", False)
+    session.error = db_data.get("error")
+
+    # Restore rounds
+    session.rounds = db_data.get("rounds", [])
+
+    # Restore aptitude state
+    session.aptitude_questions = db_data.get("aptitude_questions", [])
+    session.aptitude_question_index = db_data.get("aptitude_question_index", 0)
+    session.aptitude_correct_count = db_data.get("aptitude_correct_count", 0)
+    session.aptitude_total_count = db_data.get("aptitude_total_count", 0)
+
+    # Restore GD state
+    session.gd_topic = db_data.get("gd_topic", "")
+    session.gd_personas = db_data.get("gd_personas", [])
+    session.gd_transcript = db_data.get("gd_transcript", [])
+    session.gd_candidate_turns = db_data.get("gd_candidate_turns", 0)
+    session.gd_max_candidate_turns = db_data.get("gd_max_candidate_turns", 4)
+    session.gd_ai_index = db_data.get("gd_ai_index", 0)
+    session.gd_scores = db_data.get("gd_scores")
+
+    session_store.create(session)
+    return session
 
 
 def generate_report(session_id: str) -> dict:

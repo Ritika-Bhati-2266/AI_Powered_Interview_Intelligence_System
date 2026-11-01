@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from unittest.mock import patch, MagicMock
 import ai_service
 from interview_engine import InterviewSession, session_store, start_interview, _generate_next_question
-from app import app
+from app import app, init_db
 
 # Helper to capture prompt sent to LLM
 def _capture_prompt_with_jd(jd_text, round_type="technical", category="technical"):
@@ -195,6 +195,10 @@ class TestInterviewSessionJD:
             assert "jd_text" in kwargs
 
 class TestAppRegisterJD:
+    def setup_method(self):
+        app.config["TESTING"] = True
+        init_db()
+
     def test_register_caps_jd_text(self):
         app.config["TESTING"] = True
         client = app.test_client()

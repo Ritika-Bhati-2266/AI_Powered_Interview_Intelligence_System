@@ -449,12 +449,13 @@ def generate_question(role: str, experience: str, skills: list, category: str,
                 "'Explain what X is', 'Describe the architecture', 'What is your approach to testing', "
                 "or 'How would you debug'. Every question must be an algorithm/DSA coding task (arrays, "
                 "strings, linked lists, trees, graphs, DP, etc.) requiring actual code. "
-                "CRITICAL: Output ONLY a short question (1-2 sentences) that asks the candidate "
-                "to implement code. Do NOT write actual code, class "
-                "definitions, pseudocode, or any part of the solution yourself. You are the "
-                "interviewer asking the question, not the candidate answering it. If you need "
-                "to reference code, describe it in words (e.g., 'implement a function that...') "
-                "rather than writing it out."
+                "FORMAT REQUIREMENT: The question text MUST include these sections (each on its own line):\\n"
+                "Function Description: <what the function should do>\\n"
+                "Input Format: <description of input>\\n"
+                "Output Format: <description of output>\\n"
+                "Constraints: <constraints>\\n"
+                "Do NOT write actual code, class definitions, pseudocode, or any part of the solution yourself. "
+                "You are the interviewer asking the question, not the candidate answering it."
             )
             if coding_style:
                 company_round_style = (
@@ -548,6 +549,21 @@ def generate_question(role: str, experience: str, skills: list, category: str,
     # Company-specific tag for the question itself
     company_tag = f"\nCompany: {company}" if company and company_lower != "general" else ""
 
+    _is_coding_q = (str(category).lower() in ("coding", "arrays", "strings", "arrays_strings")
+                    or (round_info is not None and str(round_info.get("type", "")).lower() == "coding"))
+    if _is_coding_q:
+        coding_format_rule = (
+            "- For CODING questions, include these sections in the question text:\\n"
+            "  Function Description: <what the function should do>\\n"
+            "  Input Format: <description of input>\\n"
+            "  Output Format: <description of output>\\n"
+            "  Constraints: <constraints>\\n"
+            "  (Optional) Sample Input/Output.\\n"
+            "- The question may be longer than 2 sentences to include these sections."
+        )
+    else:
+        coding_format_rule = "- Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs."
+
     prompt = f"""Generate a single {difficulty} interview question for a {role} candidate with {experience} years of experience.{company_tag}
 
 Candidate's Target Role: {role}
@@ -577,7 +593,7 @@ DIFFICULTY ENFORCEMENT (hard constraints based on difficulty='{difficulty}'):
 CRITICAL RULES:
 - Return ONLY the raw question text. No labels, no prefixes (like 'Question:', 'Q:', 'Based on your resume...', 'Here is my question:', 'Sure, here is...'), and no quotes.
 - NEVER preface the question with a descriptive sentence like "Here is a ... question tailored to ...", "Here is a ... question for ...", or "For a ... candidate with ... years of experience:". Return JUST the question itself, nothing before it.
-- Keep the question CONCISE: 1-2 sentences maximum. Do NOT write long multi-part scenarios or paragraphs.
+{coding_format_rule}
 - Keep it highly conversational and direct, like an interviewer asking a candidate in person.
 - Ensure high TOPIC VARIETY: Do NOT repeat topics or technologies from previous questions in this session.
 - The question MUST be relevant to the candidate's target role '{role}' and their stated experience level ({experience} years).
@@ -608,8 +624,11 @@ CRITICAL RULES:
     # Safety check: if response contains code (class/def/enum/struct/etc.) or is too
     # long (>50 words for a 1-2 sentence question), fall back to a proper question.
     word_count = len(response.split())
-    has_code_block = bool(re.search(r'\b(class|def |void |int |struct |enum |function\s*\w+\s*\()', response))
-    if has_code_block or word_count > 50:
+    _is_coding_resp = (str(category).lower() in ("coding", "arrays", "strings", "arrays_strings")
+                       or (round_info is not None and str(round_info.get("type", "")).lower() == "coding"))
+    _word_limit = 220 if _is_coding_resp else 50
+    has_code_block = bool(re.search(r'\b(class\s+\w|def\s+\w+\s*\(|void\s+\w+\s*\(|struct\s+\w|enum\s+\w)', response))
+    if has_code_block or word_count > _word_limit:
         fallback = _get_fallback_question(role, category, difficulty, company)
         return fallback
     
